@@ -8,7 +8,7 @@ const Navbar = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/');
   };
 
   return (
@@ -27,19 +27,19 @@ const Navbar = () => {
                 {user.role === 'student' && (
                   <>
                     <Link
-                      to="/dashboard"
+                      to="/student/dashboard"
                       className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
                     >
                       Dashboard
                     </Link>
                     <Link
-                      to="/profile"
+                      to="/student/profile"
                       className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
                     >
                       Profile
                     </Link>
                     <Link
-                      to="/results"
+                      to="/student/results"
                       className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
                     >
                       Results
@@ -49,7 +49,7 @@ const Navbar = () => {
 
                 {user.role === 'teacher' && (
                   <Link
-                    to="/teacher-dashboard"
+                    to="/teacher/dashboard"
                     className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
                   >
                     Teacher Dashboard
@@ -58,7 +58,7 @@ const Navbar = () => {
 
                 {user.role === 'admin' && (
                   <Link
-                    to="/admin-dashboard"
+                    to="/admin/dashboard"
                     className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
                   >
                     Admin Dashboard
@@ -75,10 +75,16 @@ const Navbar = () => {
             ) : (
               <>
                 <Link
-                  to="/login"
+                  to="/student/login"
                   className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
                 >
-                  Login
+                  Student Login
+                </Link>
+                <Link
+                  to="/teacher/login"
+                  className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Teacher Login
                 </Link>
                 <Link
                   to="/register"

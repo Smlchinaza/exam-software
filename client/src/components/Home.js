@@ -6,20 +6,20 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Hero Section */}
-      <div className="bg-blue-600 text-white">
+      <div className="bg-white">
         <div className="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
+            <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl sm:tracking-tight lg:text-6xl">
               Welcome to School Portal
             </h1>
-            <p className="mt-6 max-w-2xl mx-auto text-xl">
-              Access your academic information, track your progress, and stay connected with your education journey.
+            <p className="mt-6 max-w-2xl mx-auto text-xl text-gray-500">
+              A comprehensive platform for students, teachers, and administrators to manage academic activities.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Portal Sections */}
+      {/* Portal Cards */}
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {/* Student Portal */}
@@ -34,7 +34,7 @@ const Home = () => {
               </p>
               <div className="mt-6">
                 <Link
-                  to="/login"
+                  to="/student/login"
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
                 >
                   Student Login
@@ -55,7 +55,7 @@ const Home = () => {
               </p>
               <div className="mt-6">
                 <Link
-                  to="/login"
+                  to="/teacher/login"
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700"
                 >
                   Teacher Login
@@ -76,7 +76,7 @@ const Home = () => {
               </p>
               <div className="mt-6">
                 <Link
-                  to="/login"
+                  to="/admin/login"
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700"
                 >
                   Admin Login
