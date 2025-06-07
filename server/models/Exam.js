@@ -1,0 +1,83 @@
+const mongoose = require("mongoose");
+
+const examSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  description: {
+    type: String,
+    required: true
+  },
+  duration: {
+    type: Number,
+    required: true,
+    min: 1
+  },
+  totalMarks: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  startTime: {
+    type: Date,
+    required: true
+  },
+  endTime: {
+    type: Date,
+    required: true
+  },
+  subject: {
+    type: String,
+    required: true
+  },
+  difficulty: {
+    type: String,
+    enum: ['easy', 'medium', 'hard'],
+    default: 'medium'
+  },
+  instructions: {
+    type: String,
+    required: true
+  },
+  questions: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Question',
+    required: true
+  }],
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  status: {
+    type: String,
+    enum: ['draft', 'scheduled', 'active', 'completed', 'cancelled'],
+    default: 'draft'
+  }
+}, {
+  timestamps: true
+});
+
+// Validate that endTime is after startTime
+examSchema.pre('save', function(next) {
+  if (this.endTime <= this.startTime) {
+    next(new Error('End time must be after start time'));
+  }
+  next();
+});
+
+// Calculate total marks before saving
+examSchema.pre('save', async function(next) {
+  if (this.isModified('questions')) {
+    const Question = mongoose.model('Question');
+    const questions = await Question.find({ _id: { $in: this.questions } });
+    this.totalMarks = questions.reduce((total, q) => total + (q.marks || 0), 0);
+  }
+  next();
+});
+
+const Exam = mongoose.model('Exam', examSchema);
+
+module.exports = Exam;
