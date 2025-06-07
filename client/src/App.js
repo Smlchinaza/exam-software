@@ -1,94 +1,79 @@
-import React from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
-import Navbar from "./components/Navbar";
-import Login from "./components/Login";
-import SignUp from "./components/SignUp";
-import Dashboard from "./components/Dashboard";
-import QuestionBank from "./components/QuestionBank";
-import CreateExam from "./components/CreateExam";
-import ForgotPassword from "./components/ForgotPassword";
-import UserProfile from "./components/UserProfile";
-import TakeExam from "./components/TakeExam";
-// import ExamList from "./components/ExamList";
-// import "./App.css";
-
-// This is the main entry point of the React application.
-// It sets up the router and provides the authentication context to the entire app.
-// The Navbar component is displayed on all pages, and the Routes define the different pages of the application.
-// The Login, Dashboard, ExamList, and TakeExam components are rendered based on the current route.
-// The application uses React Router for navigation and context API for managing authentication state.
-// The App component is wrapped in the AuthProvider to provide authentication context to all components.
-// The application is structured to allow users to log in, view their dashboard, see a list of exams, and take exams.
-// The main entry point of the React application is set up to handle routing and authentication context.
-// The application is designed to be modular, with separate components for different functionalities.
-// The Routes component defines the paths and the components that should be rendered for each path.
-// The application is built using React and follows best practices for component-based architecture.
-// The AuthProvider component is used to manage authentication state across the application.
-
-function PrivateRoute({ children }) {
-  const token = localStorage.getItem("token");
-  return token ? children : <Navigate to="/login" />;
-}
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import Navbar from './components/Navbar';
+import Home from './components/Home';
+import StudentLogin from './components/StudentLogin';
+import TeacherLogin from './components/TeacherLogin';
+import Register from './components/Register';
+import StudentDashboard from './components/StudentDashboard';
+import StudentProfile from './components/StudentProfile';
+import StudentResults from './components/StudentResults';
+import TeacherDashboard from './components/TeacherDashboard';
+// import AdminDashboard from './components/AdminDashboard';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="App">
+        <div className="min-h-screen bg-gray-100">
           <Navbar />
           <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
+            {/* Public Routes */}
+            <Route path="/" element={<Home />} />
+            <Route path="/student/login" element={<StudentLogin />} />
+            <Route path="/teacher/login" element={<TeacherLogin />} />
+            <Route path="/register" element={<Register />} />
+
+            {/* Protected Student Routes */}
             <Route
-              path="/dashboard"
+              path="/student/dashboard"
               element={
-                <PrivateRoute>
-                  <Dashboard />
-                </PrivateRoute>
+                <ProtectedRoute role="student">
+                  <StudentDashboard />
+                </ProtectedRoute>
               }
             />
             <Route
-              path="/profile"
+              path="/student/profile"
               element={
-                <PrivateRoute>
-                  <UserProfile />
-                </PrivateRoute>
+                <ProtectedRoute role="student">
+                  <StudentProfile />
+                </ProtectedRoute>
               }
             />
             <Route
-              path="/question-bank"
+              path="/student/results"
               element={
-                <PrivateRoute>
-                  <QuestionBank />
-                </PrivateRoute>
+                <ProtectedRoute role="student">
+                  <StudentResults />
+                </ProtectedRoute>
               }
             />
+
+            {/* Protected Teacher Routes */}
             <Route
-              path="/create-exam"
+              path="/teacher/dashboard"
               element={
-                <PrivateRoute>
-                  <CreateExam />
-                </PrivateRoute>
+                <ProtectedRoute role="teacher">
+                  <TeacherDashboard />
+                </ProtectedRoute>
               }
             />
-            <Route path="/" element={<Navigate to="/dashboard" />} />
-            <Route
-              path="/take-exam/:examId"
+
+            {/* Protected Admin Routes */}
+            {/* <Route
+              path="/admin-dashboard"
               element={
-                <PrivateRoute>
-                  <TakeExam />
-                </PrivateRoute>
+                <ProtectedRoute role="admin">
+                  <AdminDashboard />
+                </ProtectedRoute>
               }
-            />
-            {/* <Route path="/exams" element={<ExamList />} /> */}
-            {/* <Route path="/exam/:id" element={<TakeExam />} /> */}
+            /> */}
+
+            {/* Fallback Route */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
       </Router>

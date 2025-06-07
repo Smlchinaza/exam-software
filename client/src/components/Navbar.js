@@ -1,95 +1,98 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { User, LogOut, Menu, X } from 'lucide-react';
-import logo from '../assets/images/SpectraLogo.jpg';
 
-function Navbar() {
-  const { currentUser, logout } = useAuth();
+const Navbar = () => {
   const navigate = useNavigate();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate('/login');
-    } catch (error) {
-      console.error('Failed to log out:', error);
-    }
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
   return (
-    <div className="bg-white shadow-md">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex items-center">
-            <img src={logo} alt="Spectra Logo" className="h-8 sm:h-10 w-auto" />
-          </div>
-          
-          {/* Desktop Menu */}
-          <div className="hidden sm:flex items-center space-x-4">
-            <span className="text-gray-700 text-sm sm:text-base">
-              Welcome, {currentUser?.displayName || 'Teacher'}
-            </span>
-            <Link
-              to="/profile"
-              className="text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <User className="w-5 h-5" />
+    <nav className="bg-white shadow-lg">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex">
+            <Link to="/" className="flex items-center">
+              <span className="text-xl font-bold text-blue-600">School Portal</span>
             </Link>
-            <button
-              onClick={handleLogout}
-              className="flex items-center space-x-2 bg-gray-500 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded hover:bg-gray-600 transition-colors text-sm sm:text-base"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>Logout</span>
-            </button>
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="sm:hidden text-gray-600 hover:text-gray-900 focus:outline-none"
-          >
-            {isMenuOpen ? (
-              <X className="w-6 h-6" />
+          <div className="flex items-center">
+            {user ? (
+              <>
+                {user.role === 'student' && (
+                  <>
+                    <Link
+                      to="/dashboard"
+                      className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      to="/profile"
+                      className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+                    >
+                      Profile
+                    </Link>
+                    <Link
+                      to="/results"
+                      className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+                    >
+                      Results
+                    </Link>
+                  </>
+                )}
+
+                {user.role === 'teacher' && (
+                  <Link
+                    to="/teacher-dashboard"
+                    className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Teacher Dashboard
+                  </Link>
+                )}
+
+                {user.role === 'admin' && (
+                  <Link
+                    to="/admin-dashboard"
+                    className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Admin Dashboard
+                  </Link>
+                )}
+
+                <button
+                  onClick={handleLogout}
+                  className="ml-4 text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Logout
+                </button>
+              </>
             ) : (
-              <Menu className="w-6 h-6" />
+              <>
+                <Link
+                  to="/login"
+                  className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Register
+                </Link>
+              </>
             )}
-          </button>
-        </div>
-
-        {/* Mobile Menu */}
-        {isMenuOpen && (
-          <div className="sm:hidden border-t border-gray-200 py-4">
-            <div className="flex flex-col space-y-4">
-              <span className="text-gray-700 text-sm">
-                Welcome, {currentUser?.displayName || 'Teacher'}
-              </span>
-              <Link
-                to="/profile"
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <User className="w-5 h-5" />
-                <span>Profile</span>
-              </Link>
-              <button
-                onClick={() => {
-                  handleLogout();
-                  setIsMenuOpen(false);
-                }}
-                className="flex items-center space-x-2 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors text-sm"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>Logout</span>
-              </button>
-            </div>
           </div>
-        )}
+        </div>
       </div>
-    </div>
+    </nav>
   );
-}
+};
 
-export default Navbar; 
+export default Navbar;

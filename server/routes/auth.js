@@ -1,30 +1,56 @@
 const express = require("express");
-const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
-const crypto = require('crypto');
-const nodemailer = require('nodemailer');
 const auth = require('../middleware/auth');
+const { check } = require('express-validator');
+const validate = require('../middleware/validate');
+const bcrypt = require('bcryptjs');
 
 const router = express.Router();
 
-// Configure nodemailer
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
-
-// Sign up
-router.post('/signup', async (req, res) => {
+// @route   POST api/auth/register
+// @desc    Register a user
+// @access  Public
+router.post('/register', async (req, res) => {
   try {
-    const { email, password, displayName } = req.body;
+    console.log('Registration request received:', { 
+      email: req.body.email,
+      role: req.body.role 
+    });
+
+    const {
+      email,
+      password,
+      role,
+      displayName,
+      firstName,
+      lastName,
+      rememberMe
+    } = req.body;
+
+    // Validate required fields
+    if (!email || !password || !role || !displayName || !firstName || !lastName) {
+      console.log('Missing required fields');
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      console.log('Invalid email format:', email);
+      return res.status(400).json({ message: 'Invalid email format' });
+    }
+
+    // Validate password strength
+    if (password.length < 6) {
+      console.log('Password too short');
+      return res.status(400).json({ message: 'Password must be at least 6 characters long' });
+    }
 
     // Check if user already exists
     let user = await User.findOne({ email });
     if (user) {
+      console.log('User already exists:', email);
       return res.status(400).json({ message: 'User already exists' });
     }
 
@@ -32,69 +58,159 @@ router.post('/signup', async (req, res) => {
     user = new User({
       email,
       password,
-      displayName
+      role,
+      displayName,
+      firstName,
+      lastName
     });
 
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
+
+    // Save user
     await user.save();
 
     // Create JWT token
+    const payload = {
+      user: {
+        id: user.id,
+        role: user.role
+      }
+    };
+
     const token = jwt.sign(
-      { id: user._id },
+      payload,
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
 
+    // Return user data (excluding password)
+    const userData = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      displayName: user.displayName,
+      firstName: user.firstName,
+      lastName: user.lastName
+    };
+
+    console.log('Registration successful:', { 
+      userId: user.id, 
+      role: user.role 
+    });
+
     res.json({
       token,
-      user: {
-        id: user._id,
-        email: user.email,
-        displayName: user.displayName,
-        role: user.role
-      }
+      user: userData,
+      rememberMe
     });
-  } catch (error) {
-    console.error('Error in signup:', error);
-    res.status(500).json({ message: 'Server error' });
+  } catch (err) {
+    console.error('Registration error:', err);
+    res.status(500).json({ message: 'Server error during registration' });
   }
 });
 
-// Login
+// @route   POST api/auth/login
+// @desc    Login user
+// @access  Public
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    console.log('Login request received:', { 
+      email: req.body.email,
+      rememberMe: req.body.rememberMe 
+    });
 
-    // Check if user exists
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+    const { email, password, rememberMe } = req.body;
+
+    // Validate required fields
+    if (!email || !password) {
+      console.log('Missing required fields');
+      return res.status(400).json({ 
+        message: 'Email and password are required' 
+      });
     }
 
-    // Check password
-    const isMatch = await user.comparePassword(password);
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      console.log('Invalid email format:', email);
+      return res.status(400).json({ 
+        message: 'Invalid email format' 
+      });
+    }
+
+    // Find user
+    const user = await User.findOne({ email });
+    if (!user) {
+      console.log('User not found:', email);
+      return res.status(400).json({ 
+        message: 'Invalid credentials' 
+      });
+    }
+
+    // Verify password
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+      console.log('Invalid password for user:', email);
+      return res.status(400).json({ 
+        message: 'Invalid credentials' 
+      });
     }
 
     // Create JWT token
+    const payload = {
+      user: {
+        id: user.id,
+        role: user.role
+      }
+    };
+
     const token = jwt.sign(
-      { id: user._id },
+      payload,
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
 
+    // Return user data (excluding password)
+    const userData = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      displayName: user.displayName,
+      firstName: user.firstName,
+      lastName: user.lastName
+    };
+
+    console.log('Login successful:', { 
+      userId: user.id, 
+      role: user.role 
+    });
+
     res.json({
       token,
-      user: {
-        id: user._id,
-        email: user.email,
-        displayName: user.displayName,
-        role: user.role
-      }
+      user: userData,
+      rememberMe
     });
-  } catch (error) {
-    console.error('Error in login:', error);
-    res.status(500).json({ message: 'Server error' });
+  } catch (err) {
+    console.error('Login error:', err);
+    res.status(500).json({ message: 'Server error during login' });
+  }
+});
+
+// @route   GET api/auth/user
+// @desc    Get user data
+// @access  Private
+router.get('/user', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json(user);
+  } catch (err) {
+    console.error('Get user error:', err);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
@@ -108,94 +224,16 @@ router.post('/logout', auth, async (req, res) => {
   }
 });
 
-// Request password reset
-router.post('/reset-password', async (req, res) => {
+// @route   POST api/auth/check-user
+// @desc    Check if user exists
+// @access  Public
+router.post('/check-user', async (req, res) => {
   try {
     const { email } = req.body;
-
     const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    // Generate reset token
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    user.resetPasswordToken = resetToken;
-    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
-    await user.save();
-
-    // Create reset URL
-    const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
-
-    // Configure nodemailer with environment variables
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
-
-    // Send email
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: user.email,
-      subject: 'Password Reset Request',
-      html: `
-        <p>You requested a password reset</p>
-        <p>Click this <a href="${resetUrl}">link</a> to reset your password.</p>
-        <p>This link will expire in 1 hour.</p>
-        <p>If you didn't request this, please ignore this email.</p>
-      `
-    };
-
-    await transporter.sendMail(mailOptions);
-
-    res.json({ message: 'Password reset email sent' });
-  } catch (error) {
-    console.error('Error in password reset request:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Reset password with token
-router.post('/reset-password/:token', async (req, res) => {
-  try {
-    const { token } = req.params;
-    const { password } = req.body;
-
-    const user = await User.findOne({
-      resetPasswordToken: token,
-      resetPasswordExpires: { $gt: Date.now() }
-    });
-
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid or expired reset token' });
-    }
-
-    // Update password
-    user.password = password;
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpires = undefined;
-    await user.save();
-
-    res.json({ message: 'Password has been reset' });
-  } catch (error) {
-    console.error('Error in password reset:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Add this route after the existing routes
-router.get('/me', auth, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id).select('-password');
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    res.json(user);
-  } catch (error) {
-    console.error('Error in /me route:', error);
+    res.json({ exists: !!user });
+  } catch (err) {
+    console.error('Check user error:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });

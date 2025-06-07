@@ -2,8 +2,8 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-function PrivateRoute({ children }) {
-  const { currentUser, loading } = useAuth();
+function PrivateRoute({ children, requiredRole }) {
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -16,7 +16,15 @@ function PrivateRoute({ children }) {
     );
   }
 
-  return currentUser ? children : <Navigate to="/login" />;
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+
+  if (requiredRole && user.role !== requiredRole) {
+    return <Navigate to="/home" />;
+  }
+
+  return children;
 }
 
 export default PrivateRoute; 

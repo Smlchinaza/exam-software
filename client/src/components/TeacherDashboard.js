@@ -74,28 +74,28 @@ function Dashboard() {
       <div className="flex h-screen bg-gray-100">
         <div className="w-64 bg-white shadow-lg">
           <div className="p-4">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4">Navigation</h3>
+            <h3 className="text-lg font-semibold text-gray-700 mb-4 text-left">Navigation</h3>
             <ul className="space-y-2">
               <li className="bg-blue-50 text-blue-600 p-2 rounded">
-                <Link to="/dashboard" className="block">Dashboard</Link>
+                <Link to="/dashboard" className="block text-left">Dashboard</Link>
               </li>
               <li className="hover:bg-gray-50 p-2 rounded">
-                <Link to="/question-bank" className="block">Question Bank</Link>
+                <Link to="/question-bank" className="block text-left">Question Bank</Link>
               </li>
               <li className="hover:bg-gray-50 p-2 rounded">
-                <Link to="/create-exam" className="block">Create Exam</Link>
+                <Link to="/create-exam" className="block text-left">Create Exam</Link>
               </li>
               <li className="hover:bg-gray-50 p-2 rounded">
-                <Link to="/active-exams" className="block">Active Exams</Link>
+                <Link to="/active-exams" className="block text-left">Active Exams</Link>
               </li>
               <li className="hover:bg-gray-50 p-2 rounded">
-                <Link to="/results" className="block">Results</Link>
+                <Link to="/results" className="block text-left">Results</Link>
               </li>
               <li className="hover:bg-gray-50 p-2 rounded">
-                <Link to="/students" className="block">Students</Link>
+                <Link to="/students" className="block text-left">Students</Link>
               </li>
               <li className="hover:bg-gray-50 p-2 rounded">
-                <Link to="/settings" className="block">Settings</Link>
+                <Link to="/settings" className="block text-left">Settings</Link>
               </li>
             </ul>
           </div>
@@ -124,28 +124,28 @@ function Dashboard() {
       {/* Sidebar */}
       <div className="w-64 bg-white shadow-lg">
         <div className="p-4">
-          <h3 className="text-lg font-semibold text-gray-700 mb-4">Navigation</h3>
+          <h3 className="text-lg font-semibold text-gray-700 mb-4 text-left">Navigation</h3>
           <ul className="space-y-2">
             <li className="bg-blue-50 text-blue-600 p-2 rounded">
-              <Link to="/dashboard" className="block">Dashboard</Link>
+              <Link to="/dashboard" className="block text-left">Dashboard</Link>
             </li>
             <li className="hover:bg-gray-50 p-2 rounded">
-              <Link to="/question-bank" className="block">Question Bank</Link>
+              <Link to="/question-bank" className="block text-left">Question Bank</Link>
             </li>
             <li className="hover:bg-gray-50 p-2 rounded">
-              <Link to="/create-exam" className="block">Create Exam</Link>
+              <Link to="/create-exam" className="block text-left">Create Exam</Link>
             </li>
             <li className="hover:bg-gray-50 p-2 rounded">
-              <Link to="/active-exams" className="block">Active Exams</Link>
+              <Link to="/active-exams" className="block text-left">Active Exams</Link>
             </li>
             <li className="hover:bg-gray-50 p-2 rounded">
-              <Link to="/results" className="block">Results</Link>
+              <Link to="/results" className="block text-left">Results</Link>
             </li>
             <li className="hover:bg-gray-50 p-2 rounded">
-              <Link to="/students" className="block">Students</Link>
+              <Link to="/students" className="block text-left">Students</Link>
             </li>
             <li className="hover:bg-gray-50 p-2 rounded">
-              <Link to="/settings" className="block">Settings</Link>
+              <Link to="/settings" className="block text-left">Settings</Link>
             </li>
           </ul>
         </div>
@@ -155,7 +155,7 @@ function Dashboard() {
       <div className="flex-1 overflow-auto">
         <div className="p-8">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">Dashboard Overview</h2>
+            <h2 className="text-2xl font-bold text-left">Dashboard Overview</h2>
             <button
               onClick={() => navigate('/create-exam')}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
@@ -165,7 +165,7 @@ function Dashboard() {
           </div>
 
           {error && (
-            <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded text-left">
               {error}
             </div>
           )}
@@ -173,27 +173,27 @@ function Dashboard() {
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div className="bg-white p-6 rounded-lg shadow">
-              <div className="text-3xl font-bold text-blue-600">{stats.totalQuestions}</div>
-              <div className="text-gray-600">Total Questions</div>
+              <div className="text-3xl font-bold text-blue-600 text-left">{stats.totalQuestions}</div>
+              <div className="text-gray-600 text-left">Total Questions</div>
             </div>
             <div className="bg-white p-6 rounded-lg shadow">
-              <div className="text-3xl font-bold text-green-600">{stats.activeExams}</div>
-              <div className="text-gray-600">Active Exams</div>
+              <div className="text-3xl font-bold text-green-600 text-left">{stats.activeExams}</div>
+              <div className="text-gray-600 text-left">Active Exams</div>
             </div>
             <div className="bg-white p-6 rounded-lg shadow">
-              <div className="text-3xl font-bold text-purple-600">{stats.totalStudents}</div>
-              <div className="text-gray-600">Students</div>
+              <div className="text-3xl font-bold text-purple-600 text-left">{stats.totalStudents}</div>
+              <div className="text-gray-600 text-left">Students</div>
             </div>
             <div className="bg-white p-6 rounded-lg shadow">
-              <div className="text-3xl font-bold text-orange-600">{stats.averageScore}%</div>
-              <div className="text-gray-600">Avg. Score</div>
+              <div className="text-3xl font-bold text-orange-600 text-left">{stats.averageScore}%</div>
+              <div className="text-gray-600 text-left">Avg. Score</div>
             </div>
           </div>
 
           {/* Recent Exams Table */}
           <div className="bg-white rounded-lg shadow">
             <div className="p-4 border-b">
-              <h3 className="text-lg font-semibold">Recent Exams</h3>
+              <h3 className="text-lg font-semibold text-left">Recent Exams</h3>
             </div>
             <div className="p-4">
               <table className="min-w-full">
@@ -209,10 +209,10 @@ function Dashboard() {
                 <tbody className="divide-y divide-gray-200">
                   {recentExams.map((exam) => (
                     <tr key={exam.id}>
-                      <td className="px-4 py-3">{exam.name}</td>
-                      <td className="px-4 py-3">{exam.subject}</td>
-                      <td className="px-4 py-3">{exam.students}</td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 text-left">{exam.name}</td>
+                      <td className="px-4 py-3 text-left">{exam.subject}</td>
+                      <td className="px-4 py-3 text-left">{exam.students}</td>
+                      <td className="px-4 py-3 text-left">
                         <span className={`px-2 py-1 rounded-full text-xs ${
                           exam.status === 'Active' ? 'bg-green-100 text-green-800' :
                           exam.status === 'Scheduled' ? 'bg-blue-100 text-blue-800' :
@@ -221,7 +221,7 @@ function Dashboard() {
                           {exam.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 text-left">
                         {exam.status === 'Active' ? (
                           <>
                             <button className="bg-blue-500 text-white px-3 py-1 rounded text-sm mr-2 hover:bg-blue-600">
