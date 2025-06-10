@@ -29,17 +29,36 @@ app.use("/api/students", studentRoutes);
 // Error handler
 app.use(errorHandler);
 
-// Connect to MongoDB
-mongoose
-  .connect(process.env.MONGODB_URI || "mongodb://localhost:27017/exam-software", {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log("Connected to MongoDB"))
-  .catch((err) => {
-    console.error("MongoDB connection error:", err);
-    process.exit(1);
-  });
+// MongoDB connection with retry logic
+const connectDB = async () => {
+  try {
+    const conn = await mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/exam-software", {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+      socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
+      family: 4 // Use IPv4, skip trying IPv6
+    });
+    console.log(`MongoDB Connected: ${conn.connection.host}`);
+  } catch (error) {
+    console.error(`Error: ${error.message}`);
+    // Retry connection after 5 seconds
+    setTimeout(connectDB, 5000);
+  }
+};
+
+// Handle MongoDB connection errors
+mongoose.connection.on('error', err => {
+  console.error(`MongoDB connection error: ${err}`);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('MongoDB disconnected. Attempting to reconnect...');
+  connectDB();
+});
+
+// Initial connection
+connectDB();
 
 // Start server
 const PORT = process.env.PORT || 5000;
