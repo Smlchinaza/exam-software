@@ -2,12 +2,14 @@ import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
-// Create axios instance
+// Create axios instance with better error handling
 const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  timeout: 10000, // 10 second timeout
+  withCredentials: true // Enable credentials
 });
 
 // Add request interceptor
@@ -20,11 +22,12 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
+    console.error('Request error:', error);
     return Promise.reject(error);
   }
 );
 
-// Add response interceptor
+// Add response interceptor with better error handling
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -36,6 +39,19 @@ api.interceptors.response.use(
       sessionStorage.removeItem('token');
       sessionStorage.removeItem('user');
     }
+    
+    // Handle network errors
+    if (error.code === 'ERR_NETWORK') {
+      console.error('Network error:', error);
+      return Promise.reject(new Error('Unable to connect to the server. Please check your internet connection.'));
+    }
+    
+    // Handle timeout errors
+    if (error.code === 'ECONNABORTED') {
+      console.error('Request timeout:', error);
+      return Promise.reject(new Error('Request timed out. Please try again.'));
+    }
+    
     return Promise.reject(error);
   }
 );

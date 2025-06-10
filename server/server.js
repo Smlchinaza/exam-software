@@ -14,8 +14,18 @@ dotenv.config();
 
 const app = express();
 
+// CORS configuration
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  maxAge: 86400 // 24 hours
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -29,32 +39,106 @@ app.use("/api/students", studentRoutes);
 // Error handler
 app.use(errorHandler);
 
-// MongoDB connection with retry logic
+// MongoDB connection configuration
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/exam-software";
+const MAX_RETRIES = 5;
+const RETRY_INTERVAL = 5000; // 5 seconds
+let retryCount = 0;
+
+// MongoDB connection options
+const mongooseOptions = {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
+  family: 4,
+  maxPoolSize: 10,
+  minPoolSize: 5,
+  maxIdleTimeMS: 30000,
+  connectTimeoutMS: 10000,
+  heartbeatFrequencyMS: 10000,
+  retryWrites: true,
+  retryReads: true
+};
+
+// Enhanced MongoDB connection with retry logic
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/exam-software", {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
-      socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
-      family: 4 // Use IPv4, skip trying IPv6
-    });
+    if (mongoose.connection.readyState === 1) {
+      console.log('MongoDB is already connected');
+      return;
+    }
+
+    console.log(`Attempting to connect to MongoDB (Attempt ${retryCount + 1}/${MAX_RETRIES})...`);
+    
+    const conn = await mongoose.connect(MONGODB_URI, mongooseOptions);
+    
     console.log(`MongoDB Connected: ${conn.connection.host}`);
+    console.log('Connection state:', mongoose.connection.readyState);
+    
+    // Reset retry count on successful connection
+    retryCount = 0;
+    
+    // Log connection pool stats
+    const poolStats = mongoose.connection.client.topology.s.pool;
+    console.log('Connection pool stats:', {
+      size: poolStats.size,
+      available: poolStats.available,
+      pending: poolStats.pending,
+      max: poolStats.max
+    });
+
   } catch (error) {
-    console.error(`Error: ${error.message}`);
-    // Retry connection after 5 seconds
-    setTimeout(connectDB, 5000);
+    console.error(`MongoDB connection error (Attempt ${retryCount + 1}/${MAX_RETRIES}):`, error.message);
+    
+    if (retryCount < MAX_RETRIES) {
+      retryCount++;
+      console.log(`Retrying connection in ${RETRY_INTERVAL/1000} seconds...`);
+      setTimeout(connectDB, RETRY_INTERVAL);
+    } else {
+      console.error('Max retry attempts reached. Please check your MongoDB connection settings.');
+      process.exit(1);
+    }
   }
 };
 
-// Handle MongoDB connection errors
-mongoose.connection.on('error', err => {
-  console.error(`MongoDB connection error: ${err}`);
+// Handle MongoDB connection events
+mongoose.connection.on('connected', () => {
+  console.log('MongoDB connected successfully');
+});
+
+mongoose.connection.on('error', (err) => {
+  console.error('MongoDB connection error:', err);
+  if (retryCount < MAX_RETRIES) {
+    retryCount++;
+    console.log(`Attempting to reconnect (${retryCount}/${MAX_RETRIES})...`);
+    setTimeout(connectDB, RETRY_INTERVAL);
+  }
 });
 
 mongoose.connection.on('disconnected', () => {
   console.log('MongoDB disconnected. Attempting to reconnect...');
-  connectDB();
+  if (retryCount < MAX_RETRIES) {
+    retryCount++;
+    setTimeout(connectDB, RETRY_INTERVAL);
+  }
+});
+
+mongoose.connection.on('reconnected', () => {
+  console.log('MongoDB reconnected successfully');
+  retryCount = 0;
+});
+
+// Handle process termination
+process.on('SIGINT', async () => {
+  try {
+    await mongoose.connection.close();
+    console.log('MongoDB connection closed through app termination');
+    process.exit(0);
+  } catch (err) {
+    console.error('Error during MongoDB connection closure:', err);
+    process.exit(1);
+  }
 });
 
 // Initial connection
