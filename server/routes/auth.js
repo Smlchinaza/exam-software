@@ -64,12 +64,14 @@ router.post('/register', async (req, res) => {
       lastName
     });
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(password, salt);
-
-    // Save user
+    // Assign plain password; pre-save hook will hash it
+    user.password = password;
+    // Debug log
+    console.log('Password before save:', user.password);
     await user.save();
+    // After saving user
+    const savedUser = await User.findOne({ email });
+    console.log('Password after save:', savedUser.password);
 
     // Create JWT token
     const payload = {
@@ -142,6 +144,7 @@ router.post('/login', async (req, res) => {
 
     // Find user
     const user = await User.findOne({ email });
+    console.log('User found:', user);
     if (!user) {
       console.log('User not found:', email);
       return res.status(400).json({ 
@@ -150,7 +153,9 @@ router.post('/login', async (req, res) => {
     }
 
     // Verify password
+    console.log('Comparing passwords:', password, user.password);
     const isMatch = await bcrypt.compare(password, user.password);
+    console.log('Password match result:', isMatch);
     if (!isMatch) {
       console.log('Invalid password for user:', email);
       return res.status(400).json({ 

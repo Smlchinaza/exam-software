@@ -50,14 +50,9 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// Add index for faster queries
-userSchema.index({ email: 1 }, { unique: true });
-
-// Hash password before saving
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) {
-    return next();
-  }
+// Add pre-save hook to hash password only if modified
+userSchema.pre('save', async function(next) {
+  if (!this.isModified('password')) return next();
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
   next();

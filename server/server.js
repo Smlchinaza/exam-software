@@ -40,16 +40,14 @@ app.use("/api/students", studentRoutes);
 app.use(errorHandler);
 
 // MongoDB connection configuration
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/exam-software";
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/exam-software?tlsAllowInvalidCertificates=true";
 const MAX_RETRIES = 5;
 const RETRY_INTERVAL = 5000; // 5 seconds
 let retryCount = 0;
 
 // MongoDB connection options
 const mongooseOptions = {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 5000,
+  serverSelectionTimeoutMS: 10000,
   socketTimeoutMS: 45000,
   family: 4,
   maxPoolSize: 10,
@@ -58,7 +56,8 @@ const mongooseOptions = {
   connectTimeoutMS: 10000,
   heartbeatFrequencyMS: 10000,
   retryWrites: true,
-  retryReads: true
+  retryReads: true,
+  tlsAllowInvalidCertificates: true
 };
 
 // Enhanced MongoDB connection with retry logic
@@ -78,18 +77,29 @@ const connectDB = async () => {
     
     // Reset retry count on successful connection
     retryCount = 0;
-    
-    // Log connection pool stats
-    const poolStats = mongoose.connection.client.topology.s.pool;
-    console.log('Connection pool stats:', {
-      size: poolStats.size,
-      available: poolStats.available,
-      pending: poolStats.pending,
-      max: poolStats.max
-    });
+
+    // Safely log connection pool stats
+    try {
+      const poolStats = mongoose.connection.client?.topology?.s?.pool;
+      if (poolStats) {
+        console.log('Connection pool stats:', {
+          size: poolStats.size,
+          available: poolStats.available,
+          pending: poolStats.pending,
+          max: poolStats.max
+        });
+      }
+    } catch (statsError) {
+      console.log('Connection pool stats not available');
+    }
 
   } catch (error) {
     console.error(`MongoDB connection error (Attempt ${retryCount + 1}/${MAX_RETRIES}):`, error.message);
+    
+    if (error.message.includes('IP whitelist')) {
+      console.error('Please add your IP address to MongoDB Atlas whitelist');
+      console.error('Visit: https://www.mongodb.com/docs/atlas/security-whitelist/');
+    }
     
     if (retryCount < MAX_RETRIES) {
       retryCount++;

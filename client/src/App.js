@@ -10,8 +10,15 @@ import StudentDashboard from './components/StudentDashboard';
 import StudentProfile from './components/StudentProfile';
 import StudentResults from './components/StudentResults';
 import TeacherDashboard from './components/TeacherDashboard';
-// import AdminDashboard from './components/AdminDashboard';
+import QuestionBank from './components/QuestionBank';
+import CreateExam from './components/CreateExam';
 import ProtectedRoute from './components/ProtectedRoute';
+// Placeholder components for scaffolding
+const ActiveExams = () => <div className="p-8">Active Exams Page (Coming Soon)</div>;
+const TeacherResults = () => <div className="p-8">Results Page (Coming Soon)</div>;
+const TeacherStudents = () => <div className="p-8">Students Page (Coming Soon)</div>;
+const TeacherSettings = () => <div className="p-8">Settings Page (Coming Soon)</div>;
+// import AdminDashboard from './components/AdminDashboard';
 
 function App() {
   return (
@@ -58,6 +65,54 @@ function App() {
               element={
                 <ProtectedRoute role="teacher">
                   <TeacherDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/teacher/question-bank"
+              element={
+                <ProtectedRoute role="teacher">
+                  <QuestionBank />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/teacher/create-exam"
+              element={
+                <ProtectedRoute role="teacher">
+                  <CreateExam />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/teacher/active-exams"
+              element={
+                <ProtectedRoute role="teacher">
+                  <ActiveExams />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/teacher/results"
+              element={
+                <ProtectedRoute role="teacher">
+                  <TeacherResults />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/teacher/students"
+              element={
+                <ProtectedRoute role="teacher">
+                  <TeacherStudents />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/teacher/settings"
+              element={
+                <ProtectedRoute role="teacher">
+                  <TeacherSettings />
                 </ProtectedRoute>
               }
             />

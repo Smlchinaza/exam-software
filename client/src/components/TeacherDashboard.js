@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-function Dashboard() {
+function TeacherDashboard() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -77,25 +77,25 @@ function Dashboard() {
             <h3 className="text-lg font-semibold text-gray-700 mb-4 text-left">Navigation</h3>
             <ul className="space-y-2">
               <li className="bg-blue-50 text-blue-600 p-2 rounded">
-                <Link to="/dashboard" className="block text-left">Dashboard</Link>
+                <button onClick={() => navigate('/teacher/dashboard')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Dashboard</button>
               </li>
               <li className="hover:bg-gray-50 p-2 rounded">
-                <Link to="/question-bank" className="block text-left">Question Bank</Link>
+                <button onClick={() => navigate('/teacher/question-bank')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Question Bank</button>
               </li>
               <li className="hover:bg-gray-50 p-2 rounded">
-                <Link to="/create-exam" className="block text-left">Create Exam</Link>
+                <button onClick={() => navigate('/teacher/create-exam')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Create Exam</button>
               </li>
               <li className="hover:bg-gray-50 p-2 rounded">
-                <Link to="/active-exams" className="block text-left">Active Exams</Link>
+                <button onClick={() => navigate('/teacher/active-exams')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Active Exams</button>
               </li>
               <li className="hover:bg-gray-50 p-2 rounded">
-                <Link to="/results" className="block text-left">Results</Link>
+                <button onClick={() => navigate('/teacher/results')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Results</button>
               </li>
               <li className="hover:bg-gray-50 p-2 rounded">
-                <Link to="/students" className="block text-left">Students</Link>
+                <button onClick={() => navigate('/teacher/students')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Students</button>
               </li>
               <li className="hover:bg-gray-50 p-2 rounded">
-                <Link to="/settings" className="block text-left">Settings</Link>
+                <button onClick={() => navigate('/teacher/settings')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Settings</button>
               </li>
             </ul>
           </div>
@@ -127,25 +127,25 @@ function Dashboard() {
           <h3 className="text-lg font-semibold text-gray-700 mb-4 text-left">Navigation</h3>
           <ul className="space-y-2">
             <li className="bg-blue-50 text-blue-600 p-2 rounded">
-              <Link to="/dashboard" className="block text-left">Dashboard</Link>
+              <button onClick={() => navigate('/teacher/dashboard')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Dashboard</button>
             </li>
             <li className="hover:bg-gray-50 p-2 rounded">
-              <Link to="/question-bank" className="block text-left">Question Bank</Link>
+              <button onClick={() => navigate('/teacher/question-bank')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Question Bank</button>
             </li>
             <li className="hover:bg-gray-50 p-2 rounded">
-              <Link to="/create-exam" className="block text-left">Create Exam</Link>
+              <button onClick={() => navigate('/teacher/create-exam')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Create Exam</button>
             </li>
             <li className="hover:bg-gray-50 p-2 rounded">
-              <Link to="/active-exams" className="block text-left">Active Exams</Link>
+              <button onClick={() => navigate('/teacher/active-exams')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Active Exams</button>
             </li>
             <li className="hover:bg-gray-50 p-2 rounded">
-              <Link to="/results" className="block text-left">Results</Link>
+              <button onClick={() => navigate('/teacher/results')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Results</button>
             </li>
             <li className="hover:bg-gray-50 p-2 rounded">
-              <Link to="/students" className="block text-left">Students</Link>
+              <button onClick={() => navigate('/teacher/students')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Students</button>
             </li>
             <li className="hover:bg-gray-50 p-2 rounded">
-              <Link to="/settings" className="block text-left">Settings</Link>
+              <button onClick={() => navigate('/teacher/settings')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Settings</button>
             </li>
           </ul>
         </div>
@@ -191,61 +191,59 @@ function Dashboard() {
           </div>
 
           {/* Recent Exams Table */}
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-4 border-b">
-              <h3 className="text-lg font-semibold text-left">Recent Exams</h3>
-            </div>
-            <div className="p-4">
-              <table className="min-w-full">
-                <thead>
-                  <tr className="bg-gray-50">
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-600">Exam Name</th>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-600">Subject</th>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-600">Students</th>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-600">Status</th>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-600">Actions</th>
+          <div className="p-4 border-b">
+            <h3 className="text-lg font-semibold text-left">Recent Exams</h3>
+          </div>
+          <div className="p-4">
+            <table className="min-w-full">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-600">Exam Name</th>
+                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-600">Subject</th>
+                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-600">Students</th>
+                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-600">Status</th>
+                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-600">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentExams.map((exam) => (
+                  <tr key={exam.id}>
+                    <td className="px-4 py-3 text-left">{exam.name}</td>
+                    <td className="px-4 py-3 text-left">{exam.subject}</td>
+                    <td className="px-4 py-3 text-left">{exam.students}</td>
+                    <td className="px-4 py-3 text-left">
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        exam.status === 'Active' ? 'bg-green-100 text-green-800' :
+                        exam.status === 'Scheduled' ? 'bg-blue-100 text-blue-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {exam.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-left">
+                      {exam.status === 'Active' ? (
+                        <>
+                          <button className="bg-blue-500 text-white px-3 py-1 rounded text-sm mr-2 hover:bg-blue-600">
+                            View
+                          </button>
+                          <button className="bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600">
+                            Edit
+                          </button>
+                        </>
+                      ) : exam.status === 'Completed' ? (
+                        <button className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
+                          Results
+                        </button>
+                      ) : (
+                        <button className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
+                          Preview
+                        </button>
+                      )}
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {recentExams.map((exam) => (
-                    <tr key={exam.id}>
-                      <td className="px-4 py-3 text-left">{exam.name}</td>
-                      <td className="px-4 py-3 text-left">{exam.subject}</td>
-                      <td className="px-4 py-3 text-left">{exam.students}</td>
-                      <td className="px-4 py-3 text-left">
-                        <span className={`px-2 py-1 rounded-full text-xs ${
-                          exam.status === 'Active' ? 'bg-green-100 text-green-800' :
-                          exam.status === 'Scheduled' ? 'bg-blue-100 text-blue-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {exam.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-left">
-                        {exam.status === 'Active' ? (
-                          <>
-                            <button className="bg-blue-500 text-white px-3 py-1 rounded text-sm mr-2 hover:bg-blue-600">
-                              View
-                            </button>
-                            <button className="bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600">
-                              Edit
-                            </button>
-                          </>
-                        ) : exam.status === 'Completed' ? (
-                          <button className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
-                            Results
-                          </button>
-                        ) : (
-                          <button className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
-                            Preview
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -253,4 +251,4 @@ function Dashboard() {
   );
 }
 
-export default Dashboard; 
+export default TeacherDashboard; 
