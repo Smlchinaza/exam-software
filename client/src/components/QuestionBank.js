@@ -195,6 +195,57 @@ const QuestionBank = () => {
     }
   };
 
+  const handleSaveAllExtractedQuestions = async () => {
+    try {
+      const questions = bulkQuestions
+        .split('\n\n')
+        .filter(q => q.trim())
+        .map(q => {
+          const lines = q.split('\n');
+          const question = lines[0];
+          const options = lines.slice(1, 5);
+          // Try to find the correct answer from the last line (e.g., "Correct: Paris" or "Answer: B")
+          let correctAnswer = 0;
+          const lastLine = lines[lines.length - 1];
+          if (lastLine && lastLine.toLowerCase().startsWith('correct:')) {
+            const correctText = lastLine.split(':')[1].trim();
+            correctAnswer = options.findIndex(opt => opt.trim().toLowerCase() === correctText.toLowerCase());
+            if (correctAnswer === -1) correctAnswer = 0;
+          }
+          return {
+            question,
+            subject: selectedSubject,
+            difficulty: selectedDifficulty,
+            options,
+            correctAnswer,
+            explanation: '',
+            marks: 1,
+          };
+        });
+
+      setUploadProgress(0);
+      const totalQuestions = questions.length;
+
+      for (let i = 0; i < questions.length; i++) {
+        await fetch('http://localhost:5000/api/questions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          },
+          body: JSON.stringify(questions[i]),
+        });
+        setUploadProgress(((i + 1) / totalQuestions) * 100);
+      }
+
+      setShowBulkUploadModal(false);
+      setBulkQuestions('');
+      fetchQuestions(); // Refresh the questions list
+    } catch (err) {
+      setError('Failed to upload questions');
+    }
+  };
+
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -585,6 +636,14 @@ const QuestionBank = () => {
                     className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
                   >
                     Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+                    disabled={!bulkQuestions.trim() || !selectedSubject}
+                    onClick={handleSaveAllExtractedQuestions}
+                  >
+                    Save All Extracted Questions
                   </button>
                   <button
                     type="submit"

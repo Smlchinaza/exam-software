@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Home from './components/Home';
@@ -13,6 +13,8 @@ import TeacherDashboard from './components/TeacherDashboard';
 import QuestionBank from './components/QuestionBank';
 import CreateExam from './components/CreateExam';
 import ProtectedRoute from './components/ProtectedRoute';
+import TakeExam from './components/TakeExam';
+import AuthEmail from './components/AuthEmail';
 // Placeholder components for scaffolding
 const ActiveExams = () => <div className="p-8">Active Exams Page (Coming Soon)</div>;
 const TeacherResults = () => <div className="p-8">Results Page (Coming Soon)</div>;
@@ -20,117 +22,44 @@ const TeacherStudents = () => <div className="p-8">Students Page (Coming Soon)</
 const TeacherSettings = () => <div className="p-8">Settings Page (Coming Soon)</div>;
 // import AdminDashboard from './components/AdminDashboard';
 
+function AppLayout() {
+  const location = useLocation();
+  const hideNavbar = location.pathname === '/take-exam';
+  return (
+    <div className="min-h-screen bg-gray-100">
+      {!hideNavbar && <Navbar />}
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<Home />} />
+        <Route path="/student/login" element={<StudentLogin />} />
+        <Route path="/teacher/login" element={<TeacherLogin />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/auth-email" element={<AuthEmail />} />
+        <Route path="/take-exam" element={<TakeExam />} />
+        {/* Protected Student Routes */}
+        <Route path="/student/dashboard" element={<ProtectedRoute role="student"><StudentDashboard /></ProtectedRoute>} />
+        <Route path="/student/profile" element={<ProtectedRoute role="student"><StudentProfile /></ProtectedRoute>} />
+        <Route path="/student/results" element={<ProtectedRoute role="student"><StudentResults /></ProtectedRoute>} />
+        {/* Protected Teacher Routes */}
+        <Route path="/teacher/dashboard" element={<ProtectedRoute role="teacher"><TeacherDashboard /></ProtectedRoute>} />
+        <Route path="/teacher/question-bank" element={<ProtectedRoute role="teacher"><QuestionBank /></ProtectedRoute>} />
+        <Route path="/teacher/create-exam" element={<ProtectedRoute role="teacher"><CreateExam /></ProtectedRoute>} />
+        <Route path="/teacher/active-exams" element={<ProtectedRoute role="teacher"><ActiveExams /></ProtectedRoute>} />
+        <Route path="/teacher/results" element={<ProtectedRoute role="teacher"><TeacherResults /></ProtectedRoute>} />
+        <Route path="/teacher/students" element={<ProtectedRoute role="teacher"><TeacherStudents /></ProtectedRoute>} />
+        <Route path="/teacher/settings" element={<ProtectedRoute role="teacher"><TeacherSettings /></ProtectedRoute>} />
+        {/* Fallback Route */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </div>
+  );
+}
+
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="min-h-screen bg-gray-100">
-          <Navbar />
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<Home />} />
-            <Route path="/student/login" element={<StudentLogin />} />
-            <Route path="/teacher/login" element={<TeacherLogin />} />
-            <Route path="/register" element={<Register />} />
-
-            {/* Protected Student Routes */}
-            <Route
-              path="/student/dashboard"
-              element={
-                <ProtectedRoute role="student">
-                  <StudentDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/student/profile"
-              element={
-                <ProtectedRoute role="student">
-                  <StudentProfile />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/student/results"
-              element={
-                <ProtectedRoute role="student">
-                  <StudentResults />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Protected Teacher Routes */}
-            <Route
-              path="/teacher/dashboard"
-              element={
-                <ProtectedRoute role="teacher">
-                  <TeacherDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/teacher/question-bank"
-              element={
-                <ProtectedRoute role="teacher">
-                  <QuestionBank />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/teacher/create-exam"
-              element={
-                <ProtectedRoute role="teacher">
-                  <CreateExam />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/teacher/active-exams"
-              element={
-                <ProtectedRoute role="teacher">
-                  <ActiveExams />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/teacher/results"
-              element={
-                <ProtectedRoute role="teacher">
-                  <TeacherResults />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/teacher/students"
-              element={
-                <ProtectedRoute role="teacher">
-                  <TeacherStudents />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/teacher/settings"
-              element={
-                <ProtectedRoute role="teacher">
-                  <TeacherSettings />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Protected Admin Routes */}
-            {/* <Route
-              path="/admin-dashboard"
-              element={
-                <ProtectedRoute role="admin">
-                  <AdminDashboard />
-                </ProtectedRoute>
-              }
-            /> */}
-
-            {/* Fallback Route */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </div>
+        <AppLayout />
       </Router>
     </AuthProvider>
   );

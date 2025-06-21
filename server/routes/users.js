@@ -75,4 +75,15 @@ router.put('/password', auth, async (req, res) => {
   }
 });
 
+// Get all users with role 'student'
+router.get('/students-emails', async (req, res) => {
+  try {
+    const students = await User.find({ role: 'student' }).select('email displayName');
+    res.json(students);
+  } catch (error) {
+    console.error('Error fetching student users:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router; 

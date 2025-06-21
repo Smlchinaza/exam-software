@@ -190,4 +190,15 @@ export const authApi = {
   }
 };
 
+export const userApi = {
+  getAllStudentUsers: async () => {
+    try {
+      const response = await api.get('/users/students-emails');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+};
+
 export default api; 
