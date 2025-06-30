@@ -37,7 +37,7 @@ function AuthEmail() {
       return;
     }
     localStorage.setItem('studentEmail', selectedEmail);
-    navigate('/take-exam');
+    navigate('/exam-selection');
   };
 
   return (

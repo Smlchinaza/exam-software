@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Trash2, Clock, Calendar, Search, Filter } from 'lucide-react';
+import api from '../services/api';
+import { Search } from 'lucide-react';
 
 function CreateExam() {
   const navigate = useNavigate();
@@ -18,7 +18,6 @@ function CreateExam() {
     startTime: '',
     endTime: '',
     subject: '',
-    difficulty: 'medium',
     instructions: ''
   });
 
@@ -30,17 +29,8 @@ function CreateExam() {
     try {
       setLoading(true);
       setError('');
-      const token = localStorage.getItem('token');
       
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-
-      const response = await axios.get('http://localhost:5000/api/questions', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await api.get('/questions');
 
       console.log('Fetched questions:', response.data);
       
@@ -108,11 +98,6 @@ function CreateExam() {
     try {
       setLoading(true);
       setError('');
-      const token = localStorage.getItem('token');
-
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
 
       // Get the subject from the first selected question
       const firstQuestion = questions.find(q => q._id === selectedQuestions[0]);
@@ -127,11 +112,7 @@ function CreateExam() {
 
       console.log('Submitting exam data:', examDataToSubmit);
 
-      const response = await axios.post('http://localhost:5000/api/exams', examDataToSubmit, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await api.post('/exams', examDataToSubmit);
 
       console.log('Exam created:', response.data);
       navigate('/dashboard');
@@ -160,8 +141,7 @@ function CreateExam() {
   const filteredQuestions = questions.filter(question => {
     const matchesSearch = question.question.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSubject = !examData.subject || question.subject === examData.subject;
-    const matchesDifficulty = !examData.difficulty || question.difficulty === examData.difficulty;
-    return matchesSearch && matchesSubject && matchesDifficulty;
+    return matchesSearch && matchesSubject;
   });
 
   const subjectStats = getSubjectStats();
@@ -217,20 +197,6 @@ function CreateExam() {
                       {subject} ({subjectStats[subject].total} questions)
                     </option>
                   ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 text-left">Difficulty</label>
-                <select
-                  value={examData.difficulty}
-                  onChange={(e) => handleInputChange('difficulty', e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-left"
-                >
-                  <option value="">All Difficulties</option>
-                  <option value="easy">Easy</option>
-                  <option value="medium">Medium</option>
-                  <option value="hard">Hard</option>
                 </select>
               </div>
             </div>
@@ -355,13 +321,6 @@ function CreateExam() {
                       <div className="mt-2 flex items-center space-x-4">
                         <span className="text-xs text-gray-500 text-left">
                           {question.subject}
-                        </span>
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          question.difficulty === 'easy' ? 'bg-green-100 text-green-800' :
-                          question.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {question.difficulty}
                         </span>
                         <span className="text-xs text-gray-500 text-left">
                           {question.marks} marks

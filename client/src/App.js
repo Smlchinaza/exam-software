@@ -12,9 +12,11 @@ import StudentResults from './components/StudentResults';
 import TeacherDashboard from './components/TeacherDashboard';
 import QuestionBank from './components/QuestionBank';
 import CreateExam from './components/CreateExam';
+import ExamQuestions from './components/ExamQuestions';
 import ProtectedRoute from './components/ProtectedRoute';
 import TakeExam from './components/TakeExam';
 import AuthEmail from './components/AuthEmail';
+import ExamSelection from './components/ExamSelection';
 // Placeholder components for scaffolding
 const ActiveExams = () => <div className="p-8">Active Exams Page (Coming Soon)</div>;
 const TeacherResults = () => <div className="p-8">Results Page (Coming Soon)</div>;
@@ -36,6 +38,8 @@ function AppLayout() {
         <Route path="/register" element={<Register />} />
         <Route path="/auth-email" element={<AuthEmail />} />
         <Route path="/take-exam" element={<TakeExam />} />
+        <Route path="/take-exam/:examId" element={<TakeExam />} />
+        <Route path="/exam-selection" element={<ExamSelection />} />
         {/* Protected Student Routes */}
         <Route path="/student/dashboard" element={<ProtectedRoute role="student"><StudentDashboard /></ProtectedRoute>} />
         <Route path="/student/profile" element={<ProtectedRoute role="student"><StudentProfile /></ProtectedRoute>} />
@@ -48,6 +52,7 @@ function AppLayout() {
         <Route path="/teacher/results" element={<ProtectedRoute role="teacher"><TeacherResults /></ProtectedRoute>} />
         <Route path="/teacher/students" element={<ProtectedRoute role="teacher"><TeacherStudents /></ProtectedRoute>} />
         <Route path="/teacher/settings" element={<ProtectedRoute role="teacher"><TeacherSettings /></ProtectedRoute>} />
+        <Route path="/teacher/exam/:examId/questions" element={<ProtectedRoute role="teacher"><ExamQuestions /></ProtectedRoute>} />
         {/* Fallback Route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

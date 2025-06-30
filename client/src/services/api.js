@@ -16,7 +16,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    if (token) {
+    if (token && token !== 'null' && token !== 'undefined') {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -187,6 +187,81 @@ export const authApi = {
     localStorage.removeItem('rememberMe');
     sessionStorage.removeItem('token');
     sessionStorage.removeItem('user');
+  }
+};
+
+// Exam API calls
+export const examApi = {
+  getAllExams: async () => {
+    try {
+      const response = await api.get('/exams');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  getExam: async (id) => {
+    try {
+      const response = await api.get(`/exams/${id}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  getExamQuestions: async (id) => {
+    try {
+      const response = await api.get(`/exams/${id}/questions`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  createExam: async (examData) => {
+    try {
+      const response = await api.post('/exams', examData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  updateExam: async (id, examData) => {
+    try {
+      const response = await api.put(`/exams/${id}`, examData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  deleteExam: async (id) => {
+    try {
+      const response = await api.delete(`/exams/${id}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  submitExam: async (id, answers) => {
+    try {
+      const response = await api.post(`/exams/${id}/submit`, { answers });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  getUpcomingExams: async () => {
+    try {
+      const response = await api.get('/exams/upcoming');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
   }
 };
 

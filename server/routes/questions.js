@@ -28,17 +28,16 @@ router.get('/', auth, async (req, res) => {
 // Add a new question
 router.post('/', auth, async (req, res) => {
   try {
-    const { question, options, correctAnswer, subject, difficulty, marks, explanation } = req.body;
+    const { question, options, correctAnswer, subject, marks, explanation } = req.body;
 
     const newQuestion = new Question({
       question,
       options,
       correctAnswer,
       subject,
-      difficulty,
       marks,
       explanation,
-      createdBy: req.user.id
+      createdBy: req.user.user.id
     });
 
     await newQuestion.save();
@@ -225,7 +224,6 @@ function processDocumentText(text) {
       options: options,
       correctAnswer: correctAnswer,
       subject: 'General', // Default subject
-      difficulty: 'medium', // Default difficulty
       marks: 1 // Default marks
     };
 

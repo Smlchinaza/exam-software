@@ -29,7 +29,6 @@ router.post("/", auth, async (req, res) => {
       startTime,
       endTime,
       subject,
-      difficulty,
       instructions,
       questions
     } = req.body;
@@ -42,10 +41,9 @@ router.post("/", auth, async (req, res) => {
       startTime,
       endTime,
       subject,
-      difficulty,
       instructions,
       questions,
-      createdBy: req.user.id
+      createdBy: req.user.user.id
     });
 
     await exam.save();
@@ -74,6 +72,29 @@ router.get("/:id", auth, async (req, res) => {
   }
 });
 
+// Get exam questions only
+router.get("/:id/questions", auth, async (req, res) => {
+  try {
+    const exam = await Exam.findById(req.params.id)
+      .populate("questions", "question options subject marks explanation")
+      .select("questions title subject");
+    
+    if (!exam) {
+      return res.status(404).json({ message: "Exam not found" });
+    }
+    
+    res.json({
+      examId: exam._id,
+      title: exam.title,
+      subject: exam.subject,
+      questions: exam.questions
+    });
+  } catch (error) {
+    console.error("Error fetching exam questions:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 // Update an exam
 router.put("/:id", auth, async (req, res) => {
   try {
@@ -84,7 +105,7 @@ router.put("/:id", auth, async (req, res) => {
     }
 
     // Check if user is the creator of the exam
-    if (exam.createdBy.toString() !== req.user.id) {
+    if (exam.createdBy.toString() !== req.user.user.id) {
       return res.status(403).json({ message: "Not authorized" });
     }
 
@@ -111,7 +132,7 @@ router.delete("/:id", auth, async (req, res) => {
     }
 
     // Check if user is the creator of the exam
-    if (exam.createdBy.toString() !== req.user.id) {
+    if (exam.createdBy.toString() !== req.user.user.id) {
       return res.status(403).json({ message: "Not authorized" });
     }
 
@@ -153,7 +174,7 @@ router.post("/:id/submit", auth, async (req, res) => {
     // Save submission
     const submission = new ExamSubmission({
       exam: exam._id,
-      student: req.user._id,
+      student: req.user.user.id,
       answers: answers,
       score: score,
       submittedAt: new Date()

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../services/api';
 
 function TeacherDashboard() {
   const { currentUser } = useAuth();
@@ -25,8 +25,8 @@ function TeacherDashboard() {
     try {
       setLoading(true);
       const [questionsResponse, examsResponse] = await Promise.all([
-        axios.get('http://localhost:5000/api/questions'),
-        axios.get('http://localhost:5000/api/exams')
+        api.get('/questions'),
+        api.get('/exams')
       ]);
 
       const questions = questionsResponse.data;
@@ -221,6 +221,12 @@ function TeacherDashboard() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-left">
+                      <button 
+                        onClick={() => navigate(`/teacher/exam/${exam.id}/questions`)}
+                        className="bg-green-500 text-white px-3 py-1 rounded text-sm mr-2 hover:bg-green-600"
+                      >
+                        View Questions
+                      </button>
                       {exam.status === 'Active' ? (
                         <>
                           <button className="bg-blue-500 text-white px-3 py-1 rounded text-sm mr-2 hover:bg-blue-600">
