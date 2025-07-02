@@ -54,6 +54,57 @@ router.post("/", auth, async (req, res) => {
   }
 });
 
+// Get active exams (currently ongoing)
+router.get('/active', auth, async (req, res) => {
+  try {
+    const now = new Date();
+    // Find exams that are currently active
+    const activeExams = await Exam.find({
+      startTime: { $lte: now },
+      endTime: { $gte: now }
+    })
+    .populate('createdBy', 'displayName email')
+    .populate('questions');
+
+    // Optionally, fetch submissions for these exams
+    const examIds = activeExams.map(exam => exam._id);
+    const submissions = await ExamSubmission.find({ exam: { $in: examIds } })
+      .populate('student', 'firstName lastName displayName email');
+
+    // Attach submissions to their respective exams
+    const examsWithSubmissions = activeExams.map(exam => {
+      const examSubs = submissions.filter(sub => sub.exam.toString() === exam._id.toString());
+      return {
+        ...exam.toObject(),
+        submissions: examSubs
+      };
+    });
+
+    res.json(examsWithSubmissions);
+  } catch (error) {
+    console.error('Error fetching active exams:', error);
+    res.status(500).json({ message: 'Error fetching active exams' });
+  }
+});
+
+// Add this route after the existing routes
+router.get('/upcoming', auth, async (req, res) => {
+  try {
+    const now = new Date();
+    const upcomingExams = await Exam.find({
+      endTime: { $gt: now }
+    })
+    .sort({ startTime: 1 })
+    .populate('createdBy', 'displayName email')
+    .populate('questions');
+
+    res.json(upcomingExams);
+  } catch (error) {
+    console.error('Error fetching upcoming exams:', error);
+    res.status(500).json({ message: 'Error fetching upcoming exams' });
+  }
+});
+
 // Get a single exam
 router.get("/:id", auth, async (req, res) => {
   try {
@@ -190,24 +241,6 @@ router.post("/:id/submit", auth, async (req, res) => {
   } catch (error) {
     console.error('Error submitting exam:', error);
     res.status(500).json({ message: 'Error submitting exam' });
-  }
-});
-
-// Add this route after the existing routes
-router.get('/upcoming', auth, async (req, res) => {
-  try {
-    const now = new Date();
-    const upcomingExams = await Exam.find({
-      endTime: { $gt: now }
-    })
-    .sort({ startTime: 1 })
-    .populate('createdBy', 'displayName email')
-    .populate('questions');
-
-    res.json(upcomingExams);
-  } catch (error) {
-    console.error('Error fetching upcoming exams:', error);
-    res.status(500).json({ message: 'Error fetching upcoming exams' });
   }
 });
 

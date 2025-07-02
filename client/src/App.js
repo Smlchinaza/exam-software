@@ -17,8 +17,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import TakeExam from './components/TakeExam';
 import AuthEmail from './components/AuthEmail';
 import ExamSelection from './components/ExamSelection';
+import ActiveExams from './components/ActiveExams';
 // Placeholder components for scaffolding
-const ActiveExams = () => <div className="p-8">Active Exams Page (Coming Soon)</div>;
 const TeacherResults = () => <div className="p-8">Results Page (Coming Soon)</div>;
 const TeacherStudents = () => <div className="p-8">Students Page (Coming Soon)</div>;
 const TeacherSettings = () => <div className="p-8">Settings Page (Coming Soon)</div>;

@@ -262,6 +262,15 @@ export const examApi = {
     } catch (error) {
       throw error.response?.data || error;
     }
+  },
+
+  getActiveExams: async () => {
+    try {
+      const response = await api.get('/exams/active');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
   }
 };
 

@@ -12,6 +12,11 @@ function ExamSelection() {
 
   useEffect(() => {
     const email = localStorage.getItem("studentEmail");
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    if (!token) {
+      navigate("/student/login");
+      return;
+    }
     if (!email) {
       navigate("/auth-email");
       return;
@@ -36,16 +41,7 @@ function ExamSelection() {
         setStudentName(user?.displayName || email);
 
         // Fetch available exams
-        const exams = await examApi.getUpcomingExams();
-        const now = new Date();
-        
-        // Filter exams that are currently active (between start and end time)
-        const activeExams = exams.filter(exam => {
-          const startTime = new Date(exam.startTime);
-          const endTime = new Date(exam.endTime);
-          return now >= startTime && now <= endTime;
-        });
-
+        const activeExams = await examApi.getActiveExams();
         setAvailableExams(activeExams);
       } catch (err) {
         setError("Failed to fetch available exams");
