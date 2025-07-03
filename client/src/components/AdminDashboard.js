@@ -208,6 +208,22 @@ const AdminDashboard = () => {
     setShowRejectModal(true);
   };
 
+  const handleDisapproveExam = async (examId) => {
+    setExamLoading(true);
+    setExamError('');
+    setExamMessage('');
+    try {
+      await examApi.disapproveExam(examId);
+      setExamMessage('Exam disapproved successfully!');
+      fetchUnapprovedExams();
+      fetchPendingApprovalExams();
+    } catch (err) {
+      setExamError('Failed to disapprove exam.');
+    } finally {
+      setExamLoading(false);
+    }
+  };
+
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Admin Dashboard</h1>
@@ -423,13 +439,22 @@ const AdminDashboard = () => {
                             </td>
                             <td className="px-4 py-2 border">{exam.createdBy?.displayName || exam.createdBy?.email || 'N/A'}</td>
                             <td className="px-4 py-2 border">
-                              <button
-                                onClick={() => handleApproveExam(exam._id)}
-                                className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
-                                disabled={examLoading}
-                              >
-                                Approve
-                              </button>
+                              <div className="flex space-x-2">
+                                <button
+                                  onClick={() => handleApproveExam(exam._id)}
+                                  className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+                                  disabled={examLoading}
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() => handleDisapproveExam(exam._id)}
+                                  className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                                  disabled={examLoading}
+                                >
+                                  Disapprove
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))}

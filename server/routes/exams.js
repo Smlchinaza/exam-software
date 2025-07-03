@@ -21,12 +21,24 @@ router.get("/", authenticateJWT, async (req, res) => {
 router.get('/active', authenticateJWT, async (req, res) => {
   try {
     const now = new Date();
+    // Log all exams and their relevant fields
+    const allExams = await Exam.find({});
+    console.log('All exams:', allExams.map(e => ({
+      _id: e._id,
+      title: e.title,
+      status: e.status,
+      approved: e.approved,
+      startTime: e.startTime,
+      endTime: e.endTime
+    })));
+    // Now filter for active exams
     const exams = await Exam.find({
       status: 'active',
       approved: true,
       startTime: { $lte: now },
       endTime: { $gte: now }
     }).populate('createdBy', 'displayName email');
+    console.log('Active exams for students:', exams);
     res.json(exams);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -242,13 +254,11 @@ router.post('/:examId/approve', authenticateJWT, requireRole('admin'), async (re
     const exam = await Exam.findById(req.params.examId);
     if (!exam) return res.status(404).json({ error: 'Exam not found' });
     
-    // Handle both old and new approval workflows
-    if (exam.status === 'pending_approval') {
-      exam.status = 'active';
-      exam.approvedAt = new Date();
-      exam.approvedBy = req.user.user.id;
-    }
+    // Always set status to 'active' and approved to true
+    exam.status = 'active';
     exam.approved = true;
+    exam.approvedAt = new Date();
+    exam.approvedBy = req.user.user.id;
     await exam.save();
     
     res.json({ message: 'Exam approved successfully', exam });
@@ -273,6 +283,22 @@ router.post('/:examId/reject', authenticateJWT, requireRole('admin'), async (req
     await exam.save();
     
     res.json({ message: 'Exam rejected successfully', exam });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Disapprove (unapprove) exam (admin only)
+router.post('/:examId/disapprove', authenticateJWT, requireRole('admin'), async (req, res) => {
+  try {
+    const exam = await Exam.findById(req.params.examId);
+    if (!exam) return res.status(404).json({ error: 'Exam not found' });
+    exam.status = 'draft';
+    exam.approved = false;
+    exam.approvedAt = null;
+    exam.approvedBy = null;
+    await exam.save();
+    res.json({ message: 'Exam disapproved successfully', exam });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

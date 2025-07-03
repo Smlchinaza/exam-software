@@ -319,6 +319,15 @@ export const examApi = {
     } catch (error) {
       throw error.response?.data || error;
     }
+  },
+
+  disapproveExam: async (examId) => {
+    try {
+      const response = await api.post(`/exams/${examId}/disapprove`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
   }
 };
 
