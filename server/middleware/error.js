@@ -1,41 +1,38 @@
 const errorHandler = (err, req, res, next) => {
-  console.error(err.stack);
+  let error = { ...err };
+  error.message = err.message;
 
-  // Default error status and message
-  let status = err.status || 500;
-  let message = err.message || 'Internal Server Error';
+  // Log error
+  console.error('Error:', err);
 
-  // Handle specific error types
-  if (err.name === 'ValidationError') {
-    status = 400;
-    message = Object.values(err.errors).map(val => val.message).join(', ');
-  }
-
+  // Mongoose bad ObjectId
   if (err.name === 'CastError') {
-    status = 400;
-    message = 'Invalid ID format';
+    const message = 'Resource not found';
+    error = { message, statusCode: 404 };
   }
 
+  // Mongoose duplicate key
   if (err.code === 11000) {
-    status = 400;
-    message = 'Duplicate field value entered';
+    const message = 'Duplicate field value entered';
+    error = { message, statusCode: 400 };
   }
 
-  if (err.name === 'JsonWebTokenError') {
-    status = 401;
-    message = 'Invalid token';
+  // Mongoose validation error
+  if (err.name === 'ValidationError') {
+    const message = Object.values(err.errors).map(val => val.message).join(', ');
+    error = { message, statusCode: 400 };
   }
 
-  if (err.name === 'TokenExpiredError') {
-    status = 401;
-    message = 'Token expired';
+  // Rate limit error
+  if (err.statusCode === 429) {
+    const message = err.message || 'Too many requests, please try again later';
+    error = { message, statusCode: 429 };
   }
 
-  // Send error response
-  res.status(status).json({
+  res.status(error.statusCode || 500).json({
     success: false,
-    error: message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    error: error.message || 'Server Error',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
 };
 

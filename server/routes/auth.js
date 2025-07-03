@@ -1,7 +1,7 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
-const auth = require('../middleware/auth');
+const { authenticateJWT } = require('../middleware/auth');
 const { check } = require('express-validator');
 const validate = require('../middleware/validate');
 const bcrypt = require('bcryptjs');
@@ -206,7 +206,7 @@ router.post('/login', async (req, res) => {
 // @route   GET api/auth/user
 // @desc    Get user data
 // @access  Private
-router.get('/user', auth, async (req, res) => {
+router.get('/user', authenticateJWT, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
     if (!user) {
@@ -220,7 +220,7 @@ router.get('/user', auth, async (req, res) => {
 });
 
 // Logout
-router.post('/logout', auth, async (req, res) => {
+router.post('/logout', authenticateJWT, async (req, res) => {
   try {
     res.json({ message: 'Logged out successfully' });
   } catch (error) {

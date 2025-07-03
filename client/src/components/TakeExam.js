@@ -15,6 +15,7 @@ function TakeExam() {
   const [timeLeft, setTimeLeft] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [assignedQuestions, setAssignedQuestions] = useState([]);
 
   // Check for student email on mount and fetch display name
   useEffect(() => {
@@ -44,50 +45,31 @@ function TakeExam() {
       });
   }, [navigate]);
 
-  // Fetch exam data
+  // Fetch exam data and assigned questions
   useEffect(() => {
     if (!examId) {
-      // No exam ID provided, redirect to exam selection
       navigate("/exam-selection");
       return;
     }
 
-    const fetchExam = async () => {
+    const fetchExamAndQuestions = async () => {
       try {
         setLoading(true);
         setError("");
-        
+        // Fetch exam meta
         const examData = await examApi.getExam(examId);
-        
-        // Check if exam is currently active
-        const now = new Date();
-        const startTime = new Date(examData.startTime);
-        const endTime = new Date(examData.endTime);
-        
-        if (now < startTime) {
-          setError("This exam has not started yet");
-          setLoading(false);
-          return;
-        }
-        
-        if (now > endTime) {
-          setError("This exam has already ended");
-          setLoading(false);
-          return;
-        }
-
         setExam(examData);
-        
+        // Call /exams/:id/start to get assigned questions
+        const { assignedQuestions } = await examApi.startExam(examId);
+        setAssignedQuestions(assignedQuestions);
         // Initialize answers object
         const initialAnswers = {};
-        examData.questions.forEach((q) => {
+        assignedQuestions.forEach((q) => {
           initialAnswers[q._id] = "";
         });
         setAnswers(initialAnswers);
-        
         // Set timer based on exam duration
         setTimeLeft(examData.duration * 60);
-        
       } catch (err) {
         setError("Failed to fetch exam data");
         console.error("Error fetching exam:", err);
@@ -95,8 +77,7 @@ function TakeExam() {
         setLoading(false);
       }
     };
-
-    fetchExam();
+    fetchExamAndQuestions();
   }, [examId, navigate]);
 
   const handleLogout = () => {
@@ -273,11 +254,11 @@ function TakeExam() {
 
         {/* Questions */}
         <div className="space-y-6 sm:space-y-8">
-          {exam.questions.map((question, index) => (
+          {assignedQuestions.map((question, idx) => (
             <div key={question._id} className="border-b pb-4 sm:pb-6">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-3 sm:mb-4">
                 <h3 className="text-base sm:text-lg font-medium">
-                  Question {index + 1}
+                  Question {idx + 1}
                 </h3>
                 <span className="text-xs sm:text-sm text-gray-500">
                   {question.marks} marks

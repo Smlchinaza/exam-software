@@ -18,6 +18,9 @@ import TakeExam from './components/TakeExam';
 import AuthEmail from './components/AuthEmail';
 import ExamSelection from './components/ExamSelection';
 import ActiveExams from './components/ActiveExams';
+import ExamResults from './components/ExamResults';
+import AdminDashboard from './components/AdminDashboard';
+import AdminLogin from './components/AdminLogin';
 // Placeholder components for scaffolding
 const TeacherResults = () => <div className="p-8">Results Page (Coming Soon)</div>;
 const TeacherStudents = () => <div className="p-8">Students Page (Coming Soon)</div>;
@@ -53,6 +56,9 @@ function AppLayout() {
         <Route path="/teacher/students" element={<ProtectedRoute role="teacher"><TeacherStudents /></ProtectedRoute>} />
         <Route path="/teacher/settings" element={<ProtectedRoute role="teacher"><TeacherSettings /></ProtectedRoute>} />
         <Route path="/teacher/exam/:examId/questions" element={<ProtectedRoute role="teacher"><ExamQuestions /></ProtectedRoute>} />
+        <Route path="/teacher/exam/:examId/results" element={<ProtectedRoute role="teacher"><ExamResults /></ProtectedRoute>} />
+        <Route path="/admin/dashboard" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/admin/login" element={<AdminLogin />} />
         {/* Fallback Route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

@@ -3,11 +3,20 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const errorHandler = require('./middleware/error');
+const { 
+  dynamicLimiter,
+  generalLimiter, 
+  authLimiter, 
+  adminLimiter, 
+  examSubmissionLimiter, 
+  uploadLimiter 
+} = require('./middleware/rateLimit');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const questionRoutes = require('./routes/questions');
 const examRoutes = require('./routes/exams');
 const studentRoutes = require('./routes/students');
+const subjectRoutes = require('./routes/subjects');
 
 // Load environment variables
 dotenv.config();
@@ -29,12 +38,16 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Routes
-app.use("/api/auth", authRoutes);
+// Apply dynamic rate limiting to all routes (adjusts based on user role)
+app.use(dynamicLimiter);
+
+// Routes with specific rate limiting
+app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/users", userRoutes);
-app.use("/api/questions", questionRoutes);
-app.use("/api/exams", examRoutes);
+app.use("/api/questions", uploadLimiter, questionRoutes);
+app.use("/api/exams", examSubmissionLimiter, examRoutes);
 app.use("/api/students", studentRoutes);
+app.use("/api/subjects", adminLimiter, subjectRoutes);
 
 // Error handler
 app.use(errorHandler);

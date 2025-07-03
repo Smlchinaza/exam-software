@@ -36,23 +36,28 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []);
 
-  const login = async (email, password, rememberMe) => {
+  const login = async (emailOrObj, password, rememberMe) => {
+    let email, role;
+    if (typeof emailOrObj === 'object') {
+      email = emailOrObj.email;
+      password = emailOrObj.password;
+      role = emailOrObj.role;
+      rememberMe = emailOrObj.rememberMe;
+    } else {
+      email = emailOrObj;
+    }
     try {
-      console.log('AuthContext: Attempting login with:', { email, rememberMe });
-      
-      const response = await authApi.login(email, password, rememberMe);
+      console.log('AuthContext: Attempting login with:', { email, role, rememberMe });
+      const response = await authApi.login(email, password, rememberMe, role);
       console.log('AuthContext: Login response:', response);
-
       if (!response || !response.token || !response.user) {
         throw new Error('Invalid response from server');
       }
-
       // Store auth data based on rememberMe preference
       const storage = rememberMe ? localStorage : sessionStorage;
       storage.setItem('token', response.token);
       storage.setItem('user', JSON.stringify(response.user));
       storage.setItem('rememberMe', rememberMe);
-
       setUser(response.user);
       return response;
     } catch (error) {

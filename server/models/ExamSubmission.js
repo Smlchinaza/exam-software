@@ -27,6 +27,11 @@ const examSubmissionSchema = new mongoose.Schema({
     default: Date.now
   },
   timeSpent: Number, // in minutes
+  assignedQuestions: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Question',
+    required: true
+  }]
 }, {
   timestamps: true
 });

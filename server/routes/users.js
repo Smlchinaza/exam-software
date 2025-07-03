@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
-const auth = require('../middleware/auth');
+const { authenticateJWT, requireRole } = require('../middleware/auth');
 
 // Get user profile
-router.get('/profile', auth, async (req, res) => {
+router.get('/profile', authenticateJWT, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password -resetPasswordToken -resetPasswordExpires');
     if (!user) {
@@ -18,7 +18,7 @@ router.get('/profile', auth, async (req, res) => {
 });
 
 // Update user profile
-router.put('/profile', auth, async (req, res) => {
+router.put('/profile', authenticateJWT, async (req, res) => {
   try {
     const { displayName } = req.body;
     
@@ -44,7 +44,7 @@ router.put('/profile', auth, async (req, res) => {
 });
 
 // Update password
-router.put('/password', auth, async (req, res) => {
+router.put('/password', authenticateJWT, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
 
@@ -83,6 +83,19 @@ router.get('/students-emails', async (req, res) => {
   } catch (error) {
     console.error('Error fetching student users:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get all teachers
+router.get('/', authenticateJWT, requireRole('admin'), async (req, res) => {
+  try {
+    if (req.query.role === 'teacher') {
+      const teachers = await User.find({ role: 'teacher' }).select('email displayName');
+      return res.json(teachers);
+    }
+    // ... existing code for other users ...
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

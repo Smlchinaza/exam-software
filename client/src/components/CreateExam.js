@@ -18,7 +18,8 @@ function CreateExam() {
     startTime: '',
     endTime: '',
     subject: '',
-    instructions: ''
+    instructions: '',
+    questionsPerStudent: 1
   });
 
   useEffect(() => {
@@ -95,6 +96,11 @@ function CreateExam() {
       return;
     }
 
+    if (examData.questionsPerStudent < 1 || examData.questionsPerStudent > selectedQuestions.length) {
+      setError('Questions per student must be at least 1 and not more than the number of selected questions');
+      return;
+    }
+
     try {
       setLoading(true);
       setError('');
@@ -107,7 +113,8 @@ function CreateExam() {
         ...examData,
         subject, // Ensure subject is set
         questions: selectedQuestions,
-        totalMarks: calculateTotalMarks()
+        totalMarks: calculateTotalMarks(),
+        questionsPerStudent: examData.questionsPerStudent
       };
 
       console.log('Submitting exam data:', examDataToSubmit);
@@ -249,6 +256,19 @@ function CreateExam() {
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-left"
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 text-left">Questions Per Student</label>
+              <input
+                type="number"
+                min="1"
+                max={selectedQuestions.length}
+                value={examData.questionsPerStudent}
+                onChange={e => handleInputChange('questionsPerStudent', Number(e.target.value))}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-left"
+                required
+              />
             </div>
 
             <div>

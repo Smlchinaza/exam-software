@@ -2,7 +2,7 @@
 const express = require("express");
 const router = express.Router();
 const Question = require('../models/Question');
-const auth = require('../middleware/auth');
+const { authenticateJWT } = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -10,7 +10,7 @@ const pdfParse = require('pdf-parse');
 const mammoth = require('mammoth');
 
 // Get all questions
-router.get('/', auth, async (req, res) => {
+router.get('/', authenticateJWT, async (req, res) => {
   try {
     console.log('Fetching questions...');
     const questions = await Question.find().sort({ createdAt: -1 });
@@ -26,7 +26,7 @@ router.get('/', auth, async (req, res) => {
 });
 
 // Add a new question
-router.post('/', auth, async (req, res) => {
+router.post('/', authenticateJWT, async (req, res) => {
   try {
     const { question, options, correctAnswer, subject, marks, explanation } = req.body;
 
@@ -49,7 +49,7 @@ router.post('/', auth, async (req, res) => {
 });
 
 // Delete multiple questions
-router.delete('/bulk', auth, async (req, res) => {
+router.delete('/bulk', authenticateJWT, async (req, res) => {
   try {
     console.log('Attempting to delete questions:', req.body.questionIds);
     const { questionIds } = req.body;
@@ -70,7 +70,7 @@ router.delete('/bulk', auth, async (req, res) => {
 });
 
 // Delete a single question
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', authenticateJWT, async (req, res) => {
   try {
     console.log('Attempting to delete question:', req.params.id);
     const question = await Question.findById(req.params.id);
@@ -121,7 +121,7 @@ const upload = multer({
 });
 
 // Upload and process document
-router.post('/upload', auth, upload.single('file'), async (req, res) => {
+router.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });

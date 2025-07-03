@@ -151,13 +151,11 @@ export const authApi = {
     }
   },
 
-  login: async (email, password, rememberMe) => {
+  login: async (email, password, rememberMe, role) => {
     try {
-      const response = await api.post('/auth/login', {
-        email,
-        password,
-        rememberMe
-      });
+      const payload = { email, password, rememberMe };
+      if (role) payload.role = role;
+      const response = await api.post('/auth/login', payload);
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
@@ -271,6 +269,56 @@ export const examApi = {
     } catch (error) {
       throw error.response?.data || error;
     }
+  },
+
+  startExam: async (examId) => {
+    const response = await api.post(`/exams/${examId}/start`);
+    return response.data;
+  },
+
+  getUnapprovedExams: async () => {
+    try {
+      const response = await api.get('/exams/unapproved');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  approveExam: async (examId) => {
+    try {
+      const response = await api.post(`/exams/${examId}/approve`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  submitForApproval: async (examId) => {
+    try {
+      const response = await api.post(`/exams/${examId}/submit-for-approval`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  getPendingApprovalExams: async () => {
+    try {
+      const response = await api.get('/exams/pending-approval');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  rejectExam: async (examId, reason) => {
+    try {
+      const response = await api.post(`/exams/${examId}/reject`, { reason });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
   }
 };
 
@@ -283,6 +331,60 @@ export const userApi = {
       throw error.response?.data || error;
     }
   },
+};
+
+export const subjectApi = {
+  getAllSubjects: async () => {
+    try {
+      const response = await api.get('/subjects');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+  createSubject: async (name) => {
+    try {
+      const response = await api.post('/subjects', { name });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+  assignTeachers: async (subjectId, teacherIds) => {
+    try {
+      const response = await api.post(`/subjects/${subjectId}/assign`, { teacherIds });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+  unassignTeachers: async (subjectId, teacherIds = []) => {
+    try {
+      const response = await api.post(`/subjects/${subjectId}/unassign`, { teacherIds });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+  deleteSubject: async (subjectId) => {
+    try {
+      const response = await api.delete(`/subjects/${subjectId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  }
+};
+
+export const teacherApi = {
+  getAllTeachers: async () => {
+    try {
+      const response = await api.get('/users?role=teacher');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  }
 };
 
 export default api; 

@@ -48,8 +48,30 @@ const examSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['draft', 'scheduled', 'active', 'completed', 'cancelled'],
+    enum: ['draft', 'scheduled', 'pending_approval', 'active', 'completed', 'cancelled'],
     default: 'draft'
+  },
+  questionsPerStudent: {
+    type: Number,
+    required: true,
+    min: 1
+  },
+  submittedForApprovalAt: {
+    type: Date,
+    default: null
+  },
+  approvedAt: {
+    type: Date,
+    default: null
+  },
+  approvedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  approved: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true

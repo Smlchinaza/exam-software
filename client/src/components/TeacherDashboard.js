@@ -237,7 +237,10 @@ function TeacherDashboard() {
                           </button>
                         </>
                       ) : exam.status === 'Completed' ? (
-                        <button className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
+                        <button 
+                          className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
+                          onClick={() => navigate(`/teacher/exam/${exam.id}/results`)}
+                        >
                           Results
                         </button>
                       ) : (
