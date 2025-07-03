@@ -24,7 +24,9 @@ dotenv.config();
 const app = express();
 
 const allowedOrigins = [
-  'https://exam-software-45ex.vercel.app'
+  'https://exam-software-45ex.vercel.app',
+  'https://exam-software-45ex-git-main-samuel-chinazas-projects.vercel.app',
+  'https://exam-software-45ex-btw34co5j-samuel-chinazas-projects.vercel.app/'
 ];
 
 // CORS configuration
