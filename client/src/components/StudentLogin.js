@@ -14,8 +14,6 @@ const StudentLogin = () => {
   });
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [showDemoAccounts, setShowDemoAccounts] = useState(false);
-  const [demoAccounts, setDemoAccounts] = useState(null);
   const { login } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -63,23 +61,6 @@ const StudentLogin = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const fetchDemoAccounts = async () => {
-    try {
-      const response = await fetch('http://localhost:5000/api/auth/demo-accounts');
-      const data = await response.json();
-      setDemoAccounts(data);
-    } catch (error) {
-      console.error('Error fetching demo accounts:', error);
-    }
-  };
-
-  const toggleDemoAccounts = () => {
-    if (!demoAccounts) {
-      fetchDemoAccounts();
-    }
-    setShowDemoAccounts(!showDemoAccounts);
   };
 
   const togglePasswordVisibility = () => {
@@ -203,27 +184,6 @@ const StudentLogin = () => {
             </button>
           </div>
         </form>
-
-        <div className="mt-4">
-          <button
-            onClick={toggleDemoAccounts}
-            className="w-full flex items-center justify-center gap-2 text-sm text-gray-600 hover:text-gray-900"
-          >
-            <Info className="h-4 w-4" />
-            {showDemoAccounts ? 'Hide Demo Accounts' : 'Show Demo Accounts'}
-          </button>
-          
-          {showDemoAccounts && demoAccounts && (
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <h3 className="text-lg font-medium text-gray-900 mb-3">Demo Accounts</h3>
-              <div>
-                <h4 className="font-medium text-gray-700">Student Account</h4>
-                <p className="text-sm text-gray-600">Unique Code: {demoAccounts.student.uniqueCode}</p>
-                <p className="text-sm text-gray-600">Password: {demoAccounts.student.password}</p>
-              </div>
-            </div>
-          )}
-        </div>
 
         <div className="text-center">
           <p className="text-sm text-gray-600">
