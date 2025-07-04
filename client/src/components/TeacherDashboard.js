@@ -16,6 +16,7 @@ function TeacherDashboard() {
   });
 
   const [recentExams, setRecentExams] = useState([]);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -94,9 +95,6 @@ function TeacherDashboard() {
               <li className="hover:bg-gray-50 p-2 rounded">
                 <button onClick={() => navigate('/teacher/students')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Students</button>
               </li>
-              <li className="hover:bg-gray-50 p-2 rounded">
-                <button onClick={() => navigate('/teacher/settings')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Settings</button>
-              </li>
             </ul>
           </div>
         </div>
@@ -120,9 +118,69 @@ function TeacherDashboard() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
-      <div className="w-64 bg-white shadow-lg">
+    <div className="flex h-screen bg-gray-100 flex-col md:flex-row">
+      {/* Mobile Nav Button */}
+      <div className="md:hidden flex items-center justify-between bg-white shadow p-4">
+        <button
+          className="text-gray-700 focus:outline-none mr-3"
+          onClick={() => setMobileNavOpen(!mobileNavOpen)}
+          aria-label="Open navigation menu"
+        >
+          {/* Hamburger icon */}
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <h3 className="text-lg font-semibold text-gray-700">Dashboard</h3>
+      </div>
+      {/* Mobile Sidebar */}
+      {mobileNavOpen && (
+        <div className="fixed inset-0 z-40 flex md:hidden">
+          {/* Overlay */}
+          <div className="fixed inset-0 bg-black bg-opacity-30" onClick={() => setMobileNavOpen(false)}></div>
+          {/* Sidebar */}
+          <div className="relative z-50 h-full w-64 bg-white shadow-lg p-4 animate-slide-in-left">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-700 text-left">Navigation</h3>
+              <button
+                className="text-gray-700 focus:outline-none"
+                onClick={() => setMobileNavOpen(false)}
+                aria-label="Close navigation menu"
+              >
+                {/* Collapse (X) icon */}
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <ul className="space-y-2">
+              <li className="bg-blue-50 text-blue-600 p-2 rounded">
+                <button onClick={() => {navigate('/teacher/dashboard'); setMobileNavOpen(false);}} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Dashboard</button>
+              </li>
+              <li className="hover:bg-gray-50 p-2 rounded">
+                <button onClick={() => {navigate('/teacher/question-bank'); setMobileNavOpen(false);}} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Question Bank</button>
+              </li>
+              <li className="hover:bg-gray-50 p-2 rounded">
+                <button onClick={() => {navigate('/teacher/create-exam'); setMobileNavOpen(false);}} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Create Exam</button>
+              </li>
+              <li className="hover:bg-gray-50 p-2 rounded">
+                <button onClick={() => {navigate('/teacher/active-exams'); setMobileNavOpen(false);}} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Active Exams</button>
+              </li>
+              <li className="hover:bg-gray-50 p-2 rounded">
+                <button onClick={() => {navigate('/teacher/results'); setMobileNavOpen(false);}} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Results</button>
+              </li>
+              <li className="hover:bg-gray-50 p-2 rounded">
+                <button onClick={() => {navigate('/teacher/students'); setMobileNavOpen(false);}} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Students</button>
+              </li>
+              <li className="hover:bg-gray-50 p-2 rounded">
+                <button onClick={() => {navigate('/teacher/profile'); setMobileNavOpen(false);}} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Profile</button>
+              </li>
+            </ul>
+          </div>
+        </div>
+      )}
+      {/* Desktop Sidebar */}
+      <div className="w-64 bg-white shadow-lg hidden md:block">
         <div className="p-4">
           <h3 className="text-lg font-semibold text-gray-700 mb-4 text-left">Navigation</h3>
           <ul className="space-y-2">
@@ -145,22 +203,21 @@ function TeacherDashboard() {
               <button onClick={() => navigate('/teacher/students')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Students</button>
             </li>
             <li className="hover:bg-gray-50 p-2 rounded">
-              <button onClick={() => navigate('/teacher/settings')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Settings</button>
+              <button onClick={() => navigate('/teacher/profile')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Profile</button>
             </li>
           </ul>
         </div>
       </div>
-
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
-        <div className="p-8">
+      <div className="flex-1 overflow-auto w-full">
+        <div className="p-4 md:p-8">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-left">Dashboard Overview</h2>
             <button
-              onClick={() => navigate('/create-exam')}
+              onClick={() => navigate('/teacher/profile')}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
             >
-              Create New Exam
+              Profile
             </button>
           </div>
 
@@ -171,7 +228,7 @@ function TeacherDashboard() {
           )}
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <div className="bg-white p-6 rounded-lg shadow">
               <div className="text-3xl font-bold text-blue-600 text-left">{stats.totalQuestions}</div>
               <div className="text-gray-600 text-left">Total Questions</div>
@@ -191,11 +248,11 @@ function TeacherDashboard() {
           </div>
 
           {/* Recent Exams Table */}
-          <div className="p-4 border-b">
+          <div className="p-2 md:p-4 border-b">
             <h3 className="text-lg font-semibold text-left">Recent Exams</h3>
           </div>
-          <div className="p-4">
-            <table className="min-w-full">
+          <div className="p-2 md:p-4 overflow-x-auto">
+            <table className="min-w-full text-xs md:text-sm">
               <thead>
                 <tr className="bg-gray-50">
                   <th className="px-4 py-2 text-left text-sm font-medium text-gray-600">Exam Name</th>
