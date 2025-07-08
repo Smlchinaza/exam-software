@@ -134,12 +134,12 @@ const StudentDashboard = () => {
     <div className="min-h-screen bg-gray-100">
       {/* Navigation Bar */}
       <nav className="bg-blue-600 text-white p-4">
-        <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Student Portal</h1>
-          <div className="flex space-x-4">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0">
+          <h1 className="text-xl sm:text-2xl font-bold">Student Portal</h1>
+          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto items-center">
             <span className="flex items-center space-x-2">
               <FaUser />
-              <span>{studentData?.fullName || user?.displayName || 'Student'}</span>
+              <span className="truncate max-w-[120px] sm:max-w-none">{studentData?.fullName || user?.displayName || 'Student'}</span>
             </span>
             <button 
               onClick={() => setShowProfile(true)}
@@ -160,27 +160,27 @@ const StudentDashboard = () => {
       </nav>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto px-2 xs:px-4 sm:px-6 lg:px-8 py-6 xs:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 xs:gap-8">
           {/* Student Info Card */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold mb-4">Student Information</h2>
-              <div className="space-y-3">
+            <div className="bg-white rounded-lg shadow-md p-4 xs:p-6">
+              <h2 className="text-lg xs:text-xl font-semibold mb-3 xs:mb-4">Student Information</h2>
+              <div className="space-y-2 xs:space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Name:</label>
-                  <p className="text-gray-900">{studentData?.fullName || user?.displayName || 'N/A'}</p>
+                  <label className="block text-xs xs:text-sm font-medium text-gray-700">Name:</label>
+                  <p className="text-gray-900 text-xs xs:text-sm">{studentData?.fullName || user?.displayName || 'N/A'}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Email:</label>
-                  <p className="text-gray-900">{user?.email || 'N/A'}</p>
+                  <label className="block text-xs xs:text-sm font-medium text-gray-700">Email:</label>
+                  <p className="text-gray-900 text-xs xs:text-sm">{user?.email || 'N/A'}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Current Class:</label>
+                  <label className="block text-xs xs:text-sm font-medium text-gray-700">Current Class:</label>
                   <select
                     value={selectedClass}
                     onChange={(e) => handleClassSelect(e.target.value)}
-                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-xs xs:text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
                   >
                     {classes.map((className) => (
                       <option key={className} value={className}>
@@ -194,24 +194,24 @@ const StudentDashboard = () => {
           </div>
 
           {/* Subject Registration */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold mb-4">Subject Registration</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="lg:col-span-2 mt-6 lg:mt-0">
+            <div className="bg-white rounded-lg shadow-md p-4 xs:p-6">
+              <h2 className="text-lg xs:text-xl font-semibold mb-3 xs:mb-4">Subject Registration</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 xs:gap-4">
                 {availableSubjects.map((subject) => (
-                  <div key={subject} className="flex items-center justify-between p-3 border rounded-lg">
-                    <span className="text-gray-900">{subject}</span>
+                  <div key={subject} className="flex items-center justify-between p-2 xs:p-3 border rounded-lg">
+                    <span className="text-gray-900 text-xs xs:text-sm">{subject}</span>
                     {subjects.includes(subject) ? (
                       <button
                         onClick={() => handleRemoveSubject(subject)}
-                        className="text-red-600 hover:text-red-800 text-sm font-medium"
+                        className="text-red-600 hover:text-red-800 text-xs xs:text-sm font-medium"
                       >
                         Remove
                       </button>
                     ) : (
                       <button
                         onClick={() => handleSubjectRegistration(subject)}
-                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                        className="text-blue-600 hover:text-blue-800 text-xs xs:text-sm font-medium"
                       >
                         Add
                       </button>
@@ -224,50 +224,50 @@ const StudentDashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="mt-6 xs:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 xs:gap-6">
+          <div className="bg-white rounded-lg shadow-md p-4 xs:p-6">
             <div className="flex items-center">
-              <FaBook className="h-8 w-8 text-blue-600" />
-              <div className="ml-4">
-                <h3 className="text-lg font-medium text-gray-900">View Results</h3>
-                <p className="text-gray-500">Check your academic performance</p>
+              <FaBook className="h-7 w-7 xs:h-8 xs:w-8 text-blue-600" />
+              <div className="ml-3 xs:ml-4">
+                <h3 className="text-base xs:text-lg font-medium text-gray-900">View Results</h3>
+                <p className="text-gray-500 text-xs xs:text-sm">Check your academic performance</p>
               </div>
             </div>
             <button
               onClick={() => navigate('/student/results')}
-              className="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
+              className="mt-3 xs:mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 text-xs xs:text-sm"
             >
               View Results
             </button>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-white rounded-lg shadow-md p-4 xs:p-6">
             <div className="flex items-center">
-              <FaUser className="h-8 w-8 text-green-600" />
-              <div className="ml-4">
-                <h3 className="text-lg font-medium text-gray-900">Profile</h3>
-                <p className="text-gray-500">Update your personal information</p>
+              <FaUser className="h-7 w-7 xs:h-8 xs:w-8 text-green-600" />
+              <div className="ml-3 xs:ml-4">
+                <h3 className="text-base xs:text-lg font-medium text-gray-900">Profile</h3>
+                <p className="text-gray-500 text-xs xs:text-sm">Update your personal information</p>
               </div>
             </div>
             <button
               onClick={() => navigate('/student/profile')}
-              className="mt-4 w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700"
+              className="mt-3 xs:mt-4 w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 text-xs xs:text-sm"
             >
               View Profile
             </button>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-white rounded-lg shadow-md p-4 xs:p-6">
             <div className="flex items-center">
-              <FaChartBar className="h-8 w-8 text-purple-600" />
-              <div className="ml-4">
-                <h3 className="text-lg font-medium text-gray-900">Analytics</h3>
-                <p className="text-gray-500">View your progress analytics</p>
+              <FaChartBar className="h-7 w-7 xs:h-8 xs:w-8 text-purple-600" />
+              <div className="ml-3 xs:ml-4">
+                <h3 className="text-base xs:text-lg font-medium text-gray-900">Analytics</h3>
+                <p className="text-gray-500 text-xs xs:text-sm">View your progress analytics</p>
               </div>
             </div>
             <button
               onClick={() => navigate('/student/analytics')}
-              className="mt-4 w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700"
+              className="mt-3 xs:mt-4 w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 text-xs xs:text-sm"
             >
               View Analytics
             </button>

@@ -225,21 +225,21 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Admin Dashboard</h1>
-      <div className="mb-4 p-4 bg-blue-50 rounded">
+    <div className="p-2 xs:p-4 sm:p-6 max-w-full sm:max-w-4xl mx-auto">
+      <h1 className="text-lg xs:text-xl sm:text-2xl font-bold mb-3 xs:mb-4">Admin Dashboard</h1>
+      <div className="mb-3 xs:mb-4 p-2 xs:p-4 bg-blue-50 rounded text-xs xs:text-sm">
         <p><strong>Current User:</strong> {user?.displayName || user?.email}</p>
         <p><strong>Role:</strong> {user?.role}</p>
       </div>
-      <div className="flex space-x-4 mb-6">
+      <div className="flex flex-col xs:flex-row xs:space-x-4 mb-4 xs:mb-6 gap-2 xs:gap-0">
         <button
-          className={`px-4 py-2 rounded ${activeTab === 'assign' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+          className={`px-3 xs:px-4 py-2 rounded text-xs xs:text-sm ${activeTab === 'assign' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
           onClick={() => setActiveTab('assign')}
         >
           Assign Subjects
         </button>
         <button
-          className={`px-4 py-2 rounded ${activeTab === 'approve' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+          className={`px-3 xs:px-4 py-2 rounded text-xs xs:text-sm ${activeTab === 'approve' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
           onClick={() => setActiveTab('approve')}
         >
           Approve Exams
@@ -248,31 +248,31 @@ const AdminDashboard = () => {
       <div>
         {activeTab === 'assign' && (
           <div>
-            <h2 className="text-xl font-semibold mb-2">Assign Subjects to Teachers</h2>
-            {error && <div className="mb-2 text-red-600">{error}</div>}
-            {message && <div className="mb-2 text-green-600">{message}</div>}
-            <div className="mb-4 flex items-center space-x-2">
+            <h2 className="text-base xs:text-lg sm:text-xl font-semibold mb-2">Assign Subjects to Teachers</h2>
+            {error && <div className="mb-2 text-xs xs:text-sm text-red-600">{error}</div>}
+            {message && <div className="mb-2 text-xs xs:text-sm text-green-600">{message}</div>}
+            <div className="mb-3 xs:mb-4 flex flex-col xs:flex-row items-center xs:space-x-2 gap-2 xs:gap-0">
               <input
                 type="text"
                 placeholder="New subject name"
                 value={newSubject}
                 onChange={e => setNewSubject(e.target.value)}
-                className="border px-2 py-1 rounded"
+                className="border px-2 py-1 rounded text-xs xs:text-sm"
               />
               <button
                 onClick={handleCreateSubject}
-                className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+                className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-xs xs:text-sm"
                 disabled={loading}
               >
                 Add Subject
               </button>
             </div>
-            <div className="mb-4">
-              <label className="block font-medium mb-1">Select Subject</label>
+            <div className="mb-3 xs:mb-4">
+              <label className="block font-medium mb-1 text-xs xs:text-sm">Select Subject</label>
               <select
                 value={selectedSubject}
                 onChange={e => setSelectedSubject(e.target.value)}
-                className="border px-2 py-1 rounded w-full"
+                className="border px-2 py-1 rounded w-full text-xs xs:text-sm"
               >
                 <option value="">-- Select Subject --</option>
                 {subjects.map(subject => (
@@ -280,13 +280,13 @@ const AdminDashboard = () => {
                 ))}
               </select>
             </div>
-            <div className="mb-4">
-              <label className="block font-medium mb-1">Select Teachers</label>
+            <div className="mb-3 xs:mb-4">
+              <label className="block font-medium mb-1 text-xs xs:text-sm">Select Teachers</label>
               <select
                 multiple
                 value={selectedTeachers}
                 onChange={e => setSelectedTeachers(Array.from(e.target.selectedOptions, option => option.value))}
-                className="border px-2 py-1 rounded w-full h-32"
+                className="border px-2 py-1 rounded w-full h-24 xs:h-32 text-xs xs:text-sm"
               >
                 {teachers.map(teacher => (
                   <option key={teacher._id} value={teacher._id}>{teacher.displayName} ({teacher.email})</option>
@@ -295,31 +295,31 @@ const AdminDashboard = () => {
             </div>
             <button
               onClick={handleAssign}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              className="bg-blue-600 text-white px-3 xs:px-4 py-2 rounded hover:bg-blue-700 text-xs xs:text-sm"
               disabled={loading}
             >
               Assign Teachers
             </button>
-            <div className="mt-8">
-              <h3 className="font-semibold mb-2">Current Subject Assignments</h3>
-              <table className="min-w-full bg-white border rounded">
+            <div className="mt-6 xs:mt-8 overflow-x-auto">
+              <h3 className="font-semibold mb-2 text-xs xs:text-sm">Current Subject Assignments</h3>
+              <table className="min-w-full bg-white border rounded text-xs xs:text-sm">
                 <thead>
                   <tr>
-                    <th className="px-4 py-2 border">Subject</th>
-                    <th className="px-4 py-2 border">Teachers</th>
-                    <th className="px-4 py-2 border">Actions</th>
+                    <th className="px-2 xs:px-4 py-2 border">Subject</th>
+                    <th className="px-2 xs:px-4 py-2 border">Teachers</th>
+                    <th className="px-2 xs:px-4 py-2 border">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {subjects.map(subject => (
                     <tr key={subject._id}>
-                      <td className="px-4 py-2 border">{subject.name}</td>
-                      <td className="px-4 py-2 border">
+                      <td className="px-2 xs:px-4 py-2 border">{subject.name}</td>
+                      <td className="px-2 xs:px-4 py-2 border">
                         {subject.teachers && subject.teachers.length > 0
                           ? subject.teachers.map(t => t.displayName || t.email).join(', ')
                           : <span className="text-gray-400">No teachers assigned</span>}
                       </td>
-                      <td className="px-4 py-2 border">
+                      <td className="px-2 xs:px-4 py-2 border">
                         <div className="flex space-x-2">
                           <button
                             onClick={() => openUnassignModal(subject)}
@@ -345,40 +345,39 @@ const AdminDashboard = () => {
         )}
         {activeTab === 'approve' && (
           <div>
-            <h2 className="text-xl font-semibold mb-2">Approve Exams</h2>
-            {approvalError && <div className="mb-2 text-red-600">{approvalError}</div>}
-            {approvalMessage && <div className="mb-2 text-green-600">{approvalMessage}</div>}
-            
+            <h2 className="text-base xs:text-lg sm:text-xl font-semibold mb-2">Approve Exams</h2>
+            {approvalError && <div className="mb-2 text-xs xs:text-sm text-red-600">{approvalError}</div>}
+            {approvalMessage && <div className="mb-2 text-xs xs:text-sm text-green-600">{approvalMessage}</div>}
             {/* Pending Approval Exams */}
-            <div className="mb-8">
-              <h3 className="text-lg font-medium mb-4">Exams Pending Approval</h3>
+            <div className="mb-6 xs:mb-8 overflow-x-auto">
+              <h3 className="text-xs xs:text-sm sm:text-lg font-medium mb-3 xs:mb-4">Exams Pending Approval</h3>
               {approvalLoading ? (
                 <div>Loading...</div>
               ) : (
                 <div>
                   {pendingApprovalExams.length === 0 ? (
-                    <div className="bg-gray-100 p-4 rounded">No exams pending approval.</div>
+                    <div className="bg-gray-100 p-2 xs:p-4 rounded text-xs xs:text-sm">No exams pending approval.</div>
                   ) : (
-                    <table className="min-w-full bg-white border rounded">
+                    <table className="min-w-full bg-white border rounded text-xs xs:text-sm">
                       <thead>
                         <tr>
-                          <th className="px-4 py-2 border">Title</th>
-                          <th className="px-4 py-2 border">Subject</th>
-                          <th className="px-4 py-2 border">Created By</th>
-                          <th className="px-4 py-2 border">Submitted</th>
-                          <th className="px-4 py-2 border">Actions</th>
+                          <th className="px-2 xs:px-4 py-2 border">Title</th>
+                          <th className="px-2 xs:px-4 py-2 border">Subject</th>
+                          <th className="px-2 xs:px-4 py-2 border">Created By</th>
+                          <th className="px-2 xs:px-4 py-2 border">Submitted</th>
+                          <th className="px-2 xs:px-4 py-2 border">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
                         {pendingApprovalExams.map(exam => (
                           <tr key={exam._id}>
-                            <td className="px-4 py-2 border">{exam.title}</td>
-                            <td className="px-4 py-2 border">{exam.subject}</td>
-                            <td className="px-4 py-2 border">{exam.createdBy?.displayName || exam.createdBy?.email || 'N/A'}</td>
-                            <td className="px-4 py-2 border">
+                            <td className="px-2 xs:px-4 py-2 border">{exam.title}</td>
+                            <td className="px-2 xs:px-4 py-2 border">{exam.subject}</td>
+                            <td className="px-2 xs:px-4 py-2 border">{exam.createdBy?.displayName || exam.createdBy?.email || 'N/A'}</td>
+                            <td className="px-2 xs:px-4 py-2 border">
                               {exam.submittedForApprovalAt ? new Date(exam.submittedForApprovalAt).toLocaleDateString() : 'N/A'}
                             </td>
-                            <td className="px-4 py-2 border">
+                            <td className="px-2 xs:px-4 py-2 border">
                               <div className="flex space-x-2">
                                 <button
                                   onClick={() => handleApproveExam(exam._id)}
@@ -404,41 +403,40 @@ const AdminDashboard = () => {
                 </div>
               )}
             </div>
-
             {/* Unapproved Exams (Legacy) */}
-            <div>
-              <h3 className="text-lg font-medium mb-4">All Unapproved Exams</h3>
+            <div className="overflow-x-auto">
+              <h3 className="text-xs xs:text-sm sm:text-lg font-medium mb-3 xs:mb-4">All Unapproved Exams</h3>
               {examLoading ? (
                 <div>Loading...</div>
               ) : (
                 <div>
                   {unapprovedExams.length === 0 ? (
-                    <div className="bg-gray-100 p-4 rounded">No unapproved exams.</div>
+                    <div className="bg-gray-100 p-2 xs:p-4 rounded text-xs xs:text-sm">No unapproved exams.</div>
                   ) : (
-                    <table className="min-w-full bg-white border rounded">
+                    <table className="min-w-full bg-white border rounded text-xs xs:text-sm">
                       <thead>
                         <tr>
-                          <th className="px-4 py-2 border">Title</th>
-                          <th className="px-4 py-2 border">Subject</th>
-                          <th className="px-4 py-2 border">Status</th>
-                          <th className="px-4 py-2 border">Created By</th>
-                          <th className="px-4 py-2 border">Actions</th>
+                          <th className="px-2 xs:px-4 py-2 border">Title</th>
+                          <th className="px-2 xs:px-4 py-2 border">Subject</th>
+                          <th className="px-2 xs:px-4 py-2 border">Status</th>
+                          <th className="px-2 xs:px-4 py-2 border">Created By</th>
+                          <th className="px-2 xs:px-4 py-2 border">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
                         {unapprovedExams.map(exam => (
                           <tr key={exam._id}>
-                            <td className="px-4 py-2 border">{exam.title}</td>
-                            <td className="px-4 py-2 border">{exam.subject}</td>
-                            <td className="px-4 py-2 border">
+                            <td className="px-2 xs:px-4 py-2 border">{exam.title}</td>
+                            <td className="px-2 xs:px-4 py-2 border">{exam.subject}</td>
+                            <td className="px-2 xs:px-4 py-2 border">
                               <span className={`px-2 py-1 rounded text-xs ${
                                 exam.status === 'pending_approval' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'
                               }`}>
                                 {exam.status}
                               </span>
                             </td>
-                            <td className="px-4 py-2 border">{exam.createdBy?.displayName || exam.createdBy?.email || 'N/A'}</td>
-                            <td className="px-4 py-2 border">
+                            <td className="px-2 xs:px-4 py-2 border">{exam.createdBy?.displayName || exam.createdBy?.email || 'N/A'}</td>
+                            <td className="px-2 xs:px-4 py-2 border">
                               <div className="flex space-x-2">
                                 <button
                                   onClick={() => handleApproveExam(exam._id)}
@@ -470,11 +468,11 @@ const AdminDashboard = () => {
 
       {/* Unassign Teachers Modal */}
       {showUnassignModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold mb-4">Unassign Teachers</h3>
-            <p className="mb-4">Select teachers to unassign from this subject:</p>
-            <div className="mb-4 max-h-40 overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-2 xs:px-4">
+          <div className="bg-white p-4 xs:p-6 rounded-lg max-w-xs xs:max-w-md w-full mx-2 xs:mx-4">
+            <h3 className="text-base xs:text-lg font-semibold mb-3 xs:mb-4">Unassign Teachers</h3>
+            <p className="mb-3 xs:mb-4 text-xs xs:text-sm">Select teachers to unassign from this subject:</p>
+            <div className="mb-3 xs:mb-4 max-h-32 xs:max-h-40 overflow-y-auto">
               {subjects.find(s => s._id === selectedSubjectForUnassign)?.teachers?.map(teacher => (
                 <label key={teacher._id} className="flex items-center mb-2">
                   <input
@@ -496,13 +494,13 @@ const AdminDashboard = () => {
             <div className="flex justify-end space-x-2">
               <button
                 onClick={() => setShowUnassignModal(false)}
-                className="px-4 py-2 border rounded hover:bg-gray-100"
+                className="px-3 xs:px-4 py-2 border rounded hover:bg-gray-100 text-xs xs:text-sm"
               >
                 Cancel
               </button>
               <button
                 onClick={handleUnassignTeachers}
-                className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700"
+                className="px-3 xs:px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-xs xs:text-sm"
                 disabled={loading}
               >
                 {loading ? 'Unassigning...' : 'Unassign'}
@@ -514,22 +512,22 @@ const AdminDashboard = () => {
 
       {/* Delete Subject Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold mb-4">Delete Subject</h3>
-            <p className="mb-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-2 xs:px-4">
+          <div className="bg-white p-4 xs:p-6 rounded-lg max-w-xs xs:max-w-md w-full mx-2 xs:mx-4">
+            <h3 className="text-base xs:text-lg font-semibold mb-3 xs:mb-4">Delete Subject</h3>
+            <p className="mb-3 xs:mb-4 text-xs xs:text-sm">
               Are you sure you want to delete "{subjectToDelete?.name}"? This action cannot be undone.
             </p>
             <div className="flex justify-end space-x-2">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 border rounded hover:bg-gray-100"
+                className="px-3 xs:px-4 py-2 border rounded hover:bg-gray-100 text-xs xs:text-sm"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteSubject}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                className="px-3 xs:px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-xs xs:text-sm"
                 disabled={loading}
               >
                 {loading ? 'Deleting...' : 'Delete'}
@@ -541,18 +539,18 @@ const AdminDashboard = () => {
 
       {/* Reject Exam Modal */}
       {showRejectModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold mb-4">Reject Exam</h3>
-            <p className="mb-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-2 xs:px-4">
+          <div className="bg-white p-4 xs:p-6 rounded-lg max-w-xs xs:max-w-md w-full mx-2 xs:mx-4">
+            <h3 className="text-base xs:text-lg font-semibold mb-3 xs:mb-4">Reject Exam</h3>
+            <p className="mb-3 xs:mb-4 text-xs xs:text-sm">
               Are you sure you want to reject "{examToReject?.title}"?
             </p>
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-2">Reason for rejection (optional):</label>
+            <div className="mb-3 xs:mb-4">
+              <label className="block text-xs xs:text-sm font-medium mb-2">Reason for rejection (optional):</label>
               <textarea
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
-                className="w-full px-3 py-2 border rounded"
+                className="w-full px-2 xs:px-3 py-2 border rounded text-xs xs:text-sm"
                 rows="3"
                 placeholder="Enter reason for rejection..."
               />
@@ -564,13 +562,13 @@ const AdminDashboard = () => {
                   setRejectReason('');
                   setExamToReject(null);
                 }}
-                className="px-4 py-2 border rounded hover:bg-gray-100"
+                className="px-3 xs:px-4 py-2 border rounded hover:bg-gray-100 text-xs xs:text-sm"
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleRejectExam(examToReject._id, rejectReason)}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                className="px-3 xs:px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-xs xs:text-sm"
                 disabled={approvalLoading}
               >
                 {approvalLoading ? 'Rejecting...' : 'Reject'}

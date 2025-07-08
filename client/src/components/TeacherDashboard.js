@@ -131,7 +131,7 @@ function TeacherDashboard() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        <h3 className="text-lg font-semibold text-gray-700">Dashboard</h3>
+        <h3 className="text-base xs:text-lg sm:text-xl font-semibold text-gray-700">Dashboard</h3>
       </div>
       {/* Mobile Sidebar */}
       {mobileNavOpen && (
@@ -141,7 +141,7 @@ function TeacherDashboard() {
           {/* Sidebar */}
           <div className="relative z-50 h-full w-64 bg-white shadow-lg p-4 animate-slide-in-left">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-700 text-left">Navigation</h3>
+              <h3 className="text-base xs:text-lg font-semibold text-gray-700 text-left">Navigation</h3>
               <button
                 className="text-gray-700 focus:outline-none"
                 onClick={() => setMobileNavOpen(false)}
@@ -180,9 +180,9 @@ function TeacherDashboard() {
         </div>
       )}
       {/* Desktop Sidebar */}
-      <div className="w-64 bg-white shadow-lg hidden md:block">
+      <div className="w-56 xs:w-64 bg-white shadow-lg hidden md:block">
         <div className="p-4">
-          <h3 className="text-lg font-semibold text-gray-700 mb-4 text-left">Navigation</h3>
+          <h3 className="text-base xs:text-lg font-semibold text-gray-700 mb-4 text-left">Navigation</h3>
           <ul className="space-y-2">
             <li className="bg-blue-50 text-blue-600 p-2 rounded">
               <button onClick={() => navigate('/teacher/dashboard')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Dashboard</button>
@@ -210,56 +210,56 @@ function TeacherDashboard() {
       </div>
       {/* Main Content */}
       <div className="flex-1 overflow-auto w-full">
-        <div className="p-4 md:p-8">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-left">Dashboard Overview</h2>
+        <div className="p-2 xs:p-4 md:p-8">
+          <div className="flex flex-col xs:flex-row justify-between items-center mb-4 xs:mb-6 gap-2 xs:gap-0">
+            <h2 className="text-lg xs:text-xl sm:text-2xl font-bold text-left">Dashboard Overview</h2>
             <button
               onClick={() => navigate('/teacher/profile')}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+              className="bg-blue-600 text-white px-3 xs:px-4 py-2 rounded-lg hover:bg-blue-700 text-xs xs:text-sm"
             >
               Profile
             </button>
           </div>
 
           {error && (
-            <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded text-left">
+            <div className="mb-3 xs:mb-4 bg-red-100 border border-red-400 text-red-700 px-3 xs:px-4 py-2 xs:py-3 rounded text-left text-xs xs:text-sm">
               {error}
             </div>
           )}
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-white p-6 rounded-lg shadow">
-              <div className="text-3xl font-bold text-blue-600 text-left">{stats.totalQuestions}</div>
-              <div className="text-gray-600 text-left">Total Questions</div>
+          <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-3 xs:gap-4 mb-6 xs:mb-8">
+            <div className="bg-white p-4 xs:p-6 rounded-lg shadow">
+              <div className="text-2xl xs:text-3xl font-bold text-blue-600 text-left">{stats.totalQuestions}</div>
+              <div className="text-gray-600 text-left text-xs xs:text-sm">Total Questions</div>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow">
-              <div className="text-3xl font-bold text-green-600 text-left">{stats.activeExams}</div>
-              <div className="text-gray-600 text-left">Active Exams</div>
+            <div className="bg-white p-4 xs:p-6 rounded-lg shadow">
+              <div className="text-2xl xs:text-3xl font-bold text-green-600 text-left">{stats.activeExams}</div>
+              <div className="text-gray-600 text-left text-xs xs:text-sm">Active Exams</div>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow">
-              <div className="text-3xl font-bold text-purple-600 text-left">{stats.totalStudents}</div>
-              <div className="text-gray-600 text-left">Students</div>
+            <div className="bg-white p-4 xs:p-6 rounded-lg shadow">
+              <div className="text-2xl xs:text-3xl font-bold text-purple-600 text-left">{stats.totalStudents}</div>
+              <div className="text-gray-600 text-left text-xs xs:text-sm">Students</div>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow">
-              <div className="text-3xl font-bold text-orange-600 text-left">{stats.averageScore}%</div>
-              <div className="text-gray-600 text-left">Avg. Score</div>
+            <div className="bg-white p-4 xs:p-6 rounded-lg shadow">
+              <div className="text-2xl xs:text-3xl font-bold text-orange-600 text-left">{stats.averageScore}%</div>
+              <div className="text-gray-600 text-left text-xs xs:text-sm">Avg. Score</div>
             </div>
           </div>
 
           {/* Recent Exams Table */}
-          <div className="p-2 md:p-4 border-b">
-            <h3 className="text-lg font-semibold text-left">Recent Exams</h3>
+          <div className="p-1 xs:p-2 md:p-4 border-b">
+            <h3 className="text-base xs:text-lg font-semibold text-left">Recent Exams</h3>
           </div>
-          <div className="p-2 md:p-4 overflow-x-auto">
-            <table className="min-w-full text-xs md:text-sm">
+          <div className="p-1 xs:p-2 md:p-4 overflow-x-auto">
+            <table className="min-w-full text-xs xs:text-sm">
               <thead>
                 <tr className="bg-gray-50">
-                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-600">Exam Name</th>
-                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-600">Subject</th>
-                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-600">Students</th>
-                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-600">Status</th>
-                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-600">Actions</th>
+                  <th className="px-2 xs:px-4 py-2 text-left text-xs xs:text-sm font-medium text-gray-600">Exam Name</th>
+                  <th className="px-2 xs:px-4 py-2 text-left text-xs xs:text-sm font-medium text-gray-600">Subject</th>
+                  <th className="px-2 xs:px-4 py-2 text-left text-xs xs:text-sm font-medium text-gray-600">Students</th>
+                  <th className="px-2 xs:px-4 py-2 text-left text-xs xs:text-sm font-medium text-gray-600">Status</th>
+                  <th className="px-2 xs:px-4 py-2 text-left text-xs xs:text-sm font-medium text-gray-600">Actions</th>
                 </tr>
               </thead>
               <tbody>

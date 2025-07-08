@@ -106,20 +106,20 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-8 px-2 xs:px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-xs xs:max-w-sm sm:max-w-md space-y-8">
         <div>
           <div className="flex justify-center">
             {formData.role === 'student' ? (
-              <FaGraduationCap className="h-12 w-12 text-blue-600" />
+              <FaGraduationCap className="h-10 w-10 xs:h-12 xs:w-12 text-blue-600" />
             ) : (
-              <FaChalkboardTeacher className="h-12 w-12 text-green-600" />
+              <FaChalkboardTeacher className="h-10 w-10 xs:h-12 xs:w-12 text-green-600" />
             )}
           </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-4 xs:mt-6 text-center text-2xl xs:text-3xl font-extrabold text-gray-900">
             {formData.role === 'student' ? 'Student Login' : 'Teacher Login'}
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-1 xs:mt-2 text-center text-xs xs:text-sm text-gray-600">
             {formData.role === 'student' 
               ? 'Access your student dashboard and view your results'
               : 'Access your teacher dashboard and manage student records'}
@@ -128,17 +128,17 @@ const Login = () => {
 
         <button
           onClick={toggleRole}
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-xs xs:text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         >
           Switch to {formData.role === 'student' ? 'Teacher' : 'Student'} Login
         </button>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-6 xs:mt-8 space-y-4 xs:space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <div className="rounded-md bg-red-50 p-4">
+            <div className="rounded-md bg-red-50 p-3 xs:p-4">
               <div className="flex">
                 <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">{error}</h3>
+                  <h3 className="text-xs xs:text-sm font-medium text-red-800">{error}</h3>
                 </div>
               </div>
             </div>
@@ -156,7 +156,7 @@ const Login = () => {
                   name="email"
                   type="email"
                   required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                  className="appearance-none rounded-none relative block w-full px-3 py-2 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 text-xs xs:text-sm"
                   placeholder="Email address"
                   value={formData.email}
                   onChange={handleChange}
@@ -174,7 +174,7 @@ const Login = () => {
                   name="password"
                   type={showPassword ? "text" : "password"}
                   required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                  className="appearance-none rounded-none relative block w-full px-3 py-2 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 text-xs xs:text-sm"
                   placeholder="Password"
                   value={formData.password}
                   onChange={handleChange}
@@ -200,13 +200,19 @@ const Login = () => {
                 id="remember-me"
                 name="rememberMe"
                 type="checkbox"
-                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                 checked={formData.rememberMe}
                 onChange={handleChange}
+                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
               />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
+              <label htmlFor="remember-me" className="ml-2 block text-xs xs:text-sm text-gray-900">
                 Remember me
               </label>
+            </div>
+
+            <div className="text-xs xs:text-sm">
+              <Link to="/forgot-password" className="font-medium text-indigo-600 hover:text-indigo-500">
+                Forgot your password?
+              </Link>
             </div>
           </div>
 
@@ -214,9 +220,9 @@ const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-xs xs:text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
-              {loading ? 'Signing in...' : 'Sign in'}
+              {loading ? "Signing in..." : "Sign in"}
             </button>
           </div>
         </form>

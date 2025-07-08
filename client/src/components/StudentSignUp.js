@@ -59,34 +59,34 @@ const StudentSignUp = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+    <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-8 px-2 xs:px-4 sm:px-6 lg:px-8">
+      <div className="xs:mx-auto xs:w-full xs:max-w-xs sm:max-w-sm md:max-w-md">
         <img
-          className="mx-auto h-20 w-auto"
+          className="mx-auto h-16 w-auto xs:h-20" // slightly smaller on mobile
           src={logo}
           alt="Spectra Logo"
         />
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        <h2 className="mt-4 xs:mt-6 text-center text-2xl xs:text-3xl font-extrabold text-gray-900">
           Create Student Account
         </h2>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+      <div className="mt-6 xs:mt-8 xs:mx-auto xs:w-full xs:max-w-xs sm:max-w-sm md:max-w-md">
+        <div className="bg-white py-6 xs:py-8 px-3 xs:px-4 shadow sm:rounded-lg sm:px-8 xs:px-10">
           {error && (
-            <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded flex items-center">
+            <div className="mb-3 xs:mb-4 bg-red-100 border border-red-400 text-red-700 px-3 xs:px-4 py-2 xs:py-3 rounded flex items-center text-xs xs:text-sm">
               <AlertCircle className="h-5 w-5 mr-2" />
               <span>{error}</span>
             </div>
           )}
           {success && (
-            <div className="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+            <div className="mb-3 xs:mb-4 bg-green-100 border border-green-400 text-green-700 px-3 xs:px-4 py-2 xs:py-3 rounded text-xs xs:text-sm">
               {success}
             </div>
           )}
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-4 xs:space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="displayName" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="displayName" className="block text-xs xs:text-sm font-medium text-gray-700">
                 Full Name
               </label>
               <div className="mt-1 relative">
@@ -100,14 +100,14 @@ const StudentSignUp = () => {
                   required
                   value={formData.displayName}
                   onChange={(e) => handleInputChange('displayName', e.target.value)}
-                  className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-xs xs:text-sm"
                   placeholder="Enter your full name"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-xs xs:text-sm font-medium text-gray-700">
                 Email address (optional)
               </label>
               <div className="mt-1 relative">
@@ -120,17 +120,17 @@ const StudentSignUp = () => {
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
-                  className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-xs xs:text-sm"
                   placeholder="Enter your email (optional)"
                 />
               </div>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-xs xs:text-sm text-gray-500">
                 If provided, your unique code will be sent to this email address.
               </p>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-xs xs:text-sm font-medium text-gray-700">
                 Password
               </label>
               <div className="mt-1 relative">
@@ -144,7 +144,7 @@ const StudentSignUp = () => {
                   required
                   value={formData.password}
                   onChange={(e) => handleInputChange('password', e.target.value)}
-                  className="appearance-none block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="appearance-none block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-xs xs:text-sm"
                   placeholder="Create a password"
                 />
                 <button
@@ -162,7 +162,7 @@ const StudentSignUp = () => {
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="confirmPassword" className="block text-xs xs:text-sm font-medium text-gray-700">
                 Confirm Password
               </label>
               <div className="mt-1 relative">
@@ -176,7 +176,7 @@ const StudentSignUp = () => {
                   required
                   value={formData.confirmPassword}
                   onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                  className="appearance-none block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="appearance-none block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-xs xs:text-sm"
                   placeholder="Confirm your password"
                 />
                 <button
@@ -197,15 +197,14 @@ const StudentSignUp = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-xs xs:text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
               >
                 {isLoading ? (
-                  <>
-                    <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
-                    Creating account...
-                  </>
+                  <span className="flex items-center">
+                    <Loader2 className="animate-spin h-4 w-4 mr-2" /> Creating...
+                  </span>
                 ) : (
-                  'Sign up as Student'
+                  "Create Account"
                 )}
               </button>
             </div>
