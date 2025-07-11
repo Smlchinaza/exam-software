@@ -22,6 +22,7 @@ const subjectRoutes = require('./routes/subjects');
 dotenv.config();
 
 const app = express();
+app.set('trust proxy', 1);
 
 const allowedOrigins = [
   'https://exam-software-45ex.vercel.app',
