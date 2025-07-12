@@ -144,7 +144,7 @@ export const studentApi = {
 export const authApi = {
   checkUser: async (email) => {
     try {
-      const response = await api.post('/api/auth/check-user', { email });
+      const response = await api.post('/auth/check-user', { email });
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
@@ -155,7 +155,7 @@ export const authApi = {
     try {
       const payload = { email, password, rememberMe };
       if (role) payload.role = role;
-      const response = await api.post('/api/auth/login', payload);
+      const response = await api.post('/auth/login', payload);
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
@@ -164,7 +164,7 @@ export const authApi = {
 
   register: async (userData) => {
     try {
-      const response = await api.post('/api/auth/register', {
+      const response = await api.post('/auth/register', {
         email: userData.email,
         password: userData.password,
         role: userData.role,
@@ -339,7 +339,7 @@ export const userApi = {
     } catch (error) {
       throw error.response?.data || error;
     }
-  },
+  }
 };
 
 export const subjectApi = {
@@ -396,4 +396,4 @@ export const teacherApi = {
   }
 };
 
-export default api; 
+export default api;

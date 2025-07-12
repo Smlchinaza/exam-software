@@ -25,6 +25,7 @@ const app = express();
 app.set('trust proxy', 1);
 
 const allowedOrigins = [
+  'http://localhost:3000',
   'https://exam-software-45ex.vercel.app',
   'https://exam-software-45ex-git-main-samuel-chinazas-projects.vercel.app',
   'https://exam-software-45ex-btw34co5j-samuel-chinazas-projects.vercel.app/'

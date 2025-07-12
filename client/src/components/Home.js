@@ -1,8 +1,25 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { FaUserGraduate, FaChalkboardTeacher, FaUserShield } from 'react-icons/fa';
+import { useAuth } from '../context/AuthContext';
 
 const Home = () => {
+  const { user, isAuthenticated } = useAuth();
+
+  // Redirect authenticated users to their appropriate dashboard
+  if (isAuthenticated && user) {
+    switch (user.role) {
+      case 'student':
+        return <Navigate to="/student/dashboard" replace />;
+      case 'teacher':
+        return <Navigate to="/teacher/dashboard" replace />;
+      case 'admin':
+        return <Navigate to="/admin/dashboard" replace />;
+      default:
+        return <Navigate to="/student/dashboard" replace />;
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Hero Section */}

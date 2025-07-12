@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Mail, Lock, AlertCircle, Eye, EyeOff, Info } from "lucide-react";
 import logo from '../assets/images/SpectraLogo.jpg';
@@ -14,9 +14,23 @@ const TeacherLogin = () => {
   });
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const { login } = useAuth();
+  const { login, user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+
+  // Redirect authenticated users to their appropriate dashboard
+  if (isAuthenticated && user) {
+    switch (user.role) {
+      case 'student':
+        return <Navigate to="/student/dashboard" replace />;
+      case 'teacher':
+        return <Navigate to="/teacher/dashboard" replace />;
+      case 'admin':
+        return <Navigate to="/admin/dashboard" replace />;
+      default:
+        return <Navigate to="/teacher/dashboard" replace />;
+    }
+  }
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
