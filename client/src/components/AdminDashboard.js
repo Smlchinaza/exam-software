@@ -3,9 +3,10 @@ import { subjectApi, teacherApi, examApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState('assign');
+  const [activeTab, setActiveTab] = useState('subjects');
   const [subjects, setSubjects] = useState([]);
   const [teachers, setTeachers] = useState([]);
+  const [subjectStats, setSubjectStats] = useState(null);
   const [selectedSubject, setSelectedSubject] = useState('');
   const [selectedTeachers, setSelectedTeachers] = useState([]);
   const [newSubject, setNewSubject] = useState('');
@@ -33,7 +34,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     console.log('AdminDashboard - Current user:', user);
     console.log('AdminDashboard - User role:', user?.role);
-    if (activeTab === 'assign') {
+    if (activeTab === 'assign' || activeTab === 'subjects') {
       fetchData();
     }
     if (activeTab === 'approve') {
@@ -46,12 +47,14 @@ const AdminDashboard = () => {
     setLoading(true);
     setError('');
     try {
-      const [subjectsRes, teachersRes] = await Promise.all([
+      const [subjectsRes, teachersRes, statsRes] = await Promise.all([
         subjectApi.getAllSubjects(),
-        teacherApi.getAllTeachers()
+        teacherApi.getAllTeachers(),
+        subjectApi.getSubjectStats()
       ]);
       setSubjects(subjectsRes);
       setTeachers(teachersRes);
+      setSubjectStats(statsRes);
     } catch (err) {
       setError('Failed to fetch data.');
     } finally {
@@ -239,6 +242,12 @@ const AdminDashboard = () => {
           Assign Subjects
         </button>
         <button
+          className={`px-3 xs:px-4 py-2 rounded text-xs xs:text-sm ${activeTab === 'subjects' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+          onClick={() => setActiveTab('subjects')}
+        >
+          Manage Subjects
+        </button>
+        <button
           className={`px-3 xs:px-4 py-2 rounded text-xs xs:text-sm ${activeTab === 'approve' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
           onClick={() => setActiveTab('approve')}
         >
@@ -340,6 +349,174 @@ const AdminDashboard = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+        {activeTab === 'subjects' && (
+          <div>
+            <h2 className="text-base xs:text-lg sm:text-xl font-semibold mb-2">All Subjects</h2>
+            {error && <div className="mb-2 text-xs xs:text-sm text-red-600">{error}</div>}
+            {message && <div className="mb-2 text-xs xs:text-sm text-green-600">{message}</div>}
+            
+            {/* Add New Subject Section */}
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+              <h3 className="text-sm xs:text-base font-semibold mb-3">Add New Subject</h3>
+              <div className="flex flex-col xs:flex-row items-center xs:space-x-2 gap-2 xs:gap-0">
+                <input
+                  type="text"
+                  placeholder="Enter subject name"
+                  value={newSubject}
+                  onChange={e => setNewSubject(e.target.value)}
+                  className="border px-3 py-2 rounded text-xs xs:text-sm flex-1"
+                />
+                <button
+                  onClick={handleCreateSubject}
+                  className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-xs xs:text-sm"
+                  disabled={loading || !newSubject.trim()}
+                >
+                  {loading ? 'Adding...' : 'Add Subject'}
+                </button>
+              </div>
+            </div>
+
+            {/* Subject Statistics */}
+            {subjectStats && (
+              <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+                <h3 className="text-sm xs:text-base font-semibold mb-3">Subject Statistics</h3>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  <div className="text-center">
+                    <div className="text-lg xs:text-xl font-bold text-blue-600">{subjectStats.totalSubjects}</div>
+                    <div className="text-xs text-gray-600">Total Subjects</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg xs:text-xl font-bold text-green-600">{subjectStats.subjectsWithTeachers}</div>
+                    <div className="text-xs text-gray-600">With Teachers</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg xs:text-xl font-bold text-orange-600">{subjectStats.subjectsWithoutTeachers}</div>
+                    <div className="text-xs text-gray-600">Without Teachers</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg xs:text-xl font-bold text-purple-600">{subjectStats.totalTeacherAssignments}</div>
+                    <div className="text-xs text-gray-600">Total Assignments</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg xs:text-xl font-bold text-indigo-600">{subjectStats.uniqueTeachersAssigned}</div>
+                    <div className="text-xs text-gray-600">Unique Teachers</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Subjects List */}
+            <div className="mb-6">
+              <h3 className="text-sm xs:text-base font-semibold mb-3">Subject List ({subjects.length} subjects)</h3>
+              {loading ? (
+                <div className="text-center py-4 text-gray-500">Loading subjects...</div>
+              ) : subjects.length === 0 ? (
+                <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
+                  <p className="text-sm">No subjects created yet.</p>
+                  <p className="text-xs mt-1">Create your first subject using the form above.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {subjects.map(subject => (
+                    <div key={subject._id} className="bg-white border rounded-lg p-4 shadow-sm">
+                      <div className="flex justify-between items-start mb-3">
+                        <h4 className="font-semibold text-sm xs:text-base text-gray-900">{subject.name}</h4>
+                        <div className="flex space-x-1">
+                          <button
+                            onClick={() => openUnassignModal(subject)}
+                            className="bg-orange-600 text-white px-2 py-1 rounded text-xs hover:bg-orange-700"
+                            disabled={!subject.teachers || subject.teachers.length === 0}
+                            title="Unassign Teachers"
+                          >
+                            Unassign
+                          </button>
+                          <button
+                            onClick={() => openDeleteModal(subject)}
+                            className="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700"
+                            title="Delete Subject"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <div>
+                          <span className="text-xs font-medium text-gray-600">Assigned Teachers:</span>
+                          <div className="mt-1">
+                            {subject.teachers && subject.teachers.length > 0 ? (
+                              <div className="space-y-1">
+                                {subject.teachers.map(teacher => (
+                                  <div key={teacher._id} className="text-xs text-gray-700 bg-gray-50 px-2 py-1 rounded">
+                                    {teacher.displayName || teacher.email}
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="text-xs text-gray-400 italic">No teachers assigned</span>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <span className="text-xs font-medium text-gray-600">Teacher Count:</span>
+                          <span className="text-xs text-gray-700 ml-1">
+                            {subject.teachers ? subject.teachers.length : 0} teacher(s)
+                          </span>
+                        </div>
+                        
+                        <div>
+                          <span className="text-xs font-medium text-gray-600">Subject ID:</span>
+                          <span className="text-xs text-gray-500 ml-1 font-mono">{subject._id}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Assign Teachers Section */}
+            <div className="p-4 bg-blue-50 rounded-lg">
+              <h3 className="text-sm xs:text-base font-semibold mb-3">Assign Teachers to Subjects</h3>
+              <div className="space-y-3">
+                <div>
+                  <label className="block font-medium mb-1 text-xs xs:text-sm">Select Subject</label>
+                  <select
+                    value={selectedSubject}
+                    onChange={e => setSelectedSubject(e.target.value)}
+                    className="border px-3 py-2 rounded w-full text-xs xs:text-sm"
+                  >
+                    <option value="">-- Select Subject --</option>
+                    {subjects.map(subject => (
+                      <option key={subject._id} value={subject._id}>{subject.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-medium mb-1 text-xs xs:text-sm">Select Teachers</label>
+                  <select
+                    multiple
+                    value={selectedTeachers}
+                    onChange={e => setSelectedTeachers(Array.from(e.target.selectedOptions, option => option.value))}
+                    className="border px-3 py-2 rounded w-full h-24 xs:h-32 text-xs xs:text-sm"
+                  >
+                    {teachers.map(teacher => (
+                      <option key={teacher._id} value={teacher._id}>{teacher.displayName} ({teacher.email})</option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  onClick={handleAssign}
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-xs xs:text-sm"
+                  disabled={loading || !selectedSubject || selectedTeachers.length === 0}
+                >
+                  {loading ? 'Assigning...' : 'Assign Teachers'}
+                </button>
+              </div>
             </div>
           </div>
         )}

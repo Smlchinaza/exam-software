@@ -351,6 +351,14 @@ export const subjectApi = {
       throw error.response?.data || error;
     }
   },
+  getSubjectStats: async () => {
+    try {
+      const response = await api.get('/subjects/stats');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
   createSubject: async (name) => {
     try {
       const response = await api.post('/subjects', { name });

@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import api from '../services/api';
 
-const QuestionBank = () => {
+const QuestionBank = ({ setMobileNavOpen }) => {
   const navigate = useNavigate();
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -224,25 +224,25 @@ const QuestionBank = () => {
           <h3 className="text-lg font-semibold text-gray-700 mb-4 text-left">Navigation</h3>
           <ul className="space-y-2">
             <li className="hover:bg-gray-50 p-2 rounded">
-              <button onClick={() => navigate('/teacher/dashboard')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Dashboard</button>
+              <button onClick={() => { navigate('/teacher/dashboard'); if (setMobileNavOpen) setMobileNavOpen(false); }} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Dashboard</button>
             </li>
             <li className="bg-blue-50 text-blue-600 p-2 rounded">
-              <button onClick={() => navigate('/teacher/question-bank')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Question Bank</button>
+              <button onClick={() => { navigate('/teacher/question-bank'); if (setMobileNavOpen) setMobileNavOpen(false); }} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Question Bank</button>
             </li>
             <li className="hover:bg-gray-50 p-2 rounded">
-              <button onClick={() => navigate('/teacher/create-exam')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Create Exam</button>
+              <button onClick={() => { navigate('/teacher/create-exam'); if (setMobileNavOpen) setMobileNavOpen(false); }} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Create Exam</button>
             </li>
             <li className="hover:bg-gray-50 p-2 rounded">
-              <button onClick={() => navigate('/teacher/active-exams')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Active Exams</button>
+              <button onClick={() => { navigate('/teacher/active-exams'); if (setMobileNavOpen) setMobileNavOpen(false); }} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Active Exams</button>
             </li>
             <li className="hover:bg-gray-50 p-2 rounded">
-              <button onClick={() => navigate('/teacher/results')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Results</button>
+              <button onClick={() => { navigate('/teacher/results'); if (setMobileNavOpen) setMobileNavOpen(false); }} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Results</button>
             </li>
             <li className="hover:bg-gray-50 p-2 rounded">
-              <button onClick={() => navigate('/teacher/students')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Students</button>
+              <button onClick={() => { navigate('/teacher/students'); if (setMobileNavOpen) setMobileNavOpen(false); }} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Students</button>
             </li>
             <li className="hover:bg-gray-50 p-2 rounded">
-              <button onClick={() => navigate('/teacher/settings')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Settings</button>
+              <button onClick={() => { navigate('/teacher/settings'); if (setMobileNavOpen) setMobileNavOpen(false); }} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Settings</button>
             </li>
           </ul>
         </div>

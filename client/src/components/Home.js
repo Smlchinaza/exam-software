@@ -7,7 +7,7 @@ const Home = () => {
   const { user, isAuthenticated } = useAuth();
 
   // Redirect authenticated users to their appropriate dashboard
-  if (isAuthenticated && user) {
+  if ((isAuthenticated && user) || (user && user.role === 'teacher')) {
     switch (user.role) {
       case 'student':
         return <Navigate to="/student/dashboard" replace />;

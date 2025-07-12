@@ -19,8 +19,47 @@ router.post('/', authenticateJWT, requireRole('admin'), async (req, res) => {
 // Get all subjects
 router.get('/', authenticateJWT, requireRole('admin'), async (req, res) => {
   try {
-    const subjects = await Subject.find().populate('teachers', 'displayName email');
+    const subjects = await Subject.find().populate('teachers', 'displayName email firstName lastName');
     res.json(subjects);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get subject statistics (admin only)
+router.get('/stats', authenticateJWT, requireRole('admin'), async (req, res) => {
+  try {
+    const totalSubjects = await Subject.countDocuments();
+    const subjectsWithTeachers = await Subject.countDocuments({ teachers: { $exists: true, $ne: [] } });
+    const subjectsWithoutTeachers = totalSubjects - subjectsWithTeachers;
+    
+    const teacherStats = await Subject.aggregate([
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'teachers',
+          foreignField: '_id',
+          as: 'teacherDetails'
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalTeachers: { $sum: { $size: '$teacherDetails' } },
+          uniqueTeachers: { $addToSet: '$teacherDetails._id' }
+        }
+      }
+    ]);
+
+    const stats = {
+      totalSubjects,
+      subjectsWithTeachers,
+      subjectsWithoutTeachers,
+      totalTeacherAssignments: teacherStats[0]?.totalTeachers || 0,
+      uniqueTeachersAssigned: teacherStats[0]?.uniqueTeachers?.length || 0
+    };
+
+    res.json(stats);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

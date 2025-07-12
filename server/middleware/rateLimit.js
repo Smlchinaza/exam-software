@@ -18,13 +18,13 @@ const dynamicLimiter = rateLimit({
     const role = getUserRole(req);
     switch (role) {
       case 'admin':
-        return 200; // Admins get more requests
+        return 2000; // Admins get more requests
       case 'teacher':
-        return 150; // Teachers get moderate requests
+        return 1500; // Teachers get moderate requests
       case 'student':
-        return 100; // Students get standard requests
+        return 1000; // Students get standard requests
       default:
-        return 50; // Anonymous users get limited requests
+        return 500; // Anonymous users get limited requests
     }
   },
   keyGenerator: (req) => {
@@ -56,7 +56,7 @@ const dynamicLimiter = rateLimit({
 // General API rate limiter - 100 requests per 15 minutes
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: 1000, // limit each IP to 100 requests per windowMs
   message: {
     error: 'Too many requests from this IP, please try again later.',
     retryAfter: '15 minutes'
@@ -75,7 +75,7 @@ const generalLimiter = rateLimit({
 // Authentication rate limiter - 5 requests per 15 minutes (for login/register)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 50, // limit each IP to 5 requests per windowMs
+  max: 500, // limit each IP to 5 requests per windowMs
   message: {
     error: 'Too many authentication attempts, please try again later.',
     retryAfter: '15 minutes'
@@ -94,7 +94,7 @@ const authLimiter = rateLimit({
 // Admin endpoints rate limiter - 50 requests per 15 minutes
 const adminLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 50, // limit each IP to 50 requests per windowMs
+  max: 500, // limit each IP to 50 requests per windowMs
   message: {
     error: 'Too many admin requests, please try again later.',
     retryAfter: '15 minutes'
@@ -113,7 +113,7 @@ const adminLimiter = rateLimit({
 // Exam submission rate limiter - 10 requests per 15 minutes
 const examSubmissionLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 50, // limit each IP to 50 requests per windowMs
+  max: 500, // limit each IP to 50 requests per windowMs
   message: {
     error: 'Too many exam submissions, please try again later.',
     retryAfter: '15 minutes'
@@ -132,7 +132,7 @@ const examSubmissionLimiter = rateLimit({
 // File upload rate limiter - 20 requests per 15 minutes
 const uploadLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 50, // limit each IP to 20 requests per windowMs
+  max: 500, // limit each IP to 20 requests per windowMs
   message: {
     error: 'Too many file uploads, please try again later.',
     retryAfter: '15 minutes'

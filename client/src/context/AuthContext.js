@@ -94,9 +94,11 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     // Clear all storage
     localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
     localStorage.removeItem('rememberMe');
     sessionStorage.removeItem('token');
+    sessionStorage.removeItem('refreshToken');
     sessionStorage.removeItem('user');
     setUser(null);
   };
