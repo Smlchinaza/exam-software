@@ -38,7 +38,7 @@ const StudentDashboard = () => {
         let studentInfo;
         // Try to get student data using the user's email
         try {
-          const response = await studentApi.getStudent(user._id || user.id);
+          const response = await studentApi.getStudent(user.email);
           setStudentData(response);
           setSelectedClass(response.currentClass || 'JSS1');
           setSubjects(response.registeredSubjects || []);
@@ -97,7 +97,7 @@ const StudentDashboard = () => {
         const updatedSubjects = [...subjects, subject];
         setSubjects(updatedSubjects);
         if (studentData) {
-          await studentApi.registerSubjects(studentData._id, updatedSubjects);
+          await studentApi.registerSubjects(user.email, updatedSubjects);
           setStudentData(prev => ({ ...prev, registeredSubjects: updatedSubjects }));
         }
       }
@@ -111,7 +111,7 @@ const StudentDashboard = () => {
       const updatedSubjects = subjects.filter(sub => sub !== subject);
       setSubjects(updatedSubjects);
       if (studentData) {
-        await studentApi.registerSubjects(studentData._id, updatedSubjects);
+        await studentApi.registerSubjects(user.email, updatedSubjects);
         setStudentData(prev => ({ ...prev, registeredSubjects: updatedSubjects }));
       }
     } catch (err) {

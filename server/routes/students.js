@@ -19,10 +19,30 @@ router.get('/', async (req, res) => {
 // Get a specific student
 router.get('/:id', async (req, res) => {
   try {
-    const student = await Student.findById(req.params.id);
+    let student;
+    
+    // Check if the ID is actually an email (for students accessing their own data)
+    const userRole = req.user?.user?.role || req.user?.role;
+    const userEmail = req.user?.user?.email || req.user?.email;
+    
+    if (userRole === 'student' && req.params.id === userEmail) {
+      // Student is trying to access their own data by email
+      student = await Student.findOne({ email: req.params.id });
+    } else {
+      // Try to find by ID (for teachers/admins or direct ID access)
+      student = await Student.findById(req.params.id);
+    }
+    
     if (!student) {
       return res.status(404).json({ message: 'Student not found' });
     }
+
+    // Check authorization: students can only access their own data
+    // teachers and admins can access any student data
+    if (userRole === 'student' && student.email !== userEmail) {
+      return res.status(403).json({ message: 'Insufficient permissions' });
+    }
+
     res.json(student);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -76,9 +96,28 @@ router.delete('/:id', async (req, res) => {
 // Register subjects for a student
 router.post('/:id/subjects', async (req, res) => {
   try {
-    const student = await Student.findById(req.params.id);
+    let student;
+    
+    // Check if the ID is actually an email (for students accessing their own data)
+    const userRole = req.user?.user?.role || req.user?.role;
+    const userEmail = req.user?.user?.email || req.user?.email;
+    
+    if (userRole === 'student' && req.params.id === userEmail) {
+      // Student is trying to update their own data by email
+      student = await Student.findOne({ email: req.params.id });
+    } else {
+      // Try to find by ID (for teachers/admins or direct ID access)
+      student = await Student.findById(req.params.id);
+    }
+    
     if (!student) {
       return res.status(404).json({ message: 'Student not found' });
+    }
+
+    // Check authorization: students can only update their own data
+    // teachers and admins can update any student data
+    if (userRole === 'student' && student.email !== userEmail) {
+      return res.status(403).json({ message: 'Insufficient permissions' });
     }
 
     const { subjects } = req.body;
@@ -115,6 +154,15 @@ router.get('/:id/results/:term/:session', async (req, res) => {
       return res.status(404).json({ message: 'Student not found' });
     }
 
+    // Check authorization: students can only access their own results
+    // teachers and admins can access any student results
+    const userRole = req.user?.user?.role || req.user?.role;
+    const userId = req.user?.user?.id || req.user?.id;
+    
+    if (userRole === 'student' && student._id.toString() !== userId) {
+      return res.status(403).json({ message: 'Insufficient permissions' });
+    }
+
     const result = student.results.find(
       r => r.term === req.params.term && r.session === req.params.session
     );
@@ -136,6 +184,16 @@ router.get('/:id/results', async (req, res) => {
     if (!student) {
       return res.status(404).json({ message: 'Student not found' });
     }
+
+    // Check authorization: students can only access their own results
+    // teachers and admins can access any student results
+    const userRole = req.user?.user?.role || req.user?.role;
+    const userId = req.user?.user?.id || req.user?.id;
+    
+    if (userRole === 'student' && student._id.toString() !== userId) {
+      return res.status(403).json({ message: 'Insufficient permissions' });
+    }
+
     res.json(student.results);
   } catch (error) {
     res.status(500).json({ message: error.message });

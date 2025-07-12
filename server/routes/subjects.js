@@ -33,6 +33,21 @@ router.get('/', authenticateJWT, requireRole('admin'), async (req, res) => {
   }
 });
 
+// Get subjects by class (accessible by students and teachers)
+router.get('/by-class', authenticateJWT, async (req, res) => {
+  try {
+    const { class: className } = req.query;
+    if (!className) {
+      return res.status(400).json({ error: 'Class parameter is required' });
+    }
+    
+    const subjects = await Subject.find({ class: className }).select('name class');
+    res.json(subjects);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Get all subjects assigned to the current teacher
 router.get('/my-subjects', requireRole('teacher'), async (req, res) => {
   try {

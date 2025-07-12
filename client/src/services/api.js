@@ -411,7 +411,7 @@ export const subjectApi = {
   },
   getSubjectsByClass: async (subjectClass) => {
     try {
-      const response = await api.get('/subjects', { params: { class: subjectClass } });
+      const response = await api.get('/subjects/by-class', { params: { class: subjectClass } });
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
