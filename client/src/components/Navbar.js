@@ -85,15 +85,7 @@ const Navbar = () => {
                   </Link>
                 )}
 
-                {user.role === 'admin' && (
-                  <Link
-                    to="/admin/dashboard"
-                    className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
-                    onClick={() => setNavCollapsed(true)}
-                  >
-                    Admin Dashboard
-                  </Link>
-                )}
+
 
                 <button
                   onClick={() => { handleLogout(); setNavCollapsed(true); }}

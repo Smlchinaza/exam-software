@@ -125,17 +125,7 @@ const Register = () => {
               <User className="h-5 w-5 mr-2" />
               Student
             </button>
-            <button
-              onClick={() => setFormData({ ...formData, role: "admin" })}
-              className={`flex items-center px-4 py-2 rounded-md transition-colors ${
-                formData.role === "admin"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              <User className="h-5 w-5 mr-2" />
-              Admin
-            </button>
+
           </div>
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { FaUserGraduate, FaChalkboardTeacher, FaUserShield } from 'react-icons/fa';
+import { FaUserGraduate, FaChalkboardTeacher } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 
 const Home = () => {
@@ -102,26 +102,30 @@ const Home = () => {
             </div>
           </div>
 
-          {/* Admin Portal */}
+          {/* Admin Portal - Small Red Button */}
           <div className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col h-full">
             <div className="p-4 xs:p-5 flex-1 flex flex-col">
-              <div className="flex items-center justify-center h-10 w-10 xs:h-12 xs:w-12 rounded-md bg-purple-500 text-white mb-3 xs:mb-4 mx-auto">
-                <FaUserShield className="h-5 w-5 xs:h-6 xs:w-6" />
+              <div className="flex items-center justify-center h-10 w-10 xs:h-12 xs:w-12 rounded-md bg-red-500 text-white mb-3 xs:mb-4 mx-auto">
+                <svg className="h-5 w-5 xs:h-6 xs:w-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                </svg>
               </div>
               <h3 className="text-base xs:text-lg font-medium text-gray-900 text-center">Admin Portal</h3>
               <p className="mt-1 xs:mt-2 text-sm xs:text-base text-gray-500 text-center">
-                Manage users, view reports, and oversee school operations.
+                Administrative access for system management and oversight.
               </p>
               <div className="mt-4 xs:mt-6 flex justify-center">
                 <Link
                   to="/admin/login"
-                  className="inline-flex items-center px-3 xs:px-4 py-2 border border-transparent text-xs xs:text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition"
+                  className="inline-flex items-center px-3 xs:px-4 py-2 border border-transparent text-xs xs:text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition"
                 >
                   Admin Login
                 </Link>
               </div>
             </div>
           </div>
+
+
         </div>
 
         {/* Features Section */}
