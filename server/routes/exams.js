@@ -101,13 +101,18 @@ router.post("/", authenticateJWT, requireRole('teacher'), async (req, res) => {
       subject,
       instructions,
       questions,
-      questionsPerStudent
+      questionsPerStudent,
+      class: examClass
     } = req.body;
+
+    if (!examClass || !['JSS1','JSS2','JSS3','SS1','SS2','SS3'].includes(examClass)) {
+      return res.status(400).json({ message: 'A valid class is required for the exam.' });
+    }
 
     // Check if teacher is assigned to the subject (by name and class)
     const assignedSubject = await Subject.findOne({
       name: subject,
-      class: req.body.class,
+      class: examClass,
       teachers: req.user.user.id
     });
     if (!assignedSubject) {
@@ -132,7 +137,8 @@ router.post("/", authenticateJWT, requireRole('teacher'), async (req, res) => {
       instructions,
       questions,
       questionsPerStudent,
-      createdBy: req.user.user.id
+      createdBy: req.user.user.id,
+      class: examClass
     });
 
     await exam.save();

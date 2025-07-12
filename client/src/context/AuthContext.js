@@ -91,6 +91,40 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const signupStudent = async (
+    email,
+    password,
+    displayName,
+    currentClass,
+    dateOfBirth,
+    gender,
+    phone,
+    address,
+    parentName,
+    parentPhone,
+    emergencyContact
+  ) => {
+    try {
+      const response = await authApi.register({
+        email,
+        password,
+        role: 'student',
+        displayName,
+        currentClass,
+        dateOfBirth,
+        gender,
+        phone,
+        address,
+        parentName,
+        parentPhone,
+        emergencyContact
+      });
+      return response.user;
+    } catch (error) {
+      throw error;
+    }
+  };
+
   const logout = () => {
     // Clear all storage
     localStorage.removeItem('token');
@@ -108,6 +142,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     register,
+    signupStudent,
     logout,
     isAuthenticated: !!user
   };

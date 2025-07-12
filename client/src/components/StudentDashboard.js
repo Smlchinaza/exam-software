@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaUser, FaBook, FaChartBar, FaCog, FaSignOutAlt } from 'react-icons/fa';
-import { studentApi } from '../services/api';
+import { studentApi, subjectApi, examApi } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -13,14 +13,16 @@ const StudentDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [studentData, setStudentData] = useState(null);
+  const [availableSubjects, setAvailableSubjects] = useState([]);
+  const [availableExams, setAvailableExams] = useState([]);
 
   const classes = ['JSS1', 'JSS2', 'JSS3', 'SS1', 'SS2', 'SS3'];
-  const availableSubjects = [
-    'Mathematics', 'English', 'Physics', 'Chemistry', 'Biology',
-    'Economics', 'Government', 'Literature', 'History', 'Geography',
-    'Agricultural Science', 'Computer Science', 'French', 'Yoruba',
-    'Christian Religious Studies', 'Islamic Religious Studies'
-  ];
+  // const availableSubjects = [
+  //   'Mathematics', 'English', 'Physics', 'Chemistry', 'Biology',
+  //   'Economics', 'Government', 'Literature', 'History', 'Geography',
+  //   'Agricultural Science', 'Computer Science', 'French', 'Yoruba',
+  //   'Christian Religious Studies', 'Islamic Religious Studies'
+  // ];
 
   useEffect(() => {
     const fetchStudentData = async () => {
@@ -33,12 +35,14 @@ const StudentDashboard = () => {
           return;
         }
 
+        let studentInfo;
         // Try to get student data using the user's email
         try {
           const response = await studentApi.getStudent(user._id || user.id);
           setStudentData(response);
           setSelectedClass(response.currentClass || 'JSS1');
           setSubjects(response.registeredSubjects || []);
+          studentInfo = response;
         } catch (err) {
           // If student data doesn't exist, create a basic student profile
           console.log('Student data not found, creating basic profile...');
@@ -51,7 +55,19 @@ const StudentDashboard = () => {
           });
           setSelectedClass('JSS1');
           setSubjects([]);
+          studentInfo = { currentClass: 'JSS1' };
         }
+        // Fetch subjects for the student's class
+        const classSubjects = await subjectApi.getSubjectsByClass(studentInfo.currentClass || 'JSS1');
+        setAvailableSubjects(classSubjects.map(s => s.name));
+        // Fetch all active exams and filter
+        const allExams = await examApi.getActiveExams();
+        const filteredExams = allExams.filter(exam =>
+          exam.subject &&
+          (studentInfo.registeredSubjects || []).includes(exam.subject) &&
+          exam.class === (studentInfo.currentClass || 'JSS1')
+        );
+        setAvailableExams(filteredExams);
       } catch (err) {
         console.error('Error fetching student data:', err);
         setError(err.message || 'Failed to fetch student data');
@@ -177,17 +193,7 @@ const StudentDashboard = () => {
                 </div>
                 <div>
                   <label className="block text-xs xs:text-sm font-medium text-gray-700">Current Class:</label>
-                  <select
-                    value={selectedClass}
-                    onChange={(e) => handleClassSelect(e.target.value)}
-                    className="mt-1 block w-full pl-3 pr-10 py-2 text-xs xs:text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
-                  >
-                    {classes.map((className) => (
-                      <option key={className} value={className}>
-                        {className}
-                      </option>
-                    ))}
-                  </select>
+                  <p className="text-gray-900 text-xs xs:text-sm">{studentData?.currentClass || selectedClass}</p>
                 </div>
               </div>
             </div>
@@ -220,6 +226,33 @@ const StudentDashboard = () => {
                 ))}
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Add this section below subject registration */}
+        <div className="mt-8">
+          <div className="bg-white rounded-lg shadow-md p-4 xs:p-6">
+            <h2 className="text-lg xs:text-xl font-semibold mb-3 xs:mb-4">Available Exams</h2>
+            {availableExams.length === 0 ? (
+              <p className="text-gray-500 text-xs xs:text-sm">No exams available for your class and registered subjects at this time.</p>
+            ) : (
+              <ul className="divide-y divide-gray-200">
+                {availableExams.map(exam => (
+                  <li key={exam._id} className="py-3 flex items-center justify-between">
+                    <div>
+                      <span className="font-medium text-gray-900 text-xs xs:text-sm">{exam.title}</span>
+                      <span className="ml-2 text-gray-500 text-xs xs:text-sm">({exam.subject})</span>
+                    </div>
+                    <button
+                      onClick={() => navigate(`/exams/${exam._id}`)}
+                      className="bg-blue-600 text-white px-3 py-1 rounded text-xs xs:text-sm hover:bg-blue-700"
+                    >
+                      Start Exam
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
 

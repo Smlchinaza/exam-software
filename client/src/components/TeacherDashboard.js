@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
-import api from '../services/api';
+import api, { subjectApi, studentApi } from '../services/api';
 
 function TeacherDashboard() {
   const { currentUser } = useAuth();
@@ -17,9 +17,12 @@ function TeacherDashboard() {
 
   const [recentExams, setRecentExams] = useState([]);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [mySubjects, setMySubjects] = useState([]);
+  const [studentsBySubject, setStudentsBySubject] = useState({});
 
   useEffect(() => {
     fetchDashboardData();
+    fetchMySubjectsAndStudents();
   }, []);
 
   const fetchDashboardData = async () => {
@@ -67,6 +70,22 @@ function TeacherDashboard() {
       console.error('Error fetching dashboard data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchMySubjectsAndStudents = async () => {
+    try {
+      const subjects = await subjectApi.getMySubjects();
+      setMySubjects(subjects);
+      // For each subject, fetch students for that subject and class
+      const studentsMap = {};
+      for (const subj of subjects) {
+        const students = await studentApi.getStudentsBySubjectAndClass(subj.name, subj.class);
+        studentsMap[`${subj.name}|${subj.class}`] = students;
+      }
+      setStudentsBySubject(studentsMap);
+    } catch (err) {
+      setError('Failed to fetch assigned subjects or students');
     }
   };
 
@@ -310,6 +329,44 @@ function TeacherDashboard() {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Add this section below the dashboard overview or stats grid */}
+          <div className="mt-8">
+            <h3 className="text-base xs:text-lg font-semibold text-left mb-2">My Subjects & Registered Students</h3>
+            {mySubjects.length === 0 ? (
+              <p className="text-gray-500 text-xs xs:text-sm">No subjects assigned to you.</p>
+            ) : (
+              mySubjects.map(subj => (
+                <div key={`${subj.name}|${subj.class}`} className="mb-6">
+                  <h4 className="font-semibold text-blue-700 text-sm xs:text-base mb-1">{subj.name} ({subj.class})</h4>
+                  {studentsBySubject[`${subj.name}|${subj.class}`]?.length === 0 ? (
+                    <p className="text-gray-500 text-xs xs:text-sm ml-2">No students registered for this subject.</p>
+                  ) : (
+                    <table className="min-w-full text-xs xs:text-sm border mb-2">
+                      <thead>
+                        <tr className="bg-gray-50">
+                          <th className="px-2 py-1 text-left font-medium text-gray-600">Name</th>
+                          <th className="px-2 py-1 text-left font-medium text-gray-600">Email</th>
+                          <th className="px-2 py-1 text-left font-medium text-gray-600">Class</th>
+                          <th className="px-2 py-1 text-left font-medium text-gray-600">Admission No.</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {studentsBySubject[`${subj.name}|${subj.class}`].map(stu => (
+                          <tr key={stu._id}>
+                            <td className="px-2 py-1">{stu.fullName}</td>
+                            <td className="px-2 py-1">{stu.email}</td>
+                            <td className="px-2 py-1">{stu.currentClass}</td>
+                            <td className="px-2 py-1">{stu.admissionNumber}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

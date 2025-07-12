@@ -137,6 +137,15 @@ export const studentApi = {
     } catch (error) {
       throw error.response?.data || error;
     }
+  },
+
+  getStudentsBySubjectAndClass: async (subject, className) => {
+    try {
+      const response = await api.get('/students/by-subject', { params: { subject, class: className } });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
   }
 };
 
@@ -164,7 +173,7 @@ export const authApi = {
 
   register: async (userData) => {
     try {
-      const response = await api.post('/auth/register', {
+      const payload = {
         email: userData.email,
         password: userData.password,
         role: userData.role,
@@ -172,7 +181,16 @@ export const authApi = {
         firstName: userData.firstName,
         lastName: userData.lastName,
         rememberMe: userData.rememberMe
-      });
+      };
+      if (userData.currentClass) payload.currentClass = userData.currentClass;
+      if (userData.dateOfBirth) payload.dateOfBirth = userData.dateOfBirth;
+      if (userData.gender) payload.gender = userData.gender;
+      if (userData.phone) payload.phone = userData.phone;
+      if (userData.address) payload.address = userData.address;
+      if (userData.parentName) payload.parentName = userData.parentName;
+      if (userData.parentPhone) payload.parentPhone = userData.parentPhone;
+      if (userData.emergencyContact) payload.emergencyContact = userData.emergencyContact;
+      const response = await api.post('/auth/register', payload);
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
@@ -393,7 +411,15 @@ export const subjectApi = {
   },
   getSubjectsByClass: async (subjectClass) => {
     try {
-      const response = await api.get(`/subjects?class=${encodeURIComponent(subjectClass)}`);
+      const response = await api.get('/subjects', { params: { class: subjectClass } });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+  getMySubjects: async () => {
+    try {
+      const response = await api.get('/subjects/my-subjects');
       return response.data;
     } catch (error) {
       throw error.response?.data || error;

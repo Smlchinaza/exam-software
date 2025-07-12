@@ -72,6 +72,11 @@ const examSchema = new mongoose.Schema({
   approved: {
     type: Boolean,
     default: false
+  },
+  class: {
+    type: String,
+    required: true,
+    enum: ['JSS1', 'JSS2', 'JSS3', 'SS1', 'SS2', 'SS3']
   }
 }, {
   timestamps: true

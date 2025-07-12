@@ -33,6 +33,17 @@ router.get('/', authenticateJWT, requireRole('admin'), async (req, res) => {
   }
 });
 
+// Get all subjects assigned to the current teacher
+router.get('/my-subjects', requireRole('teacher'), async (req, res) => {
+  try {
+    const teacherId = req.user.user.id;
+    const subjects = await Subject.find({ teachers: teacherId }).select('name class');
+    res.json(subjects);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Get subject statistics (admin only)
 router.get('/stats', authenticateJWT, requireRole('admin'), async (req, res) => {
   try {

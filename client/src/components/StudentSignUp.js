@@ -18,6 +18,14 @@ const StudentSignUp = () => {
     email: "",
     password: "",
     confirmPassword: "",
+    currentClass: 'JSS1',
+    dateOfBirth: "",
+    gender: "Male",
+    phone: "",
+    address: "",
+    parentName: "",
+    parentPhone: "",
+    emergencyContact: ""
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -27,6 +35,8 @@ const StudentSignUp = () => {
 
   const { signupStudent, logout } = useAuth();
   const navigate = useNavigate();
+
+  const classOptions = ['JSS1', 'JSS2', 'JSS3', 'SS1', 'SS2', 'SS3'];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -41,7 +51,19 @@ const StudentSignUp = () => {
     }
 
     try {
-      const user = await signupStudent(formData.email, formData.password, formData.displayName);
+      const user = await signupStudent(
+        formData.email,
+        formData.password,
+        formData.displayName,
+        formData.currentClass,
+        formData.dateOfBirth,
+        formData.gender,
+        formData.phone,
+        formData.address,
+        formData.parentName,
+        formData.parentPhone,
+        formData.emergencyContact
+      );
       setSuccess(`Account created successfully! Your unique code has been sent to your email address.`);
       // Clear any previous session
       if (typeof logout === 'function') logout();
@@ -132,6 +154,98 @@ const StudentSignUp = () => {
             </div>
 
             <div>
+              <label htmlFor="dateOfBirth" className="block text-xs xs:text-sm font-medium text-gray-700">Date of Birth</label>
+              <input
+                id="dateOfBirth"
+                name="dateOfBirth"
+                type="date"
+                required
+                value={formData.dateOfBirth}
+                onChange={e => handleInputChange('dateOfBirth', e.target.value)}
+                className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-xs xs:text-sm"
+              />
+            </div>
+            <div>
+              <label htmlFor="gender" className="block text-xs xs:text-sm font-medium text-gray-700">Gender</label>
+              <select
+                id="gender"
+                name="gender"
+                required
+                value={formData.gender}
+                onChange={e => handleInputChange('gender', e.target.value)}
+                className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-xs xs:text-sm"
+              >
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="phone" className="block text-xs xs:text-sm font-medium text-gray-700">Phone</label>
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                required
+                value={formData.phone}
+                onChange={e => handleInputChange('phone', e.target.value)}
+                className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-xs xs:text-sm"
+                placeholder="Enter your phone number"
+              />
+            </div>
+            <div>
+              <label htmlFor="address" className="block text-xs xs:text-sm font-medium text-gray-700">Address</label>
+              <input
+                id="address"
+                name="address"
+                type="text"
+                required
+                value={formData.address}
+                onChange={e => handleInputChange('address', e.target.value)}
+                className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-xs xs:text-sm"
+                placeholder="Enter your address"
+              />
+            </div>
+            <div>
+              <label htmlFor="parentName" className="block text-xs xs:text-sm font-medium text-gray-700">Parent/Guardian Name</label>
+              <input
+                id="parentName"
+                name="parentName"
+                type="text"
+                required
+                value={formData.parentName}
+                onChange={e => handleInputChange('parentName', e.target.value)}
+                className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-xs xs:text-sm"
+                placeholder="Enter parent/guardian name"
+              />
+            </div>
+            <div>
+              <label htmlFor="parentPhone" className="block text-xs xs:text-sm font-medium text-gray-700">Parent/Guardian Phone</label>
+              <input
+                id="parentPhone"
+                name="parentPhone"
+                type="tel"
+                required
+                value={formData.parentPhone}
+                onChange={e => handleInputChange('parentPhone', e.target.value)}
+                className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-xs xs:text-sm"
+                placeholder="Enter parent/guardian phone"
+              />
+            </div>
+            <div>
+              <label htmlFor="emergencyContact" className="block text-xs xs:text-sm font-medium text-gray-700">Emergency Contact</label>
+              <input
+                id="emergencyContact"
+                name="emergencyContact"
+                type="tel"
+                required
+                value={formData.emergencyContact}
+                onChange={e => handleInputChange('emergencyContact', e.target.value)}
+                className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-xs xs:text-sm"
+                placeholder="Enter emergency contact number"
+              />
+            </div>
+
+            <div>
               <label htmlFor="password" className="block text-xs xs:text-sm font-medium text-gray-700">
                 Password
               </label>
@@ -192,6 +306,26 @@ const StudentSignUp = () => {
                     <Eye className="h-5 w-5 text-gray-400" />
                   )}
                 </button>
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="currentClass" className="block text-xs xs:text-sm font-medium text-gray-700">
+                Select Class
+              </label>
+              <div className="mt-1 relative">
+                <select
+                  id="currentClass"
+                  name="currentClass"
+                  required
+                  value={formData.currentClass}
+                  onChange={e => handleInputChange('currentClass', e.target.value)}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-xs xs:text-sm"
+                >
+                  {classOptions.map(option => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
+                </select>
               </div>
             </div>
 

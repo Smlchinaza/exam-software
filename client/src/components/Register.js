@@ -6,6 +6,7 @@ import { User, Mail, Lock, AlertCircle, Eye, EyeOff } from 'lucide-react';
 const Register = () => {
   const navigate = useNavigate();
   const { register, user, isAuthenticated, logout } = useAuth();
+  const classOptions = ['JSS1', 'JSS2', 'JSS3', 'SS1', 'SS2', 'SS3'];
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -14,7 +15,15 @@ const Register = () => {
     displayName: '',
     firstName: '',
     lastName: '',
-    rememberMe: false
+    rememberMe: false,
+    dateOfBirth: '',
+    gender: 'Male',
+    currentClass: classOptions[0],
+    phone: '',
+    address: '',
+    parentName: '',
+    parentPhone: '',
+    emergencyContact: ''
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -265,6 +274,116 @@ const Register = () => {
                 />
               </div>
             </div>
+            {formData.role === 'student' && (
+              <>
+                <div>
+                  <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700">Date of Birth</label>
+                  <input
+                    id="dateOfBirth"
+                    name="dateOfBirth"
+                    type="date"
+                    required
+                    value={formData.dateOfBirth}
+                    onChange={handleChange}
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="gender" className="block text-sm font-medium text-gray-700">Gender</label>
+                  <select
+                    id="gender"
+                    name="gender"
+                    required
+                    value={formData.gender}
+                    onChange={handleChange}
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="currentClass" className="block text-sm font-medium text-gray-700">Select Class</label>
+                  <select
+                    id="currentClass"
+                    name="currentClass"
+                    required
+                    value={formData.currentClass}
+                    onChange={handleChange}
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    {classOptions.map(option => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone</label>
+                  <input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    required
+                    value={formData.phone}
+                    onChange={handleChange}
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter your phone number"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="address" className="block text-sm font-medium text-gray-700">Address</label>
+                  <input
+                    id="address"
+                    name="address"
+                    type="text"
+                    required
+                    value={formData.address}
+                    onChange={handleChange}
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter your address"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="parentName" className="block text-sm font-medium text-gray-700">Parent/Guardian Name</label>
+                  <input
+                    id="parentName"
+                    name="parentName"
+                    type="text"
+                    required
+                    value={formData.parentName}
+                    onChange={handleChange}
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter parent/guardian name"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="parentPhone" className="block text-sm font-medium text-gray-700">Parent/Guardian Phone</label>
+                  <input
+                    id="parentPhone"
+                    name="parentPhone"
+                    type="tel"
+                    required
+                    value={formData.parentPhone}
+                    onChange={handleChange}
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter parent/guardian phone"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="emergencyContact" className="block text-sm font-medium text-gray-700">Emergency Contact</label>
+                  <input
+                    id="emergencyContact"
+                    name="emergencyContact"
+                    type="tel"
+                    required
+                    value={formData.emergencyContact}
+                    onChange={handleChange}
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter emergency contact number"
+                  />
+                </div>
+              </>
+            )}
             <div className="flex items-center">
               <input
                 id="rememberMe"

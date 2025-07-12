@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Student = require('../models/Student');
-const { authenticateJWT } = require('../middleware/auth');
+const { authenticateJWT, requireRole } = require('../middleware/auth');
 
 // Apply authentication middleware to all routes
 router.use(authenticateJWT);
@@ -41,17 +41,17 @@ router.post('/', async (req, res) => {
 });
 
 // Update a student
-router.put('/:id', async (req, res) => {
+router.put('/:id', requireRole('admin'), async (req, res) => {
   try {
     const student = await Student.findById(req.params.id);
     if (!student) {
       return res.status(404).json({ message: 'Student not found' });
     }
-
-    Object.keys(req.body).forEach(key => {
-      student[key] = req.body[key];
-    });
-
+    // Only allow admin to update currentClass
+    if ('currentClass' in req.body) {
+      student.currentClass = req.body.currentClass;
+    }
+    // Optionally, update other fields if needed
     const updatedStudent = await student.save();
     res.json(updatedStudent);
   } catch (error) {
@@ -137,6 +137,23 @@ router.get('/:id/results', async (req, res) => {
       return res.status(404).json({ message: 'Student not found' });
     }
     res.json(student.results);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Get all students registered for a subject and class
+router.get('/by-subject', requireRole('teacher'), async (req, res) => {
+  try {
+    const { subject, class: className } = req.query;
+    if (!subject || !className) {
+      return res.status(400).json({ message: 'Subject and class are required' });
+    }
+    const students = await Student.find({
+      registeredSubjects: subject,
+      currentClass: className
+    }).select('fullName email currentClass admissionNumber');
+    res.json(students);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

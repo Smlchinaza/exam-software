@@ -1,6 +1,7 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const User = require("../models/users/User");
+const Student = require('../models/students/Student');
 const { authenticateJWT } = require('../middleware/auth');
 const { check } = require('express-validator');
 const validate = require('../middleware/validate');
@@ -68,6 +69,27 @@ router.post('/register', async (req, res) => {
     // Assign plain password; pre-save hook will hash it
     user.password = password;
     await user.save();
+
+    if (role === 'student') {
+      const { currentClass, dateOfBirth, gender, phone, address, parentName, parentPhone, emergencyContact } = req.body;
+      if (!currentClass || !dateOfBirth || !gender || !phone || !address || !parentName || !parentPhone || !emergencyContact) {
+        return res.status(400).json({ message: 'All student fields are required' });
+      }
+      const student = new Student({
+        admissionNumber: `ADM${Date.now()}`,
+        fullName: displayName,
+        dateOfBirth,
+        gender,
+        currentClass,
+        email,
+        phone,
+        address,
+        parentName,
+        parentPhone,
+        emergencyContact
+      });
+      await student.save();
+    }
 
     // Create JWT token
     const payload = {
