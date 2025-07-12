@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User');
+const User = require('../models/users/User');
 const { authenticateJWT, requireRole } = require('../middleware/auth');
 
 // Get user profile

@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import api, { subjectApi, studentApi } from '../services/api';
 
 function TeacherDashboard() {
-  const { currentUser } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -24,6 +24,11 @@ function TeacherDashboard() {
     fetchDashboardData();
     fetchMySubjectsAndStudents();
   }, []);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -76,16 +81,26 @@ function TeacherDashboard() {
   const fetchMySubjectsAndStudents = async () => {
     try {
       const subjects = await subjectApi.getMySubjects();
-      setMySubjects(subjects);
+      setMySubjects(subjects || []);
       // For each subject, fetch students for that subject and class
       const studentsMap = {};
-      for (const subj of subjects) {
-        const students = await studentApi.getStudentsBySubjectAndClass(subj.name, subj.class);
-        studentsMap[`${subj.name}|${subj.class}`] = students;
+      if (subjects && Array.isArray(subjects)) {
+        for (const subj of subjects) {
+          try {
+            const students = await studentApi.getStudentsBySubjectAndClass(subj.name, subj.class);
+            studentsMap[`${subj.name}|${subj.class}`] = students || [];
+          } catch (studentError) {
+            console.error(`Error fetching students for ${subj.name}:`, studentError);
+            studentsMap[`${subj.name}|${subj.class}`] = [];
+          }
+        }
       }
       setStudentsBySubject(studentsMap);
     } catch (err) {
+      console.error('Error fetching subjects:', err);
       setError('Failed to fetch assigned subjects or students');
+      setMySubjects([]);
+      setStudentsBySubject({});
     }
   };
 
@@ -194,6 +209,9 @@ function TeacherDashboard() {
               <li className="hover:bg-gray-50 p-2 rounded">
                 <button onClick={() => {navigate('/teacher/profile'); setMobileNavOpen(false);}} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Profile</button>
               </li>
+              <li className="hover:bg-red-50 p-2 rounded border-t mt-4">
+                <button onClick={() => {handleLogout(); setMobileNavOpen(false);}} className="block text-left w-full bg-transparent border-none p-0 m-0 text-red-600 hover:text-red-700">Logout</button>
+              </li>
             </ul>
           </div>
         </div>
@@ -223,6 +241,9 @@ function TeacherDashboard() {
             </li>
             <li className="hover:bg-gray-50 p-2 rounded">
               <button onClick={() => navigate('/teacher/profile')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Profile</button>
+            </li>
+            <li className="hover:bg-red-50 p-2 rounded border-t mt-4">
+              <button onClick={handleLogout} className="block text-left w-full bg-transparent border-none p-0 m-0 text-red-600 hover:text-red-700">Logout</button>
             </li>
           </ul>
         </div>
@@ -334,13 +355,13 @@ function TeacherDashboard() {
           {/* Add this section below the dashboard overview or stats grid */}
           <div className="mt-8">
             <h3 className="text-base xs:text-lg font-semibold text-left mb-2">My Subjects & Registered Students</h3>
-            {mySubjects.length === 0 ? (
+            {!mySubjects || mySubjects.length === 0 ? (
               <p className="text-gray-500 text-xs xs:text-sm">No subjects assigned to you.</p>
             ) : (
               mySubjects.map(subj => (
                 <div key={`${subj.name}|${subj.class}`} className="mb-6">
                   <h4 className="font-semibold text-blue-700 text-sm xs:text-base mb-1">{subj.name} ({subj.class})</h4>
-                  {studentsBySubject[`${subj.name}|${subj.class}`]?.length === 0 ? (
+                  {!studentsBySubject[`${subj.name}|${subj.class}`] || studentsBySubject[`${subj.name}|${subj.class}`].length === 0 ? (
                     <p className="text-gray-500 text-xs xs:text-sm ml-2">No students registered for this subject.</p>
                   ) : (
                     <table className="min-w-full text-xs xs:text-sm border mb-2">

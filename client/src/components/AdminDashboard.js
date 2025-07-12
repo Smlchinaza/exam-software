@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { subjectApi, teacherApi, examApi } from '../services/api';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -38,7 +39,13 @@ const AdminDashboard = () => {
   const [teacherApprovalLoading, setTeacherApprovalLoading] = useState(false);
   const [teacherApprovalError, setTeacherApprovalError] = useState('');
   const [teacherApprovalMessage, setTeacherApprovalMessage] = useState('');
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   useEffect(() => {
     console.log('AdminDashboard - Current user:', user);
@@ -339,7 +346,15 @@ const AdminDashboard = () => {
 
   return (
     <div className="p-2 xs:p-4 sm:p-6 max-w-full sm:max-w-4xl mx-auto">
-      <h1 className="text-lg xs:text-xl sm:text-2xl font-bold mb-3 xs:mb-4">Admin Dashboard</h1>
+      <div className="flex flex-col xs:flex-row xs:justify-between xs:items-center mb-3 xs:mb-4">
+        <h1 className="text-lg xs:text-xl sm:text-2xl font-bold">Admin Dashboard</h1>
+        <button
+          onClick={handleLogout}
+          className="bg-red-600 text-white px-3 xs:px-4 py-2 rounded hover:bg-red-700 text-xs xs:text-sm mt-2 xs:mt-0"
+        >
+          Logout
+        </button>
+      </div>
       <div className="mb-3 xs:mb-4 p-2 xs:p-4 bg-blue-50 rounded text-xs xs:text-sm">
         <p><strong>Current User:</strong> {user?.displayName || user?.email}</p>
         <p><strong>Role:</strong> {user?.role}</p>

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Student = require('../models/Student');
+const Student = require('../models/students/Student');
 const { authenticateJWT, requireRole } = require('../middleware/auth');
 
 // Apply authentication middleware to all routes
@@ -10,6 +10,23 @@ router.use(authenticateJWT);
 router.get('/', async (req, res) => {
   try {
     const students = await Student.find();
+    res.json(students);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Get all students registered for a subject and class
+router.get('/by-subject', requireRole('teacher'), async (req, res) => {
+  try {
+    const { subject, class: className } = req.query;
+    if (!subject || !className) {
+      return res.status(400).json({ message: 'Subject and class are required' });
+    }
+    const students = await Student.find({
+      registeredSubjects: subject,
+      currentClass: className
+    }).select('fullName email currentClass admissionNumber');
     res.json(students);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -195,23 +212,6 @@ router.get('/:id/results', async (req, res) => {
     }
 
     res.json(student.results);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// Get all students registered for a subject and class
-router.get('/by-subject', requireRole('teacher'), async (req, res) => {
-  try {
-    const { subject, class: className } = req.query;
-    if (!subject || !className) {
-      return res.status(400).json({ message: 'Subject and class are required' });
-    }
-    const students = await Student.find({
-      registeredSubjects: subject,
-      currentClass: className
-    }).select('fullName email currentClass admissionNumber');
-    res.json(students);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

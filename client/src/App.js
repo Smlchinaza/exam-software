@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Home from './components/Home';
 import StudentLogin from './components/StudentLogin';
@@ -30,7 +30,11 @@ const TeacherSettings = () => <div className="p-8">Settings Page (Coming Soon)</
 
 function AppLayout() {
   const location = useLocation();
-  const hideNavbar = location.pathname === '/take-exam';
+  const { user } = useAuth();
+  
+  // Hide navbar for take-exam route or when user is logged in
+  const hideNavbar = location.pathname === '/take-exam' || user;
+  
   return (
     <div className="min-h-screen bg-gray-100">
       {!hideNavbar && <Navbar />}

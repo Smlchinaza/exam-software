@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Subject = require('../models/Subject');
-const User = require('../models/User');
+const User = require('../models/users/User');
 const { authenticateJWT, requireRole } = require('../middleware/auth');
 
 // Create a new subject (admin only)
@@ -49,7 +49,7 @@ router.get('/by-class', authenticateJWT, async (req, res) => {
 });
 
 // Get all subjects assigned to the current teacher
-router.get('/my-subjects', requireRole('teacher'), async (req, res) => {
+router.get('/my-subjects', authenticateJWT, requireRole('teacher'), async (req, res) => {
   try {
     const teacherId = req.user.user.id;
     const subjects = await Subject.find({ teachers: teacherId }).select('name class');
