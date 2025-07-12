@@ -10,6 +10,7 @@ const AdminDashboard = () => {
   const [selectedSubject, setSelectedSubject] = useState('');
   const [selectedTeachers, setSelectedTeachers] = useState([]);
   const [newSubject, setNewSubject] = useState('');
+  const [newSubjectClass, setNewSubjectClass] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -29,17 +30,41 @@ const AdminDashboard = () => {
   const [rejectReason, setRejectReason] = useState('');
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [examToReject, setExamToReject] = useState(null);
+  const [selectedClass, setSelectedClass] = useState('');
+  const [selectedAssignClass, setSelectedAssignClass] = useState('');
+  const [subjectsOpen, setSubjectsOpen] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
     console.log('AdminDashboard - Current user:', user);
     console.log('AdminDashboard - User role:', user?.role);
-    if (activeTab === 'assign' || activeTab === 'subjects') {
+    if ((activeTab === 'assign' || activeTab === 'subjects') && user) {
       fetchData();
     }
     if (activeTab === 'approve') {
       fetchUnapprovedExams();
       fetchPendingApprovalExams();
+    }
+  }, [activeTab, user]);
+
+  // Add effect to fetch subjects by class when selectedClass changes in 'subjects' tab
+  useEffect(() => {
+    if (activeTab === 'subjects' && user) {
+      fetchSubjectsByClass();
+    }
+  }, [selectedClass, activeTab, user]);
+
+  // Add effect to fetch subjects by class for assign tab
+  useEffect(() => {
+    if (activeTab === 'assign' && user) {
+      fetchAssignSubjectsByClass();
+    }
+  }, [selectedAssignClass, activeTab, user]);
+
+  // Add effect to always fetch teachers when Assign tab is active
+  useEffect(() => {
+    if (activeTab === 'assign' && user) {
+      fetchTeachersForAssign();
     }
   }, [activeTab, user]);
 
@@ -59,6 +84,51 @@ const AdminDashboard = () => {
       setError('Failed to fetch data.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSubjectsByClass = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      let subjectsRes;
+      if (selectedClass) {
+        subjectsRes = await subjectApi.getSubjectsByClass(selectedClass);
+      } else {
+        subjectsRes = await subjectApi.getAllSubjects();
+      }
+      setSubjects(subjectsRes);
+    } catch (err) {
+      setError('Failed to fetch subjects.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchAssignSubjectsByClass = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      let subjectsRes;
+      if (selectedAssignClass) {
+        subjectsRes = await subjectApi.getSubjectsByClass(selectedAssignClass);
+      } else {
+        subjectsRes = await subjectApi.getAllSubjects();
+      }
+      setSubjects(subjectsRes);
+    } catch (err) {
+      setError('Failed to fetch subjects.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchTeachersForAssign = async () => {
+    try {
+      const teachersRes = await teacherApi.getAllTeachers();
+      setTeachers(teachersRes);
+    } catch (err) {
+      setError('Failed to fetch teachers.');
     }
   };
 
@@ -108,14 +178,18 @@ const AdminDashboard = () => {
   };
 
   const handleCreateSubject = async () => {
-    if (!newSubject.trim()) return;
+    if (!newSubject.trim() || !newSubjectClass.trim()) {
+      setError('Please enter a subject name and select a class.');
+      return;
+    }
     setLoading(true);
     setError('');
     setMessage('');
     try {
-      await subjectApi.createSubject(newSubject.trim());
+      await subjectApi.createSubject(newSubject.trim(), newSubjectClass.trim());
       setMessage('Subject created successfully!');
       setNewSubject('');
+      setNewSubjectClass('');
       fetchData();
     } catch (err) {
       setError('Failed to create subject.');
@@ -260,6 +334,23 @@ const AdminDashboard = () => {
             <h2 className="text-base xs:text-lg sm:text-xl font-semibold mb-2">Assign Subjects to Teachers</h2>
             {error && <div className="mb-2 text-xs xs:text-sm text-red-600">{error}</div>}
             {message && <div className="mb-2 text-xs xs:text-sm text-green-600">{message}</div>}
+            {/* Class Filter Dropdown for Assign */}
+            <div className="mb-3 xs:mb-4 flex items-center space-x-2">
+              <label className="text-xs xs:text-sm font-medium">Filter by Class:</label>
+              <select
+                value={selectedAssignClass}
+                onChange={e => setSelectedAssignClass(e.target.value)}
+                className="border px-2 py-1 rounded text-xs xs:text-sm"
+              >
+                <option value="">All Classes</option>
+                <option value="JSS1">JSS1</option>
+                <option value="JSS2">JSS2</option>
+                <option value="JSS3">JSS3</option>
+                <option value="SS1">SS1</option>
+                <option value="SS2">SS2</option>
+                <option value="SS3">SS3</option>
+              </select>
+            </div>
             <div className="mb-3 xs:mb-4 flex flex-col xs:flex-row items-center xs:space-x-2 gap-2 xs:gap-0">
               <input
                 type="text"
@@ -268,6 +359,19 @@ const AdminDashboard = () => {
                 onChange={e => setNewSubject(e.target.value)}
                 className="border px-2 py-1 rounded text-xs xs:text-sm"
               />
+              <select
+                value={newSubjectClass}
+                onChange={e => setNewSubjectClass(e.target.value)}
+                className="border px-2 py-1 rounded text-xs xs:text-sm"
+              >
+                <option value="">Select Class</option>
+                <option value="JSS1">JSS1</option>
+                <option value="JSS2">JSS2</option>
+                <option value="JSS3">JSS3</option>
+                <option value="SS1">SS1</option>
+                <option value="SS2">SS2</option>
+                <option value="SS3">SS3</option>
+              </select>
               <button
                 onClick={handleCreateSubject}
                 className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-xs xs:text-sm"
@@ -276,6 +380,9 @@ const AdminDashboard = () => {
                 Add Subject
               </button>
             </div>
+            {!newSubjectClass && error && (
+              <div className="mb-2 text-xs xs:text-sm text-red-600">Please select a class for the subject.</div>
+            )}
             <div className="mb-3 xs:mb-4">
               <label className="block font-medium mb-1 text-xs xs:text-sm">Select Subject</label>
               <select
@@ -369,15 +476,31 @@ const AdminDashboard = () => {
                   onChange={e => setNewSubject(e.target.value)}
                   className="border px-3 py-2 rounded text-xs xs:text-sm flex-1"
                 />
+                <select
+                  value={newSubjectClass}
+                  onChange={e => setNewSubjectClass(e.target.value)}
+                  className="border px-3 py-2 rounded text-xs xs:text-sm"
+                >
+                  <option value="">Select Class</option>
+                  <option value="JSS1">JSS1</option>
+                  <option value="JSS2">JSS2</option>
+                  <option value="JSS3">JSS3</option>
+                  <option value="SS1">SS1</option>
+                  <option value="SS2">SS2</option>
+                  <option value="SS3">SS3</option>
+                </select>
                 <button
                   onClick={handleCreateSubject}
                   className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-xs xs:text-sm"
-                  disabled={loading || !newSubject.trim()}
+                  disabled={loading || !newSubject.trim() || !newSubjectClass.trim()}
                 >
                   {loading ? 'Adding...' : 'Add Subject'}
                 </button>
               </div>
             </div>
+            {!newSubjectClass && error && (
+              <div className="mb-2 text-xs xs:text-sm text-red-600">Please select a class for the subject.</div>
+            )}
 
             {/* Subject Statistics */}
             {subjectStats && (
@@ -408,74 +531,98 @@ const AdminDashboard = () => {
               </div>
             )}
 
-            {/* Subjects List */}
+            {/* Class Filter Dropdown */}
+            <div className="mb-4 flex items-center space-x-2">
+              <label className="text-xs xs:text-sm font-medium">Filter by Class:</label>
+              <select
+                value={selectedClass}
+                onChange={e => setSelectedClass(e.target.value)}
+                className="border px-2 py-1 rounded text-xs xs:text-sm"
+              >
+                <option value="">All Classes</option>
+                <option value="JSS1">JSS1</option>
+                <option value="JSS2">JSS2</option>
+                <option value="JSS3">JSS3</option>
+                <option value="SS1">SS1</option>
+                <option value="SS2">SS2</option>
+                <option value="SS3">SS3</option>
+              </select>
+            </div>
+
+            {/* Foldable Subject List */}
             <div className="mb-6">
-              <h3 className="text-sm xs:text-base font-semibold mb-3">Subject List ({subjects.length} subjects)</h3>
-              {loading ? (
-                <div className="text-center py-4 text-gray-500">Loading subjects...</div>
-              ) : subjects.length === 0 ? (
-                <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
-                  <p className="text-sm">No subjects created yet.</p>
-                  <p className="text-xs mt-1">Create your first subject using the form above.</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {subjects.map(subject => (
-                    <div key={subject._id} className="bg-white border rounded-lg p-4 shadow-sm">
-                      <div className="flex justify-between items-start mb-3">
-                        <h4 className="font-semibold text-sm xs:text-base text-gray-900">{subject.name}</h4>
-                        <div className="flex space-x-1">
-                          <button
-                            onClick={() => openUnassignModal(subject)}
-                            className="bg-orange-600 text-white px-2 py-1 rounded text-xs hover:bg-orange-700"
-                            disabled={!subject.teachers || subject.teachers.length === 0}
-                            title="Unassign Teachers"
-                          >
-                            Unassign
-                          </button>
-                          <button
-                            onClick={() => openDeleteModal(subject)}
-                            className="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700"
-                            title="Delete Subject"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <div>
-                          <span className="text-xs font-medium text-gray-600">Assigned Teachers:</span>
-                          <div className="mt-1">
-                            {subject.teachers && subject.teachers.length > 0 ? (
-                              <div className="space-y-1">
-                                {subject.teachers.map(teacher => (
-                                  <div key={teacher._id} className="text-xs text-gray-700 bg-gray-50 px-2 py-1 rounded">
-                                    {teacher.displayName || teacher.email}
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <span className="text-xs text-gray-400 italic">No teachers assigned</span>
-                            )}
+              <button
+                className="flex items-center space-x-2 focus:outline-none"
+                onClick={() => setSubjectsOpen((open) => !open)}
+                aria-expanded={subjectsOpen}
+              >
+                <span className={`transform transition-transform duration-200 ${subjectsOpen ? 'rotate-90' : ''}`}>▶</span>
+                <span className="text-sm xs:text-base font-semibold">Subject List ({subjects.length} subjects)</span>
+              </button>
+              {subjectsOpen && (
+                loading ? (
+                  <div className="text-center py-4 text-gray-500">Loading subjects...</div>
+                ) : subjects.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
+                    <p className="text-sm">No subjects created yet.</p>
+                    <p className="text-xs mt-1">Create your first subject using the form above.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                    {subjects.map(subject => (
+                      <div key={subject._id} className="bg-white border rounded-lg p-4 shadow-sm">
+                        <div className="flex justify-between items-start mb-3">
+                          <h4 className="font-semibold text-sm xs:text-base text-gray-900">{subject.name}</h4>
+                          <div className="flex space-x-1">
+                            <button
+                              onClick={() => openUnassignModal(subject)}
+                              className="bg-orange-600 text-white px-2 py-1 rounded text-xs hover:bg-orange-700"
+                              disabled={!subject.teachers || subject.teachers.length === 0}
+                              title="Unassign Teachers"
+                            >
+                              Unassign
+                            </button>
+                            <button
+                              onClick={() => openDeleteModal(subject)}
+                              className="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700"
+                              title="Delete Subject"
+                            >
+                              Delete
+                            </button>
                           </div>
                         </div>
-                        
-                        <div>
-                          <span className="text-xs font-medium text-gray-600">Teacher Count:</span>
-                          <span className="text-xs text-gray-700 ml-1">
-                            {subject.teachers ? subject.teachers.length : 0} teacher(s)
-                          </span>
-                        </div>
-                        
-                        <div>
-                          <span className="text-xs font-medium text-gray-600">Subject ID:</span>
-                          <span className="text-xs text-gray-500 ml-1 font-mono">{subject._id}</span>
+                        <div className="space-y-2">
+                          <div>
+                            <span className="text-xs font-medium text-gray-600">Assigned Teachers:</span>
+                            <div className="mt-1">
+                              {subject.teachers && subject.teachers.length > 0 ? (
+                                <div className="space-y-1">
+                                  {subject.teachers.map(teacher => (
+                                    <div key={teacher._id} className="text-xs text-gray-700 bg-gray-50 px-2 py-1 rounded">
+                                      {teacher.displayName || teacher.email}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="text-xs text-gray-400 italic">No teachers assigned</span>
+                              )}
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-xs font-medium text-gray-600">Teacher Count:</span>
+                            <span className="text-xs text-gray-700 ml-1">
+                              {subject.teachers ? subject.teachers.length : 0} teacher(s)
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-xs font-medium text-gray-600">Subject ID:</span>
+                            <span className="text-xs text-gray-500 ml-1 font-mono">{subject._id}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )
               )}
             </div>
 

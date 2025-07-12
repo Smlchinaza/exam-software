@@ -359,9 +359,9 @@ export const subjectApi = {
       throw error.response?.data || error;
     }
   },
-  createSubject: async (name) => {
+  createSubject: async (name, subjectClass) => {
     try {
-      const response = await api.post('/subjects', { name });
+      const response = await api.post('/subjects', { name, class: subjectClass });
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
@@ -386,6 +386,14 @@ export const subjectApi = {
   deleteSubject: async (subjectId) => {
     try {
       const response = await api.delete(`/subjects/${subjectId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+  getSubjectsByClass: async (subjectClass) => {
+    try {
+      const response = await api.get(`/subjects?class=${encodeURIComponent(subjectClass)}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error;

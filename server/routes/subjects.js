@@ -7,8 +7,11 @@ const { authenticateJWT, requireRole } = require('../middleware/auth');
 // Create a new subject (admin only)
 router.post('/', authenticateJWT, requireRole('admin'), async (req, res) => {
   try {
-    const { name } = req.body;
-    const subject = new Subject({ name });
+    const { name, class: subjectClass } = req.body;
+    if (!name || !subjectClass) {
+      return res.status(400).json({ error: 'Name and class are required' });
+    }
+    const subject = new Subject({ name, class: subjectClass });
     await subject.save();
     res.status(201).json(subject);
   } catch (err) {
@@ -16,10 +19,14 @@ router.post('/', authenticateJWT, requireRole('admin'), async (req, res) => {
   }
 });
 
-// Get all subjects
+// Get all subjects (optionally filtered by class)
 router.get('/', authenticateJWT, requireRole('admin'), async (req, res) => {
   try {
-    const subjects = await Subject.find().populate('teachers', 'displayName email firstName lastName');
+    const filter = {};
+    if (req.query.class) {
+      filter.class = req.query.class;
+    }
+    const subjects = await Subject.find(filter).populate('teachers', 'displayName email firstName lastName');
     res.json(subjects);
   } catch (err) {
     res.status(500).json({ error: err.message });

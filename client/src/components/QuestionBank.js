@@ -241,7 +241,7 @@ const QuestionBank = () => {
         <div className="fixed inset-0 z-40 flex md:hidden">
           {/* Overlay */}
           <div className="fixed inset-0 bg-black bg-opacity-30" onClick={() => setMobileNavOpen(false)}></div>
-          {/* Sidebar */}
+      {/* Sidebar */}
           <div className="relative z-50 h-full w-64 bg-white shadow-lg p-4 animate-slide-in-left">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base xs:text-lg font-semibold text-gray-700 text-left">Navigation</h3>
