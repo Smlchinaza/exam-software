@@ -11,8 +11,9 @@ import {
 } from 'lucide-react';
 import api from '../services/api';
 
-const QuestionBank = ({ setMobileNavOpen }) => {
+const QuestionBank = () => {
   const navigate = useNavigate();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -217,37 +218,96 @@ const QuestionBank = ({ setMobileNavOpen }) => {
   const subjects = [...new Set(questions.map(q => q.subject))];
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
-      <div className="w-64 bg-white shadow-lg">
+    <div className="flex h-screen bg-gray-100 flex-col md:flex-row">
+      {/* Mobile Nav Button */}
+      <div className="md:hidden flex items-center justify-between bg-white shadow p-4">
+        <button
+          className="text-gray-700 focus:outline-none mr-3"
+          onClick={() => setMobileNavOpen(!mobileNavOpen)}
+          aria-label="Open navigation menu"
+        >
+          {/* Hamburger icon */}
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <h3 className="text-base xs:text-lg sm:text-xl font-semibold text-gray-700">Question Bank</h3>
+      </div>
+      {/* Mobile Sidebar */}
+      {mobileNavOpen && (
+        <div className="fixed inset-0 z-40 flex md:hidden">
+          {/* Overlay */}
+          <div className="fixed inset-0 bg-black bg-opacity-30" onClick={() => setMobileNavOpen(false)}></div>
+          {/* Sidebar */}
+          <div className="relative z-50 h-full w-64 bg-white shadow-lg p-4 animate-slide-in-left">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base xs:text-lg font-semibold text-gray-700 text-left">Navigation</h3>
+              <button
+                className="text-gray-700 focus:outline-none"
+                onClick={() => setMobileNavOpen(false)}
+                aria-label="Close navigation menu"
+              >
+                {/* Collapse (X) icon */}
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <ul className="space-y-2">
+              <li className="hover:bg-gray-50 p-2 rounded">
+                <button onClick={() => {navigate('/teacher/dashboard'); setMobileNavOpen(false);}} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Dashboard</button>
+              </li>
+              <li className="bg-blue-50 text-blue-600 p-2 rounded">
+                <button onClick={() => {navigate('/teacher/question-bank'); setMobileNavOpen(false);}} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Question Bank</button>
+              </li>
+              <li className="hover:bg-gray-50 p-2 rounded">
+                <button onClick={() => {navigate('/teacher/create-exam'); setMobileNavOpen(false);}} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Create Exam</button>
+              </li>
+              <li className="hover:bg-gray-50 p-2 rounded">
+                <button onClick={() => {navigate('/teacher/active-exams'); setMobileNavOpen(false);}} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Active Exams</button>
+              </li>
+              <li className="hover:bg-gray-50 p-2 rounded">
+                <button onClick={() => {navigate('/teacher/results'); setMobileNavOpen(false);}} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Results</button>
+              </li>
+              <li className="hover:bg-gray-50 p-2 rounded">
+                <button onClick={() => {navigate('/teacher/students'); setMobileNavOpen(false);}} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Students</button>
+              </li>
+              <li className="hover:bg-gray-50 p-2 rounded">
+                <button onClick={() => {navigate('/teacher/settings'); setMobileNavOpen(false);}} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Settings</button>
+              </li>
+            </ul>
+          </div>
+        </div>
+      )}
+      {/* Desktop Sidebar */}
+      <div className="w-64 bg-white shadow-lg hidden md:block">
         <div className="p-4">
           <h3 className="text-lg font-semibold text-gray-700 mb-4 text-left">Navigation</h3>
           <ul className="space-y-2">
             <li className="hover:bg-gray-50 p-2 rounded">
-              <button onClick={() => { navigate('/teacher/dashboard'); if (setMobileNavOpen) setMobileNavOpen(false); }} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Dashboard</button>
+              <button onClick={() => navigate('/teacher/dashboard')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Dashboard</button>
             </li>
             <li className="bg-blue-50 text-blue-600 p-2 rounded">
-              <button onClick={() => { navigate('/teacher/question-bank'); if (setMobileNavOpen) setMobileNavOpen(false); }} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Question Bank</button>
+              <button onClick={() => navigate('/teacher/question-bank')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Question Bank</button>
             </li>
             <li className="hover:bg-gray-50 p-2 rounded">
-              <button onClick={() => { navigate('/teacher/create-exam'); if (setMobileNavOpen) setMobileNavOpen(false); }} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Create Exam</button>
+              <button onClick={() => navigate('/teacher/create-exam')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Create Exam</button>
             </li>
             <li className="hover:bg-gray-50 p-2 rounded">
-              <button onClick={() => { navigate('/teacher/active-exams'); if (setMobileNavOpen) setMobileNavOpen(false); }} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Active Exams</button>
+              <button onClick={() => navigate('/teacher/active-exams')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Active Exams</button>
             </li>
             <li className="hover:bg-gray-50 p-2 rounded">
-              <button onClick={() => { navigate('/teacher/results'); if (setMobileNavOpen) setMobileNavOpen(false); }} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Results</button>
+              <button onClick={() => navigate('/teacher/results')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Results</button>
             </li>
             <li className="hover:bg-gray-50 p-2 rounded">
-              <button onClick={() => { navigate('/teacher/students'); if (setMobileNavOpen) setMobileNavOpen(false); }} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Students</button>
+              <button onClick={() => navigate('/teacher/students')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Students</button>
             </li>
             <li className="hover:bg-gray-50 p-2 rounded">
-              <button onClick={() => { navigate('/teacher/settings'); if (setMobileNavOpen) setMobileNavOpen(false); }} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Settings</button>
+              <button onClick={() => navigate('/teacher/settings')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Settings</button>
             </li>
           </ul>
         </div>
       </div>
-
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
         <div className="p-8">
