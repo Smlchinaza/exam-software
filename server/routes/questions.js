@@ -12,9 +12,9 @@ const mammoth = require('mammoth');
 // Get all questions
 router.get('/', authenticateJWT, async (req, res) => {
   try {
-    console.log('Fetching questions...');
-    const questions = await Question.find().sort({ createdAt: -1 });
-    console.log(`Found ${questions.length} questions`);
+    console.log('Fetching questions for teacher:', req.user.user.id);
+    const questions = await Question.find({ createdBy: req.user.user.id }).sort({ createdAt: -1 });
+    console.log(`Found ${questions.length} questions for teacher ${req.user.user.id}`);
     res.json(questions);
   } catch (error) {
     console.error('Error fetching questions:', error);
@@ -59,8 +59,11 @@ router.delete('/bulk', authenticateJWT, async (req, res) => {
       return res.status(400).json({ message: 'Invalid question IDs' });
     }
 
-    console.log('Deleting questions:', questionIds);
-    const result = await Question.deleteMany({ _id: { $in: questionIds } });
+    console.log('Deleting questions for teacher:', req.user.user.id);
+    const result = await Question.deleteMany({ 
+      _id: { $in: questionIds },
+      createdBy: req.user.user.id 
+    });
     console.log('Questions deleted successfully:', result.deletedCount);
     res.json({ message: `${result.deletedCount} questions deleted successfully` });
   } catch (error) {
@@ -73,10 +76,13 @@ router.delete('/bulk', authenticateJWT, async (req, res) => {
 router.delete('/:id', authenticateJWT, async (req, res) => {
   try {
     console.log('Attempting to delete question:', req.params.id);
-    const question = await Question.findById(req.params.id);
+    const question = await Question.findOne({ 
+      _id: req.params.id,
+      createdBy: req.user.user.id 
+    });
     
     if (!question) {
-      console.log('Question not found:', req.params.id);
+      console.log('Question not found or not owned by teacher:', req.params.id);
       return res.status(404).json({ message: 'Question not found' });
     }
 
