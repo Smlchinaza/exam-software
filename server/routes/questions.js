@@ -219,10 +219,18 @@ function processDocumentText(text) {
     const lastLine = lines[lines.length - 1].toLowerCase();
     if (lastLine.includes('answer:') || lastLine.includes('correct:')) {
       const answerText = lastLine.split(':')[1].trim();
-      correctAnswer = options.findIndex(opt => 
-        opt.toLowerCase().includes(answerText.toLowerCase())
-      );
-      if (correctAnswer === -1) correctAnswer = 0;
+      
+      // Check if it's a number (1,2,3,4) and convert to 0-based indexing
+      const answerNumber = parseInt(answerText);
+      if (!isNaN(answerNumber) && answerNumber >= 1 && answerNumber <= 4) {
+        correctAnswer = answerNumber - 1; // Convert 1-based to 0-based
+      } else {
+        // Try to find by text matching (existing logic)
+        correctAnswer = options.findIndex(opt => 
+          opt.toLowerCase().includes(answerText.toLowerCase())
+        );
+        if (correctAnswer === -1) correctAnswer = 0;
+      }
     }
 
     const question = {

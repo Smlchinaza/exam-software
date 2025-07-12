@@ -113,14 +113,17 @@ const QuestionBank = () => {
           const lines = q.split('\n');
           const question = lines[0];
           const options = lines.slice(1, 5);
-          const correctAnswer = lines[5]?.match(/\d+/)?.[0] || 0;
+          const correctAnswerInput = lines[5]?.match(/\d+/)?.[0] || 1;
           const explanation = lines[6] || '';
+          
+          // Convert 1-based indexing (1,2,3,4) to 0-based indexing (0,1,2,3)
+          const correctAnswer = Math.max(0, parseInt(correctAnswerInput) - 1);
           
           return {
             question,
             subject: selectedSubject,
             options,
-            correctAnswer: parseInt(correctAnswer),
+            correctAnswer: correctAnswer,
             explanation,
             marks: 1,
           };
