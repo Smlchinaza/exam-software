@@ -9,7 +9,7 @@ import {
   Upload,
   CheckSquare,
 } from 'lucide-react';
-import api from '../services/api';
+import api, { subjectApi } from '../services/api';
 
 const QuestionBank = () => {
   const navigate = useNavigate();
@@ -28,6 +28,7 @@ const QuestionBank = () => {
   const [selectedQuestions, setSelectedQuestions] = useState([]);
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [success, setSuccess] = useState('');
+  const [teacherSubjects, setTeacherSubjects] = useState([]);
 
   const [newQuestion, setNewQuestion] = useState({
     question: '',
@@ -40,7 +41,19 @@ const QuestionBank = () => {
 
   useEffect(() => {
     fetchQuestions();
+    fetchTeacherSubjects();
   }, []);
+
+  const fetchTeacherSubjects = async () => {
+    try {
+      const subjects = await subjectApi.getMySubjects();
+      setTeacherSubjects(subjects || []);
+    } catch (err) {
+      console.error('Error fetching teacher subjects:', err);
+      setError('Failed to fetch assigned subjects');
+      setTeacherSubjects([]);
+    }
+  };
 
   const fetchQuestions = async () => {
     try {
@@ -218,7 +231,8 @@ const QuestionBank = () => {
     return matchesSearch && matchesSubject;
   });
 
-  const subjects = [...new Set(questions.map(q => q.subject))];
+  // Use teacher's assigned subjects for filtering and form options
+  const subjects = teacherSubjects.map(subject => subject.name);
 
   return (
     <div className="flex h-screen bg-gray-100 flex-col md:flex-row">
@@ -535,10 +549,9 @@ const QuestionBank = () => {
                       required
                     >
                       <option value="">Select Subject</option>
-                      <option value="Mathematics">Mathematics</option>
-                      <option value="Science">Science</option>
-                      <option value="English">English</option>
-                      <option value="History">History</option>
+                      {subjects.map(subject => (
+                        <option key={subject} value={subject}>{subject}</option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -613,10 +626,9 @@ const QuestionBank = () => {
                       required
                     >
                       <option value="">Select Subject</option>
-                      <option value="Mathematics">Mathematics</option>
-                      <option value="Science">Science</option>
-                      <option value="English">English</option>
-                      <option value="History">History</option>
+                      {subjects.map(subject => (
+                        <option key={subject} value={subject}>{subject}</option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -724,10 +736,9 @@ const QuestionBank = () => {
                       required
                     >
                       <option value="">Select Subject</option>
-                      <option value="Mathematics">Mathematics</option>
-                      <option value="Science">Science</option>
-                      <option value="English">English</option>
-                      <option value="History">History</option>
+                      {subjects.map(subject => (
+                        <option key={subject} value={subject}>{subject}</option>
+                      ))}
                     </select>
                   </div>
                 </div>

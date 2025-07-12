@@ -8,7 +8,6 @@ const StudentDashboard = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [selectedClass, setSelectedClass] = useState('');
-  const [subjects, setSubjects] = useState([]);
   const [showProfile, setShowProfile] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -41,7 +40,6 @@ const StudentDashboard = () => {
           const response = await studentApi.getStudent(user.email);
           setStudentData(response);
           setSelectedClass(response.currentClass || 'JSS1');
-          setSubjects(response.registeredSubjects || []);
           studentInfo = response;
         } catch (err) {
           // If student data doesn't exist, create a basic student profile
@@ -50,21 +48,18 @@ const StudentDashboard = () => {
             _id: user._id || user.id,
             fullName: user.displayName || `${user.firstName} ${user.lastName}`,
             email: user.email,
-            currentClass: 'JSS1',
-            registeredSubjects: []
+            currentClass: 'JSS1'
           });
           setSelectedClass('JSS1');
-          setSubjects([]);
           studentInfo = { currentClass: 'JSS1' };
         }
         // Fetch subjects for the student's class
         const classSubjects = await subjectApi.getSubjectsByClass(studentInfo.currentClass || 'JSS1');
         setAvailableSubjects(classSubjects.map(s => s.name));
-        // Fetch all active exams and filter
+        // Fetch all active exams for the student's class
         const allExams = await examApi.getActiveExams();
         const filteredExams = allExams.filter(exam =>
           exam.subject &&
-          (studentInfo.registeredSubjects || []).includes(exam.subject) &&
           exam.class === (studentInfo.currentClass || 'JSS1')
         );
         setAvailableExams(filteredExams);
@@ -91,33 +86,7 @@ const StudentDashboard = () => {
     }
   };
 
-  const handleSubjectRegistration = async (subject) => {
-    try {
-      if (!subjects.includes(subject)) {
-        const updatedSubjects = [...subjects, subject];
-        setSubjects(updatedSubjects);
-        if (studentData) {
-          await studentApi.registerSubjects(user.email, updatedSubjects);
-          setStudentData(prev => ({ ...prev, registeredSubjects: updatedSubjects }));
-        }
-      }
-    } catch (err) {
-      setError(err.message || 'Failed to register subject');
-    }
-  };
 
-  const handleRemoveSubject = async (subject) => {
-    try {
-      const updatedSubjects = subjects.filter(sub => sub !== subject);
-      setSubjects(updatedSubjects);
-      if (studentData) {
-        await studentApi.registerSubjects(user.email, updatedSubjects);
-        setStudentData(prev => ({ ...prev, registeredSubjects: updatedSubjects }));
-      }
-    } catch (err) {
-      setError(err.message || 'Failed to remove subject');
-    }
-  };
 
   const handleLogout = () => {
     logout();
@@ -199,31 +168,20 @@ const StudentDashboard = () => {
             </div>
           </div>
 
-          {/* Subject Registration */}
+          {/* Available Subjects */}
           <div className="lg:col-span-2 mt-6 lg:mt-0">
             <div className="bg-white rounded-lg shadow-md p-4 xs:p-6">
-              <h2 className="text-lg xs:text-xl font-semibold mb-3 xs:mb-4">Subject Registration</h2>
+              <h2 className="text-lg xs:text-xl font-semibold mb-3 xs:mb-4">Available Subjects</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 xs:gap-4">
-                {availableSubjects.map((subject) => (
-                  <div key={subject} className="flex items-center justify-between p-2 xs:p-3 border rounded-lg">
-                    <span className="text-gray-900 text-xs xs:text-sm">{subject}</span>
-                    {subjects.includes(subject) ? (
-                      <button
-                        onClick={() => handleRemoveSubject(subject)}
-                        className="text-red-600 hover:text-red-800 text-xs xs:text-sm font-medium"
-                      >
-                        Remove
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => handleSubjectRegistration(subject)}
-                        className="text-blue-600 hover:text-blue-800 text-xs xs:text-sm font-medium"
-                      >
-                        Add
-                      </button>
-                    )}
-                  </div>
-                ))}
+                {availableSubjects.length === 0 ? (
+                  <p className="text-gray-500 text-xs xs:text-sm col-span-2">No subjects available for your class at this time.</p>
+                ) : (
+                  availableSubjects.map((subject) => (
+                    <div key={subject} className="flex items-center p-2 xs:p-3 border rounded-lg bg-gray-50">
+                      <span className="text-gray-900 text-xs xs:text-sm">{subject}</span>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -234,7 +192,7 @@ const StudentDashboard = () => {
           <div className="bg-white rounded-lg shadow-md p-4 xs:p-6">
             <h2 className="text-lg xs:text-xl font-semibold mb-3 xs:mb-4">Available Exams</h2>
             {availableExams.length === 0 ? (
-              <p className="text-gray-500 text-xs xs:text-sm">No exams available for your class and registered subjects at this time.</p>
+              <p className="text-gray-500 text-xs xs:text-sm">No exams available for your class at this time.</p>
             ) : (
               <ul className="divide-y divide-gray-200">
                 {availableExams.map(exam => (

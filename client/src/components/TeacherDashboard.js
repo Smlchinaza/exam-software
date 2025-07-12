@@ -354,7 +354,7 @@ function TeacherDashboard() {
 
           {/* Add this section below the dashboard overview or stats grid */}
           <div className="mt-8">
-            <h3 className="text-base xs:text-lg font-semibold text-left mb-2">My Subjects & Registered Students</h3>
+            <h3 className="text-base xs:text-lg font-semibold text-left mb-2">My Subjects & Students</h3>
             {!mySubjects || mySubjects.length === 0 ? (
               <p className="text-gray-500 text-xs xs:text-sm">No subjects assigned to you.</p>
             ) : (
@@ -362,7 +362,7 @@ function TeacherDashboard() {
                 <div key={`${subj.name}|${subj.class}`} className="mb-6">
                   <h4 className="font-semibold text-blue-700 text-sm xs:text-base mb-1">{subj.name} ({subj.class})</h4>
                   {!studentsBySubject[`${subj.name}|${subj.class}`] || studentsBySubject[`${subj.name}|${subj.class}`].length === 0 ? (
-                    <p className="text-gray-500 text-xs xs:text-sm ml-2">No students registered for this subject.</p>
+                    <p className="text-gray-500 text-xs xs:text-sm ml-2">No students in this class.</p>
                   ) : (
                     <table className="min-w-full text-xs xs:text-sm border mb-2">
                       <thead>

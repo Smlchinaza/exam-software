@@ -72,6 +72,46 @@ router.delete('/bulk', authenticateJWT, async (req, res) => {
   }
 });
 
+// Update a question
+router.put('/:id', authenticateJWT, async (req, res) => {
+  try {
+    console.log('Attempting to update question:', req.params.id);
+    const { question, options, correctAnswer, subject, marks, explanation } = req.body;
+
+    const existingQuestion = await Question.findOne({ 
+      _id: req.params.id,
+      createdBy: req.user.user.id 
+    });
+    
+    if (!existingQuestion) {
+      console.log('Question not found or not owned by teacher:', req.params.id);
+      return res.status(404).json({ message: 'Question not found' });
+    }
+
+    console.log('Found question, updating:', existingQuestion);
+    
+    const updatedQuestion = await Question.findByIdAndUpdate(
+      req.params.id,
+      {
+        question,
+        options,
+        correctAnswer,
+        subject,
+        marks,
+        explanation,
+        updatedAt: new Date()
+      },
+      { new: true }
+    );
+
+    console.log('Question updated successfully');
+    res.json(updatedQuestion);
+  } catch (error) {
+    console.error('Error updating question:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Delete a single question
 router.delete('/:id', authenticateJWT, async (req, res) => {
   try {

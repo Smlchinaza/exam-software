@@ -16,15 +16,16 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get all students registered for a subject and class
+// Get all students in a class for a subject (automatically includes all students in the class)
 router.get('/by-subject', requireRole('teacher'), async (req, res) => {
   try {
     const { subject, class: className } = req.query;
     if (!subject || !className) {
       return res.status(400).json({ message: 'Subject and class are required' });
     }
+    // Return all students in the class for the given subject
+    // This automatically includes all students in the class, regardless of manual registration
     const students = await Student.find({
-      registeredSubjects: subject,
       currentClass: className
     }).select('fullName email currentClass admissionNumber');
     res.json(students);
