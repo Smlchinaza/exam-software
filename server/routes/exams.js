@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Exam = require("../models/Exam");
 const ExamSubmission = require("../models/ExamSubmission");
+const Subject = require("../models/Subject");
 const { authenticateJWT, requireRole } = require("../middleware/auth");
 
 // Get all exams
@@ -102,6 +103,16 @@ router.post("/", authenticateJWT, requireRole('teacher'), async (req, res) => {
       questions,
       questionsPerStudent
     } = req.body;
+
+    // Check if teacher is assigned to the subject (by name and class)
+    const assignedSubject = await Subject.findOne({
+      name: subject,
+      class: req.body.class,
+      teachers: req.user.user.id
+    });
+    if (!assignedSubject) {
+      return res.status(403).json({ message: "You are not assigned to this subject and class and cannot create an exam for it." });
+    }
 
     if (!questionsPerStudent || questionsPerStudent < 1) {
       return res.status(400).json({ message: "questionsPerStudent is required and must be at least 1" });

@@ -71,7 +71,11 @@ const TeacherLogin = () => {
       navigate('/teacher/dashboard');
     } catch (err) {
       console.error('Login error:', err);
-      setError(err.message || 'Failed to login. Please try again.');
+      if (err.message === 'Your registration is pending admin approval.') {
+        setError('Your registration is pending admin approval. Please wait for an admin to approve your account.');
+      } else {
+        setError(err.message || 'Failed to login. Please try again.');
+      }
     } finally {
       setLoading(false);
     }

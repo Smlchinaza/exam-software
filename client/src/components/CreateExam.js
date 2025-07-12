@@ -18,6 +18,7 @@ function CreateExam() {
     startTime: '',
     endTime: '',
     subject: '',
+    class: '', // <-- add class field
     instructions: '',
     questionsPerStudent: 1
   });
@@ -91,6 +92,11 @@ function CreateExam() {
       return;
     }
 
+    if (!examData.class) {
+      setError('Please select a class');
+      return;
+    }
+
     if (!examData.startTime || !examData.endTime) {
       setError('Please set both start and end times');
       return;
@@ -112,6 +118,7 @@ function CreateExam() {
       const examDataToSubmit = {
         ...examData,
         subject, // Ensure subject is set
+        class: examData.class, // Ensure class is set
         questions: selectedQuestions,
         totalMarks: calculateTotalMarks(),
         questionsPerStudent: examData.questionsPerStudent
@@ -204,6 +211,23 @@ function CreateExam() {
                       {subject} ({subjectStats[subject].total} questions)
                     </option>
                   ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 text-left">Class</label>
+                <select
+                  required
+                  value={examData.class}
+                  onChange={(e) => handleInputChange('class', e.target.value)}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-left"
+                >
+                  <option value="">Select Class</option>
+                  <option value="JSS1">JSS1</option>
+                  <option value="JSS2">JSS2</option>
+                  <option value="JSS3">JSS3</option>
+                  <option value="SS1">SS1</option>
+                  <option value="SS2">SS2</option>
+                  <option value="SS3">SS3</option>
                 </select>
               </div>
             </div>

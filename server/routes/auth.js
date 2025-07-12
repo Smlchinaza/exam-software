@@ -61,7 +61,8 @@ router.post('/register', async (req, res) => {
       role,
       displayName,
       firstName,
-      lastName
+      lastName,
+      approved: role === 'teacher' ? false : true // Teachers require approval, others are auto-approved
     });
 
     // Assign plain password; pre-save hook will hash it
@@ -144,6 +145,10 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ 
         message: 'Invalid credentials' 
       });
+    }
+    // If teacher and not approved, deny login
+    if (user.role === 'teacher' && !user.approved) {
+      return res.status(403).json({ message: 'Your registration is pending admin approval.' });
     }
 
     // Verify password

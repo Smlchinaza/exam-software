@@ -25,7 +25,7 @@ const TeacherSignUp = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const { signupTeacher } = useAuth();
+  const { signupTeacher, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -43,6 +43,8 @@ const TeacherSignUp = () => {
     try {
       await signupTeacher(formData.email, formData.password, formData.displayName);
       setSuccess("Account created successfully! Your unique code has been sent to your email address.");
+      // Clear any previous session
+      if (typeof logout === 'function') logout();
       setTimeout(() => {
         navigate("/login");
       }, 3000);

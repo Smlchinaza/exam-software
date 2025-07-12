@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { subjectApi, teacherApi, examApi } from '../services/api';
+import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 const AdminDashboard = () => {
@@ -33,6 +34,10 @@ const AdminDashboard = () => {
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedAssignClass, setSelectedAssignClass] = useState('');
   const [subjectsOpen, setSubjectsOpen] = useState(false);
+  const [unapprovedTeachers, setUnapprovedTeachers] = useState([]);
+  const [teacherApprovalLoading, setTeacherApprovalLoading] = useState(false);
+  const [teacherApprovalError, setTeacherApprovalError] = useState('');
+  const [teacherApprovalMessage, setTeacherApprovalMessage] = useState('');
   const { user } = useAuth();
 
   useEffect(() => {
@@ -44,6 +49,9 @@ const AdminDashboard = () => {
     if (activeTab === 'approve') {
       fetchUnapprovedExams();
       fetchPendingApprovalExams();
+    }
+    if (activeTab === 'teacher-approval') {
+      fetchUnapprovedTeachers();
     }
   }, [activeTab, user]);
 
@@ -155,6 +163,19 @@ const AdminDashboard = () => {
       setApprovalError('Failed to fetch pending approval exams.');
     } finally {
       setApprovalLoading(false);
+    }
+  };
+
+  const fetchUnapprovedTeachers = async () => {
+    setTeacherApprovalLoading(true);
+    setTeacherApprovalError('');
+    try {
+      const res = await api.get('/users/unapproved-teachers');
+      setUnapprovedTeachers(res.data);
+    } catch (err) {
+      setTeacherApprovalError('Failed to fetch unapproved teachers.');
+    } finally {
+      setTeacherApprovalLoading(false);
     }
   };
 
@@ -270,6 +291,21 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleApproveTeacher = async (teacherId) => {
+    setTeacherApprovalLoading(true);
+    setTeacherApprovalError('');
+    setTeacherApprovalMessage('');
+    try {
+      await api.patch(`/users/${teacherId}/approve`);
+      setTeacherApprovalMessage('Teacher approved successfully!');
+      fetchUnapprovedTeachers();
+    } catch (err) {
+      setTeacherApprovalError('Failed to approve teacher.');
+    } finally {
+      setTeacherApprovalLoading(false);
+    }
+  };
+
   const openUnassignModal = (subject) => {
     setSelectedSubjectForUnassign(subject._id);
     setShowUnassignModal(true);
@@ -326,6 +362,12 @@ const AdminDashboard = () => {
           onClick={() => setActiveTab('approve')}
         >
           Approve Exams
+        </button>
+        <button
+          className={`px-3 xs:px-4 py-2 rounded text-xs xs:text-sm ${activeTab === 'teacher-approval' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+          onClick={() => setActiveTab('teacher-approval')}
+        >
+          Approve Teachers
         </button>
       </div>
       <div>
@@ -786,6 +828,45 @@ const AdminDashboard = () => {
                 </div>
               )}
             </div>
+          </div>
+        )}
+        {activeTab === 'teacher-approval' && (
+          <div>
+            <h2 className="text-base xs:text-lg sm:text-xl font-semibold mb-2">Approve Teachers</h2>
+            {teacherApprovalError && <div className="mb-2 text-xs xs:text-sm text-red-600">{teacherApprovalError}</div>}
+            {teacherApprovalMessage && <div className="mb-2 text-xs xs:text-sm text-green-600">{teacherApprovalMessage}</div>}
+            {teacherApprovalLoading ? (
+              <div>Loading...</div>
+            ) : (
+              <table className="min-w-full bg-white border rounded text-xs xs:text-sm">
+                <thead>
+                  <tr>
+                    <th className="px-2 xs:px-4 py-2 border">Name</th>
+                    <th className="px-2 xs:px-4 py-2 border">Email</th>
+                    <th className="px-2 xs:px-4 py-2 border">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {unapprovedTeachers.length === 0 ? (
+                    <tr><td colSpan={3} className="text-center py-4">No unapproved teachers.</td></tr>
+                  ) : unapprovedTeachers.map(teacher => (
+                    <tr key={teacher._id}>
+                      <td className="px-2 xs:px-4 py-2 border">{teacher.displayName} {teacher.firstName} {teacher.lastName}</td>
+                      <td className="px-2 xs:px-4 py-2 border">{teacher.email}</td>
+                      <td className="px-2 xs:px-4 py-2 border">
+                        <button
+                          onClick={() => handleApproveTeacher(teacher._id)}
+                          className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+                          disabled={teacherApprovalLoading}
+                        >
+                          Approve
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         )}
       </div>

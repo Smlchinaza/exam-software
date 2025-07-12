@@ -99,4 +99,34 @@ router.get('/', authenticateJWT, requireRole('admin'), async (req, res) => {
   }
 });
 
+// Approve a teacher (admin only)
+router.patch('/:id/approve', authenticateJWT, requireRole('admin'), async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    if (user.role !== 'teacher') {
+      return res.status(400).json({ message: 'Only teachers can be approved.' });
+    }
+    user.approved = true;
+    await user.save();
+    res.json({ message: 'Teacher approved successfully', user });
+  } catch (error) {
+    console.error('Error approving teacher:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get all unapproved teachers (admin only)
+router.get('/unapproved-teachers', authenticateJWT, requireRole('admin'), async (req, res) => {
+  try {
+    const teachers = await User.find({ role: 'teacher', approved: false }).select('email displayName firstName lastName approved');
+    res.json(teachers);
+  } catch (error) {
+    console.error('Error fetching unapproved teachers:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router; 

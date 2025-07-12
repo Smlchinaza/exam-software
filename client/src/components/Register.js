@@ -5,7 +5,7 @@ import { User, Mail, Lock, AlertCircle, Eye, EyeOff } from 'lucide-react';
 
 const Register = () => {
   const navigate = useNavigate();
-  const { register, user, isAuthenticated } = useAuth();
+  const { register, user, isAuthenticated, logout } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -58,6 +58,8 @@ const Register = () => {
       }
       await register(formData);
       setSuccess('Account created successfully! Redirecting to login...');
+      // Clear any previous session
+      if (typeof logout === 'function') logout();
       setTimeout(() => {
         navigate('/login');
       }, 3000);
