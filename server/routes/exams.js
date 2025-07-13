@@ -102,11 +102,17 @@ router.post("/", authenticateJWT, requireRole('teacher'), async (req, res) => {
       instructions,
       questions,
       questionsPerStudent,
-      class: examClass
+      class: examClass,
+      marksPerQuestion
     } = req.body;
 
     if (!examClass || !['JSS1','JSS2','JSS3','SS1','SS2','SS3'].includes(examClass)) {
       return res.status(400).json({ message: 'A valid class is required for the exam.' });
+    }
+
+    // Validate total marks
+    if (!totalMarks || totalMarks <= 0) {
+      return res.status(400).json({ message: "Total marks must be greater than 0" });
     }
 
     // Check if teacher is assigned to the subject (by name and class)
@@ -124,6 +130,12 @@ router.post("/", authenticateJWT, requireRole('teacher'), async (req, res) => {
     }
     if (!questions || questions.length < questionsPerStudent) {
       return res.status(400).json({ message: "Number of questionsPerStudent cannot exceed total questions uploaded" });
+    }
+
+    // Validate that marks per question calculation is correct
+    const calculatedMarksPerQuestion = Math.round((totalMarks / questionsPerStudent) * 100) / 100;
+    if (marksPerQuestion && Math.abs(marksPerQuestion - calculatedMarksPerQuestion) > 0.01) {
+      return res.status(400).json({ message: "Marks per question calculation is incorrect" });
     }
 
     const exam = new Exam({
@@ -338,20 +350,26 @@ router.post("/:id/submit", authenticateJWT, requireRole('student'), async (req, 
       return res.status(400).json({ message: 'Exam is not currently active' });
     }
 
-    // Calculate score
+    // Calculate score using marks per question (total marks divided by questions per student)
     let score = 0;
     const answers = req.body.answers;
-    exam.questions.forEach(question => {
-      if (answers[question._id] === question.correctAnswer.toString()) {
-        score += question.marks;
-      }
-    });
-
-    // Find and update the existing ExamSubmission
-    let submission = await ExamSubmission.findOne({ exam: exam._id, student: req.user.user.id });
+    const marksPerQuestion = exam.totalMarks / exam.questionsPerStudent;
+    
+    // Get the student's assigned questions from their submission
+    const submission = await ExamSubmission.findOne({ exam: exam._id, student: req.user.user.id });
     if (!submission) {
       return res.status(404).json({ message: 'Exam submission not found. Please start the exam first.' });
     }
+    
+    // Calculate score based on assigned questions
+    submission.assignedQuestions.forEach(questionId => {
+      const question = exam.questions.find(q => q._id.toString() === questionId.toString());
+      if (question && answers[questionId] === question.correctAnswer.toString()) {
+        score += marksPerQuestion;
+      }
+    });
+
+    // Update the existing ExamSubmission
     submission.answers = answers;
     submission.score = score;
     submission.submittedAt = new Date();

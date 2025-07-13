@@ -22,6 +22,8 @@ const QuestionBank = () => {
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('all');
+  const [selectedTerm, setSelectedTerm] = useState('all');
+  const [selectedClass, setSelectedClass] = useState('all');
   const [showBulkUploadModal, setShowBulkUploadModal] = useState(false);
   const [bulkQuestions, setBulkQuestions] = useState('');
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -33,6 +35,8 @@ const QuestionBank = () => {
   const [newQuestion, setNewQuestion] = useState({
     question: '',
     subject: '',
+    term: '1st Term',
+    class: 'JSS1',
     options: ['', '', '', ''],
     correctAnswer: 0,
     explanation: '',
@@ -76,6 +80,8 @@ const QuestionBank = () => {
       setNewQuestion({
         question: '',
         subject: '',
+        term: '1st Term',
+        class: 'JSS1',
         options: ['', '', '', ''],
         correctAnswer: 0,
         explanation: '',
@@ -135,6 +141,8 @@ const QuestionBank = () => {
           return {
             question,
             subject: selectedSubject,
+            term: selectedTerm !== 'all' ? selectedTerm : '1st Term',
+            class: selectedClass !== 'all' ? selectedClass : 'JSS1',
             options,
             correctAnswer: correctAnswer,
             explanation,
@@ -180,6 +188,8 @@ const QuestionBank = () => {
           return {
             question,
             subject: selectedSubject,
+            term: selectedTerm !== 'all' ? selectedTerm : '1st Term',
+            class: selectedClass !== 'all' ? selectedClass : 'JSS1',
             options,
             correctAnswer,
             explanation: '',
@@ -228,7 +238,9 @@ const QuestionBank = () => {
   const filteredQuestions = questions.filter(question => {
     const matchesSearch = question.question.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSubject = selectedSubject === 'all' || question.subject === selectedSubject;
-    return matchesSearch && matchesSubject;
+    const matchesTerm = selectedTerm === 'all' || question.term === selectedTerm;
+    const matchesClass = selectedClass === 'all' || question.class === selectedClass;
+    return matchesSearch && matchesSubject && matchesTerm && matchesClass;
   });
 
   // Use teacher's assigned subjects for filtering and form options
@@ -386,6 +398,29 @@ const QuestionBank = () => {
                     <option key={subject} value={subject}>{subject}</option>
                   ))}
                 </select>
+                <select
+                  value={selectedTerm}
+                  onChange={(e) => setSelectedTerm(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-left"
+                >
+                  <option value="all">All Terms</option>
+                  <option value="1st Term">1st Term</option>
+                  <option value="2nd Term">2nd Term</option>
+                  <option value="3rd Term">3rd Term</option>
+                </select>
+                <select
+                  value={selectedClass}
+                  onChange={(e) => setSelectedClass(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-left"
+                >
+                  <option value="all">All Classes</option>
+                  <option value="JSS1">JSS1</option>
+                  <option value="JSS2">JSS2</option>
+                  <option value="JSS3">JSS3</option>
+                  <option value="SS1">SS1</option>
+                  <option value="SS2">SS2</option>
+                  <option value="SS3">SS3</option>
+                </select>
                 <button
                   onClick={() => setIsSelectMode(!isSelectMode)}
                   className={`px-4 py-2 rounded-md flex items-center gap-2 ${
@@ -451,6 +486,8 @@ const QuestionBank = () => {
                           />
                         )}
                         <span className="text-sm text-gray-500">{question.subject}</span>
+                        <span className="text-sm text-gray-500">{question.term}</span>
+                        <span className="text-sm text-gray-500">{question.class}</span>
                         <span className="text-sm text-gray-500">{question.marks} marks</span>
                       </div>
                       <p className="text-gray-900 mb-2">{question.question}</p>
@@ -537,7 +574,7 @@ const QuestionBank = () => {
                   />
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Subject
@@ -552,6 +589,39 @@ const QuestionBank = () => {
                       {subjects.map(subject => (
                         <option key={subject} value={subject}>{subject}</option>
                       ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Term
+                    </label>
+                    <select
+                      value={selectedTerm}
+                      onChange={(e) => setSelectedTerm(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    >
+                      <option value="1st Term">1st Term</option>
+                      <option value="2nd Term">2nd Term</option>
+                      <option value="3rd Term">3rd Term</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Class
+                    </label>
+                    <select
+                      value={selectedClass}
+                      onChange={(e) => setSelectedClass(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    >
+                      <option value="JSS1">JSS1</option>
+                      <option value="JSS2">JSS2</option>
+                      <option value="JSS3">JSS3</option>
+                      <option value="SS1">SS1</option>
+                      <option value="SS2">SS2</option>
+                      <option value="SS3">SS3</option>
                     </select>
                   </div>
                 </div>
@@ -614,7 +684,7 @@ const QuestionBank = () => {
                   />
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Subject
@@ -629,6 +699,39 @@ const QuestionBank = () => {
                       {subjects.map(subject => (
                         <option key={subject} value={subject}>{subject}</option>
                       ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Term
+                    </label>
+                    <select
+                      value={newQuestion.term}
+                      onChange={(e) => setNewQuestion({...newQuestion, term: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    >
+                      <option value="1st Term">1st Term</option>
+                      <option value="2nd Term">2nd Term</option>
+                      <option value="3rd Term">3rd Term</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Class
+                    </label>
+                    <select
+                      value={newQuestion.class}
+                      onChange={(e) => setNewQuestion({...newQuestion, class: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    >
+                      <option value="JSS1">JSS1</option>
+                      <option value="JSS2">JSS2</option>
+                      <option value="JSS3">JSS3</option>
+                      <option value="SS1">SS1</option>
+                      <option value="SS2">SS2</option>
+                      <option value="SS3">SS3</option>
                     </select>
                   </div>
                 </div>
@@ -724,7 +827,7 @@ const QuestionBank = () => {
                   />
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Subject
@@ -739,6 +842,39 @@ const QuestionBank = () => {
                       {subjects.map(subject => (
                         <option key={subject} value={subject}>{subject}</option>
                       ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Term
+                    </label>
+                    <select
+                      value={selectedQuestion.term}
+                      onChange={(e) => setSelectedQuestion({...selectedQuestion, term: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    >
+                      <option value="1st Term">1st Term</option>
+                      <option value="2nd Term">2nd Term</option>
+                      <option value="3rd Term">3rd Term</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Class
+                    </label>
+                    <select
+                      value={selectedQuestion.class}
+                      onChange={(e) => setSelectedQuestion({...selectedQuestion, class: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    >
+                      <option value="JSS1">JSS1</option>
+                      <option value="JSS2">JSS2</option>
+                      <option value="JSS3">JSS3</option>
+                      <option value="SS1">SS1</option>
+                      <option value="SS2">SS2</option>
+                      <option value="SS3">SS3</option>
                     </select>
                   </div>
                 </div>

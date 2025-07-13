@@ -90,16 +90,6 @@ examSchema.pre('save', function(next) {
   next();
 });
 
-// Calculate total marks before saving
-examSchema.pre('save', async function(next) {
-  if (this.isModified('questions')) {
-    const Question = mongoose.model('Question');
-    const questions = await Question.find({ _id: { $in: this.questions } });
-    this.totalMarks = questions.reduce((total, q) => total + (q.marks || 0), 0);
-  }
-  next();
-});
-
 const Exam = mongoose.model('Exam', examSchema);
 
 module.exports = Exam;

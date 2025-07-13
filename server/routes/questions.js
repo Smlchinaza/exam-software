@@ -14,8 +14,25 @@ router.get('/', authenticateJWT, async (req, res) => {
   try {
     console.log('Fetching questions for teacher:', req.user.user.id);
     const questions = await Question.find({ createdBy: req.user.user.id }).sort({ createdAt: -1 });
-    console.log(`Found ${questions.length} questions for teacher ${req.user.user.id}`);
-    res.json(questions);
+    
+    // Handle migration for existing questions without term and class
+    const questionsToUpdate = questions.filter(q => !q.term || !q.class);
+    if (questionsToUpdate.length > 0) {
+      console.log(`Found ${questionsToUpdate.length} questions that need migration`);
+      for (const question of questionsToUpdate) {
+        await Question.findByIdAndUpdate(question._id, {
+          term: question.term || '1st Term',
+          class: question.class || 'JSS1'
+        });
+      }
+      // Fetch updated questions
+      const updatedQuestions = await Question.find({ createdBy: req.user.user.id }).sort({ createdAt: -1 });
+      console.log(`Found ${updatedQuestions.length} questions for teacher ${req.user.user.id} after migration`);
+      res.json(updatedQuestions);
+    } else {
+      console.log(`Found ${questions.length} questions for teacher ${req.user.user.id}`);
+      res.json(questions);
+    }
   } catch (error) {
     console.error('Error fetching questions:', error);
     res.status(500).json({ 
@@ -28,13 +45,24 @@ router.get('/', authenticateJWT, async (req, res) => {
 // Add a new question
 router.post('/', authenticateJWT, async (req, res) => {
   try {
-    const { question, options, correctAnswer, subject, marks, explanation } = req.body;
+    const { question, options, correctAnswer, subject, term, class: questionClass, marks, explanation } = req.body;
+
+    // Validate required fields
+    if (!term || !['1st Term', '2nd Term', '3rd Term'].includes(term)) {
+      return res.status(400).json({ message: 'Valid term is required (1st Term, 2nd Term, or 3rd Term)' });
+    }
+
+    if (!questionClass || !['JSS1', 'JSS2', 'JSS3', 'SS1', 'SS2', 'SS3'].includes(questionClass)) {
+      return res.status(400).json({ message: 'Valid class is required' });
+    }
 
     const newQuestion = new Question({
       question,
       options,
       correctAnswer,
       subject,
+      term,
+      class: questionClass,
       marks,
       explanation,
       createdBy: req.user.user.id
@@ -76,7 +104,16 @@ router.delete('/bulk', authenticateJWT, async (req, res) => {
 router.put('/:id', authenticateJWT, async (req, res) => {
   try {
     console.log('Attempting to update question:', req.params.id);
-    const { question, options, correctAnswer, subject, marks, explanation } = req.body;
+    const { question, options, correctAnswer, subject, term, class: questionClass, marks, explanation } = req.body;
+
+    // Validate required fields
+    if (!term || !['1st Term', '2nd Term', '3rd Term'].includes(term)) {
+      return res.status(400).json({ message: 'Valid term is required (1st Term, 2nd Term, or 3rd Term)' });
+    }
+
+    if (!questionClass || !['JSS1', 'JSS2', 'JSS3', 'SS1', 'SS2', 'SS3'].includes(questionClass)) {
+      return res.status(400).json({ message: 'Valid class is required' });
+    }
 
     const existingQuestion = await Question.findOne({ 
       _id: req.params.id,
@@ -97,6 +134,8 @@ router.put('/:id', authenticateJWT, async (req, res) => {
         options,
         correctAnswer,
         subject,
+        term,
+        class: questionClass,
         marks,
         explanation,
         updatedAt: new Date()

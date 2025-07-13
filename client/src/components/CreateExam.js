@@ -10,11 +10,13 @@ function CreateExam() {
   const [questions, setQuestions] = useState([]);
   const [selectedQuestions, setSelectedQuestions] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTerm, setSelectedTerm] = useState('all');
+  const [selectedClass, setSelectedClass] = useState('all');
   const [examData, setExamData] = useState({
     title: '',
     description: '',
     duration: 60, // in minutes
-    totalMarks: 0,
+    totalMarks: 100, // Default total marks
     startTime: '',
     endTime: '',
     subject: '',
@@ -66,7 +68,14 @@ function CreateExam() {
     });
   };
 
-  const calculateTotalMarks = () => {
+  // Calculate marks per question based on total marks and questions per student
+  const calculateMarksPerQuestion = () => {
+    if (examData.questionsPerStudent <= 0) return 0;
+    return Math.round((examData.totalMarks / examData.questionsPerStudent) * 100) / 100;
+  };
+
+  // Calculate total marks from individual question marks (for display purposes)
+  const calculateTotalMarksFromQuestions = () => {
     return selectedQuestions.reduce((total, questionId) => {
       const question = questions.find(q => q._id === questionId);
       return total + (question?.marks || 0);
@@ -107,6 +116,11 @@ function CreateExam() {
       return;
     }
 
+    if (examData.totalMarks <= 0) {
+      setError('Total marks must be greater than 0');
+      return;
+    }
+
     try {
       setLoading(true);
       setError('');
@@ -120,8 +134,9 @@ function CreateExam() {
         subject, // Ensure subject is set
         class: examData.class, // Ensure class is set
         questions: selectedQuestions,
-        totalMarks: calculateTotalMarks(),
-        questionsPerStudent: examData.questionsPerStudent
+        totalMarks: examData.totalMarks, // Use manually set total marks
+        questionsPerStudent: examData.questionsPerStudent,
+        marksPerQuestion: calculateMarksPerQuestion() // Add marks per question
       };
 
       console.log('Submitting exam data:', examDataToSubmit);
@@ -141,12 +156,18 @@ function CreateExam() {
   const getSubjectStats = () => {
     const stats = {};
     questions.forEach(q => {
-      if (!stats[q.subject]) {
-        stats[q.subject] = { total: 0, selected: 0 };
-      }
-      stats[q.subject].total++;
-      if (selectedQuestions.includes(q._id)) {
-        stats[q.subject].selected++;
+      // Only count questions that match the current filters
+      const matchesTerm = selectedTerm === 'all' || q.term === selectedTerm;
+      const matchesClass = selectedClass === 'all' || q.class === selectedClass;
+      
+      if (matchesTerm && matchesClass) {
+        if (!stats[q.subject]) {
+          stats[q.subject] = { total: 0, selected: 0 };
+        }
+        stats[q.subject].total++;
+        if (selectedQuestions.includes(q._id)) {
+          stats[q.subject].selected++;
+        }
       }
     });
     return stats;
@@ -155,10 +176,18 @@ function CreateExam() {
   const filteredQuestions = questions.filter(question => {
     const matchesSearch = question.question.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSubject = !examData.subject || question.subject === examData.subject;
-    return matchesSearch && matchesSubject;
+    const matchesClass = !examData.class || question.class === examData.class;
+    const matchesTerm = selectedTerm === 'all' || question.term === selectedTerm;
+    const matchesClassFilter = selectedClass === 'all' || question.class === selectedClass;
+    return matchesSearch && matchesSubject && matchesClass && matchesTerm && matchesClassFilter;
   });
 
   const subjectStats = getSubjectStats();
+  const marksPerQuestion = calculateMarksPerQuestion();
+
+  // Get unique terms and classes for better organization
+  const uniqueTerms = [...new Set(questions.map(q => q.term))].sort();
+  const uniqueClasses = [...new Set(questions.map(q => q.class))].sort();
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -251,9 +280,9 @@ function CreateExam() {
                   type="number"
                   required
                   min="1"
-                  value={calculateTotalMarks()}
-                  readOnly
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-50 text-left"
+                  value={examData.totalMarks}
+                  onChange={(e) => handleInputChange('totalMarks', parseInt(e.target.value))}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-left"
                 />
               </div>
             </div>
@@ -295,6 +324,16 @@ function CreateExam() {
               />
             </div>
 
+            {/* Display marks per question */}
+            <div className="bg-blue-50 p-3 rounded-md">
+              <p className="text-sm text-blue-800 text-left">
+                <strong>Marks per question:</strong> {marksPerQuestion} marks
+              </p>
+              <p className="text-xs text-blue-600 text-left mt-1">
+                (Total marks ÷ Questions per student = {examData.totalMarks} ÷ {examData.questionsPerStudent})
+              </p>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 text-left">Instructions</label>
               <textarea
@@ -321,8 +360,33 @@ function CreateExam() {
           <div className="p-4 border-b">
             <h2 className="text-xl font-semibold text-left">Select Questions</h2>
             <p className="text-sm text-gray-600 mt-1 text-left">
-              Selected {selectedQuestions.length} questions ({calculateTotalMarks()} marks)
+              Selected {selectedQuestions.length} questions | Total marks: {examData.totalMarks} | Marks per question: {marksPerQuestion}
             </p>
+            <p className="text-xs text-gray-500 mt-1 text-left">
+              Note: Individual question marks shown below are for reference only. Actual marks per question will be {marksPerQuestion}.
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {selectedTerm !== 'all' && (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  Term: {selectedTerm}
+                </span>
+              )}
+              {selectedClass !== 'all' && (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  Class: {selectedClass}
+                </span>
+              )}
+              {examData.subject && (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                  Subject: {examData.subject}
+                </span>
+              )}
+              {examData.class && (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                  Exam Class: {examData.class}
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="p-4 border-b">
@@ -338,6 +402,40 @@ function CreateExam() {
                   />
                   <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
                 </div>
+              </div>
+              <div className="flex gap-2">
+                <select
+                  value={selectedTerm}
+                  onChange={(e) => setSelectedTerm(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-left"
+                >
+                  <option value="all">All Terms</option>
+                  {uniqueTerms.map(term => (
+                    <option key={term} value={term}>{term}</option>
+                  ))}
+                </select>
+                <select
+                  value={selectedClass}
+                  onChange={(e) => setSelectedClass(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-left"
+                >
+                  <option value="all">All Classes</option>
+                  {uniqueClasses.map(classItem => (
+                    <option key={classItem} value={classItem}>{classItem}</option>
+                  ))}
+                </select>
+                {(selectedTerm !== 'all' || selectedClass !== 'all' || searchTerm) && (
+                  <button
+                    onClick={() => {
+                      setSelectedTerm('all');
+                      setSelectedClass('all');
+                      setSearchTerm('');
+                    }}
+                    className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50"
+                  >
+                    Clear Filters
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -367,7 +465,13 @@ function CreateExam() {
                           {question.subject}
                         </span>
                         <span className="text-xs text-gray-500 text-left">
-                          {question.marks} marks
+                          {question.term}
+                        </span>
+                        <span className="text-xs text-gray-500 text-left">
+                          {question.class}
+                        </span>
+                        <span className="text-xs text-gray-500 text-left">
+                          Original: {question.marks} marks | Will be: {marksPerQuestion} marks
                         </span>
                       </div>
                     </div>

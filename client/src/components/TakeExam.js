@@ -260,9 +260,6 @@ function TakeExam() {
                 <h3 className="text-base sm:text-lg font-medium">
                   Question {idx + 1}
                 </h3>
-                <span className="text-xs sm:text-sm text-gray-500">
-                  {question.marks} marks
-                </span>
               </div>
               <p className="text-sm sm:text-base mb-3 sm:mb-4">
                 {question.question}

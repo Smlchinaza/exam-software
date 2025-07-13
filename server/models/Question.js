@@ -9,6 +9,16 @@ const questionSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  term: {
+    type: String,
+    required: true,
+    enum: ['1st Term', '2nd Term', '3rd Term']
+  },
+  class: {
+    type: String,
+    required: true,
+    enum: ['JSS1', 'JSS2', 'JSS3', 'SS1', 'SS2', 'SS3']
+  },
   options: [{
     type: String,
     required: true,

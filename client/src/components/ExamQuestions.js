@@ -107,7 +107,7 @@ const ExamQuestions = () => {
                 Question {index + 1}
               </h3>
               <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                {question.marks} mark{question.marks !== 1 ? 's' : ''}
+                Original: {question.marks} mark{question.marks !== 1 ? 's' : ''}
               </span>
             </div>
             
