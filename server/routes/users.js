@@ -121,7 +121,7 @@ router.patch('/:id/approve', authenticateJWT, requireRole('admin'), async (req, 
 // Get all unapproved teachers (admin only)
 router.get('/unapproved-teachers', authenticateJWT, requireRole('admin'), async (req, res) => {
   try {
-    const teachers = await User.find({ role: 'teacher', approved: false }).select('email displayName firstName lastName approved');
+    const teachers = await User.find({ role: 'teacher', $or: [ { approved: false }, { approved: { $exists: false } } ] }).select('email displayName firstName lastName approved');
     res.json(teachers);
   } catch (error) {
     console.error('Error fetching unapproved teachers:', error);
