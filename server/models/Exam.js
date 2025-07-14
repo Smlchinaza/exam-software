@@ -77,6 +77,15 @@ const examSchema = new mongoose.Schema({
     type: String,
     required: true,
     enum: ['JSS1', 'JSS2', 'JSS3', 'SS1', 'SS2', 'SS3']
+  },
+  session: {
+    type: String,
+    required: true
+  },
+  term: {
+    type: String,
+    required: true,
+    enum: ['1st Term', '2nd Term', '3rd Term']
   }
 }, {
   timestamps: true

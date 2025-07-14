@@ -171,8 +171,17 @@ router.post("/", authenticateJWT, requireRole('teacher'), async (req, res) => {
       questions,
       questionsPerStudent,
       class: examClass,
-      marksPerQuestion
+      marksPerQuestion,
+      session,
+      term
     } = req.body;
+
+    if (!session || typeof session !== 'string' || !session.trim()) {
+      return res.status(400).json({ message: 'Session is required for the exam.' });
+    }
+    if (!term || !['1st Term','2nd Term','3rd Term'].includes(term)) {
+      return res.status(400).json({ message: 'A valid term is required for the exam (1st Term, 2nd Term, 3rd Term).' });
+    }
 
     if (!examClass || !['JSS1','JSS2','JSS3','SS1','SS2','SS3'].includes(examClass)) {
       return res.status(400).json({ message: 'A valid class is required for the exam.' });
@@ -218,7 +227,9 @@ router.post("/", authenticateJWT, requireRole('teacher'), async (req, res) => {
       questions,
       questionsPerStudent,
       createdBy: req.user.user.id,
-      class: examClass
+      class: examClass,
+      session,
+      term
     });
 
     await exam.save();
@@ -569,7 +580,9 @@ router.post('/:id/start', authenticateJWT, requireRole('student'), async (req, r
       student: req.user.user.id,
       answers: {},
       assignedQuestions,
-      score: 0
+      score: 0,
+      session: exam.session, // add session from exam
+      term: exam.term        // add term from exam
     });
     await submission.save();
     // Populate assignedQuestions for return

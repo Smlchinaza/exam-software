@@ -22,7 +22,9 @@ function CreateExam() {
     subject: '',
     class: '', // <-- add class field
     instructions: '',
-    questionsPerStudent: 1
+    questionsPerStudent: 1,
+    session: '', // <-- add session field
+    term: '' // <-- add term field
   });
 
   useEffect(() => {
@@ -121,6 +123,15 @@ function CreateExam() {
       return;
     }
 
+    if (!examData.session.trim()) {
+      setError('Please enter a session (e.g. 2023/2024)');
+      return;
+    }
+    if (!examData.term) {
+      setError('Please select a term');
+      return;
+    }
+
     try {
       setLoading(true);
       setError('');
@@ -136,7 +147,9 @@ function CreateExam() {
         questions: selectedQuestions,
         totalMarks: examData.totalMarks, // Use manually set total marks
         questionsPerStudent: examData.questionsPerStudent,
-        marksPerQuestion: calculateMarksPerQuestion() // Add marks per question
+        marksPerQuestion: calculateMarksPerQuestion(), // Add marks per question
+        session: examData.session,
+        term: examData.term
       };
 
       console.log('Submitting exam data:', examDataToSubmit);
@@ -322,6 +335,34 @@ function CreateExam() {
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-left"
                 required
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 text-left">Session</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. 2023/2024"
+                  value={examData.session}
+                  onChange={(e) => handleInputChange('session', e.target.value)}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-left"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 text-left">Term</label>
+                <select
+                  required
+                  value={examData.term}
+                  onChange={(e) => handleInputChange('term', e.target.value)}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-left"
+                >
+                  <option value="">Select Term</option>
+                  <option value="1st Term">1st Term</option>
+                  <option value="2nd Term">2nd Term</option>
+                  <option value="3rd Term">3rd Term</option>
+                </select>
+              </div>
             </div>
 
             {/* Display marks per question */}
