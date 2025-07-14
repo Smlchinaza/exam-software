@@ -12,11 +12,6 @@ function ExamSelection() {
 
   useEffect(() => {
     const email = localStorage.getItem("studentEmail");
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    if (!token) {
-      navigate("/student/login");
-      return;
-    }
     if (!email) {
       navigate("/auth-email");
       return;

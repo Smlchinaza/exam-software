@@ -1,10 +1,19 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { FaUserGraduate, FaChalkboardTeacher } from 'react-icons/fa';
+import { FaUserGraduate, FaChalkboardTeacher, FaStar, FaQuoteLeft, FaSchool, FaGraduationCap, FaUsers, FaTrophy } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 
 const Home = () => {
   const { user, isAuthenticated } = useAuth();
+  const [currentFeedbackIndex, setCurrentFeedbackIndex] = useState(0);
+
+  // Auto-scroll feedback testimonials
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentFeedbackIndex((prev) => (prev + 1) % testimonials.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Redirect authenticated users to their appropriate dashboard
   if ((isAuthenticated && user) || (user && user.role === 'teacher')) {
@@ -21,209 +30,426 @@ const Home = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Hero Section */}
-      <div className="bg-white">
-        <div className="max-w-7xl mx-auto py-8 px-4 sm:py-12 sm:px-6 lg:py-20 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-indigo-200">
+      {/* Hero Section with Animated Background */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0">
+          <div className="absolute top-20 left-10 w-20 h-20 bg-blue-400 rounded-full opacity-20 animate-pulse"></div>
+          <div className="absolute top-40 right-20 w-16 h-16 bg-indigo-400 rounded-full opacity-30 animate-bounce"></div>
+          <div className="absolute bottom-20 left-1/4 w-12 h-12 bg-blue-300 rounded-full opacity-25 animate-ping"></div>
+          <div className="absolute bottom-40 right-1/3 w-24 h-24 bg-indigo-300 rounded-full opacity-20 animate-pulse"></div>
+        </div>
+        
+        <div className="relative max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:py-32 lg:px-8">
           <div className="text-center">
-            <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 sm:tracking-tight">
-              Welcome to School Portal
+            <div className="flex justify-center mb-8">
+              <img 
+                src={require('../assets/images/SpectraLogo.jpg')} 
+                alt="Spectra School Logo" 
+                className="h-20 w-20 rounded-full shadow-lg animate-float"
+              />
+            </div>
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white mb-6 animate-fade-in">
+              Welcome to <span className="text-yellow-300">Spectra</span> School
             </h1>
-            <p className="mt-3 xs:mt-4 sm:mt-6 max-w-xl xs:max-w-2xl mx-auto text-sm xs:text-base sm:text-lg md:text-xl text-gray-500">
-              A comprehensive platform for students, teachers, and administrators to manage academic activities.
+            <p className="text-xl sm:text-2xl md:text-3xl text-blue-100 mb-8 max-w-4xl mx-auto animate-slide-up">
+              Nurturing Excellence, Building Future Leaders
             </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-delay">
+              <Link
+                to={isAuthenticated && user?.role === 'student' ? "/exam-selection" : "/auth-email"}
+                className="inline-flex items-center px-8 py-4 border-2 border-white text-lg font-semibold rounded-full text-white hover:bg-white hover:text-blue-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
+              >
+                <FaGraduationCap className="mr-2" />
+                Take Exam
+              </Link>
+              <Link
+                to="/student/login"
+                className="inline-flex items-center px-8 py-4 bg-yellow-400 text-lg font-semibold rounded-full text-blue-800 hover:bg-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-lg"
+              >
+                <FaUserGraduate className="mr-2" />
+                Student Portal
+              </Link>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Portal Cards */}
-      <div className="max-w-7xl mx-auto py-6 px-2 xs:py-8 xs:px-3 sm:py-10 sm:px-4 lg:px-8">
-        <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 xs:gap-6">
-          {/* Exam Portal */}
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col h-full">
-            <div className="p-4 xs:p-5 flex-1 flex flex-col">
-              <div className="flex items-center justify-center h-10 w-10 xs:h-12 xs:w-12 rounded-md bg-yellow-500 text-white mb-3 xs:mb-4 mx-auto">
-                <svg className="h-5 w-5 xs:h-6 xs:w-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" d="M12 14l9-5-9-5-9 5 9 5zm0 0v6m0 0H6m6 0h6"></path></svg>
+      {/* Principal's Speech Section */}
+      <div className="py-16 bg-gradient-to-r from-blue-100 to-indigo-100">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-blue-800 mb-4">
+              Principal's Message
+            </h2>
+            <div className="w-24 h-1 bg-yellow-400 mx-auto rounded-full"></div>
+          </div>
+          
+          <div className="bg-white rounded-2xl shadow-2xl p-8 md:p-12 transform hover:scale-105 transition-all duration-500">
+            <div className="flex items-start space-x-6">
+              <div className="flex-shrink-0">
+                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                  <FaSchool className="text-white text-2xl" />
+                </div>
               </div>
-              <h3 className="text-base xs:text-lg font-medium text-gray-900 text-center">Exam Portal</h3>
-              <p className="mt-1 xs:mt-2 text-sm xs:text-base text-gray-500 text-center">
-                Take your assigned exams online in a secure environment.
-              </p>
-              <div className="mt-4 xs:mt-6 flex justify-center">
-                <Link
-                  to="/exam-selection"
-                  className="inline-flex items-center px-3 xs:px-4 py-2 border border-transparent text-xs xs:text-sm font-medium rounded-md shadow-sm text-white bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 transition"
-                >
-                  Go to Exam Portal
-                </Link>
+              <div className="flex-1">
+                <h3 className="text-2xl font-bold text-blue-800 mb-4">Dr. Sarah Johnson</h3>
+                <h4 className="text-lg text-blue-600 mb-6">Principal, Spectra School</h4>
+                <div className="relative">
+                  <FaQuoteLeft className="text-4xl text-blue-200 absolute -top-2 -left-2" />
+                  <p className="text-lg text-gray-700 leading-relaxed pl-8">
+                    "At Spectra School, we believe in fostering a culture of excellence, innovation, and character development. 
+                    Our commitment goes beyond academic achievement; we strive to nurture well-rounded individuals who are prepared 
+                    to face the challenges of tomorrow with confidence and integrity. Through our comprehensive curriculum, dedicated 
+                    faculty, and state-of-the-art facilities, we provide an environment where every student can discover their potential 
+                    and pursue their dreams. As we continue to evolve and adapt to the changing educational landscape, our core values 
+                    remain steadfast: excellence in education, character development, and community engagement. Together, we are building 
+                    the leaders of tomorrow."
+                  </p>
+                </div>
               </div>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Student Portal */}
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col h-full">
-            <div className="p-4 xs:p-5 flex-1 flex flex-col">
-              <div className="flex items-center justify-center h-10 w-10 xs:h-12 xs:w-12 rounded-md bg-blue-500 text-white mb-3 xs:mb-4 mx-auto">
-                <FaUserGraduate className="h-5 w-5 xs:h-6 xs:w-6" />
+      {/* Portal Cards Section */}
+      <div className="py-16 bg-gradient-to-br from-blue-200 to-indigo-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-blue-800 mb-4">
+              Access Your Portal
+            </h2>
+            <p className="text-xl text-blue-700 max-w-3xl mx-auto">
+              Choose your role and access the comprehensive features designed for your academic journey
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {/* Exam Portal */}
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-300 hover:shadow-2xl">
+              <div className="bg-gradient-to-br from-yellow-400 to-yellow-600 p-6 text-center">
+                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FaGraduationCap className="text-yellow-600 text-2xl" />
+                </div>
+                <h3 className="text-xl font-bold text-white">Exam Portal</h3>
               </div>
-              <h3 className="text-base xs:text-lg font-medium text-gray-900 text-center">Student Portal</h3>
-              <p className="mt-1 xs:mt-2 text-sm xs:text-base text-gray-500 text-center">
-                Access your academic records, view results, and manage your profile.
-              </p>
-              <div className="mt-4 xs:mt-6 flex justify-center">
+              <div className="p-6">
+                <p className="text-gray-600 mb-6">
+                  Take your assigned exams online in a secure and monitored environment.
+                </p>
+                <Link
+                  to={isAuthenticated && user?.role === 'student' ? "/exam-selection" : "/auth-email"}
+                  className="block w-full bg-yellow-500 text-white text-center py-3 rounded-lg font-semibold hover:bg-yellow-600 transition-colors duration-300"
+                >
+                  Start Exam
+                </Link>
+              </div>
+            </div>
+
+            {/* Student Portal */}
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-300 hover:shadow-2xl">
+              <div className="bg-gradient-to-br from-blue-500 to-blue-700 p-6 text-center">
+                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FaUserGraduate className="text-blue-600 text-2xl" />
+                </div>
+                <h3 className="text-xl font-bold text-white">Student Portal</h3>
+              </div>
+              <div className="p-6">
+                <p className="text-gray-600 mb-6">
+                  Access your academic records, view results, and manage your profile.
+                </p>
                 <Link
                   to="/student/login"
-                  className="inline-flex items-center px-3 xs:px-4 py-2 border border-transparent text-xs xs:text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
+                  className="block w-full bg-blue-600 text-white text-center py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-300"
                 >
                   Student Login
                 </Link>
               </div>
             </div>
-          </div>
 
-          {/* Teacher Portal */}
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col h-full">
-            <div className="p-4 xs:p-5 flex-1 flex flex-col">
-              <div className="flex items-center justify-center h-10 w-10 xs:h-12 xs:w-12 rounded-md bg-green-500 text-white mb-3 xs:mb-4 mx-auto">
-                <FaChalkboardTeacher className="h-5 w-5 xs:h-6 xs:w-6" />
+            {/* Teacher Portal */}
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-300 hover:shadow-2xl">
+              <div className="bg-gradient-to-br from-green-500 to-green-700 p-6 text-center">
+                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FaChalkboardTeacher className="text-green-600 text-2xl" />
+                </div>
+                <h3 className="text-xl font-bold text-white">Teacher Portal</h3>
               </div>
-              <h3 className="text-base xs:text-lg font-medium text-gray-900 text-center">Teacher Portal</h3>
-              <p className="mt-1 xs:mt-2 text-sm xs:text-base text-gray-500 text-center">
-                Manage classes, upload results, and track student progress.
-              </p>
-              <div className="mt-4 xs:mt-6 flex justify-center">
+              <div className="p-6">
+                <p className="text-gray-600 mb-6">
+                  Manage classes, upload results, and track student progress.
+                </p>
                 <Link
                   to="/teacher/login"
-                  className="inline-flex items-center px-3 xs:px-4 py-2 border border-transparent text-xs xs:text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition"
+                  className="block w-full bg-green-600 text-white text-center py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors duration-300"
                 >
                   Teacher Login
                 </Link>
               </div>
             </div>
-          </div>
 
-          {/* Admin Portal - Small Red Button */}
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col h-full">
-            <div className="p-4 xs:p-5 flex-1 flex flex-col">
-              <div className="flex items-center justify-center h-10 w-10 xs:h-12 xs:w-12 rounded-md bg-red-500 text-white mb-3 xs:mb-4 mx-auto">
-                <svg className="h-5 w-5 xs:h-6 xs:w-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                </svg>
+            {/* Admin Portal */}
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-300 hover:shadow-2xl">
+              <div className="bg-gradient-to-br from-red-500 to-red-700 p-6 text-center">
+                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FaUsers className="text-red-600 text-2xl" />
+                </div>
+                <h3 className="text-xl font-bold text-white">Admin Portal</h3>
               </div>
-              <h3 className="text-base xs:text-lg font-medium text-gray-900 text-center">Admin Portal</h3>
-              <p className="mt-1 xs:mt-2 text-sm xs:text-base text-gray-500 text-center">
-                Administrative access for system management and oversight.
-              </p>
-              <div className="mt-4 xs:mt-6 flex justify-center">
+              <div className="p-6">
+                <p className="text-gray-600 mb-6">
+                  Administrative access for system management and oversight.
+                </p>
                 <Link
                   to="/admin/login"
-                  className="inline-flex items-center px-3 xs:px-4 py-2 border border-transparent text-xs xs:text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition"
+                  className="block w-full bg-red-600 text-white text-center py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors duration-300"
                 >
                   Admin Login
                 </Link>
               </div>
             </div>
           </div>
-
-
         </div>
+      </div>
 
-        {/* Take Exam Section - Prominent for Students */}
-        <div className="mt-8 xs:mt-10 sm:mt-12 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-lg p-6 xs:p-8 text-center">
-          <h2 className="text-lg xs:text-xl sm:text-2xl md:text-3xl font-extrabold text-white mb-4 xs:mb-6">
-            Ready to Take Your Exam?
-          </h2>
-          <p className="text-yellow-100 text-sm xs:text-base sm:text-lg mb-6 xs:mb-8 max-w-2xl mx-auto">
-            Access your assigned exams securely and start your academic assessment right away.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/exam-selection"
-              className="inline-flex items-center px-6 xs:px-8 py-3 xs:py-4 border border-transparent text-base xs:text-lg font-medium rounded-md shadow-sm text-yellow-600 bg-white hover:bg-yellow-50 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 14l9-5-9-5-9 5 9 5zm0 0v6m0 0H6m6 0h6"></path>
-              </svg>
-              Take Exam Now
-            </Link>
-            <Link
-              to="/auth-email"
-              className="inline-flex items-center px-6 xs:px-8 py-3 xs:py-4 border-2 border-white text-base xs:text-lg font-medium rounded-md text-white hover:bg-white hover:text-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-              </svg>
-              Enter with Email
-            </Link>
+      {/* Features Section */}
+      <div className="py-16 bg-gradient-to-br from-indigo-100 to-blue-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-blue-800 mb-4">
+              Why Choose Spectra?
+            </h2>
+            <p className="text-xl text-blue-700 max-w-3xl mx-auto">
+              Discover the unique features that make Spectra School the preferred choice for quality education
+            </p>
           </div>
-        </div>
-
-        {/* Features Section */}
-        <div className="mt-8 xs:mt-10 sm:mt-12">
-          <h2 className="text-lg xs:text-xl sm:text-2xl md:text-3xl font-extrabold text-gray-900 text-center mb-4 xs:mb-6 sm:mb-8">
-            Key Features
-          </h2>
-          <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-4 xs:gap-6">
-            <div className="bg-white p-4 xs:p-5 rounded-lg shadow flex flex-col items-center text-center">
-              <h3 className="text-sm xs:text-base sm:text-lg font-medium text-gray-900 mb-1 xs:mb-2">Academic Records</h3>
-              <p className="text-gray-500 text-xs xs:text-sm sm:text-base">Access your complete academic history and performance records.</p>
-            </div>
-            <div className="bg-white p-4 xs:p-5 rounded-lg shadow flex flex-col items-center text-center">
-              <h3 className="text-sm xs:text-base sm:text-lg font-medium text-gray-900 mb-1 xs:mb-2">Result Tracking</h3>
-              <p className="text-gray-500 text-xs xs:text-sm sm:text-base">View and download your academic results and progress reports.</p>
-            </div>
-            <div className="bg-white p-4 xs:p-5 rounded-lg shadow flex flex-col items-center text-center">
-              <h3 className="text-sm xs:text-base sm:text-lg font-medium text-gray-900 mb-1 xs:mb-2">Profile Management</h3>
-              <p className="text-gray-500 text-xs xs:text-sm sm:text-base">Update your personal information and academic preferences.</p>
-            </div>
-          </div>
-        </div>
-
-        {/* FAQ Section */}
-        <div className="mt-12 max-w-3xl mx-auto">
-          <h2 className="text-lg xs:text-xl sm:text-2xl md:text-3xl font-extrabold text-gray-900 text-center mb-4 xs:mb-6 sm:mb-8">
-            Frequently Asked Questions
-          </h2>
-          <FAQSection />
-        </div>
-
-        {/* Contact & Legal Section */}
-        <div className="mt-12 max-w-4xl mx-auto flex flex-col md:flex-row gap-6">
-          {/* Contact Card */}
-          <div className="flex-1 bg-white rounded-lg shadow p-6 xs:p-8">
-            <h2 className="text-lg xs:text-xl sm:text-2xl font-extrabold text-gray-900 text-center mb-4 xs:mb-6">Contact Us</h2>
-            <p className="text-gray-600 text-center mb-4">Have questions or need support? Reach out to us!</p>
-            <div className="text-center space-y-2">
-              <div>
-                <span className="font-semibold">Email:</span> <a href="mailto:spectrafinsight@gmail.com" className="text-blue-600 hover:underline">spectrafinsight@gmail.com</a>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-white rounded-2xl p-8 shadow-xl transform hover:scale-105 transition-all duration-300 text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <FaTrophy className="text-white text-2xl" />
               </div>
-              <div>
-                <span className="font-semibold">Phone:</span> <a href="tel:+2347058676851" className="text-blue-600 hover:underline">(234) 705 8676 851</a>
-              </div>
-              <div>
-                <span className="font-semibold">Address:</span> 123 School Lane, Education City
-              </div>
+              <h3 className="text-xl font-bold text-blue-800 mb-4">Academic Excellence</h3>
+              <p className="text-gray-600">
+                Consistently achieving outstanding academic results with a proven track record of student success.
+              </p>
             </div>
-          </div>
-          {/* Legal Card */}
-          <div className="flex-1 bg-white rounded-lg shadow p-6 xs:p-8 flex flex-col justify-center items-center">
-            <h2 className="text-lg xs:text-xl sm:text-2xl font-extrabold text-gray-900 text-center mb-4 xs:mb-6">Legal</h2>
-            <div className="space-y-3 w-full text-center">
-              <a href="/privacy" className="block text-blue-600 hover:underline font-medium">Privacy Policy</a>
-              <a href="/disclaimer" className="block text-blue-600 hover:underline font-medium">Disclaimer</a>
+            
+            <div className="bg-white rounded-2xl p-8 shadow-xl transform hover:scale-105 transition-all duration-300 text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <FaUsers className="text-white text-2xl" />
+              </div>
+              <h3 className="text-xl font-bold text-blue-800 mb-4">Expert Faculty</h3>
+              <p className="text-gray-600">
+                Experienced and dedicated teachers committed to nurturing each student's potential.
+              </p>
+            </div>
+            
+            <div className="bg-white rounded-2xl p-8 shadow-xl transform hover:scale-105 transition-all duration-300 text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <FaGraduationCap className="text-white text-2xl" />
+              </div>
+              <h3 className="text-xl font-bold text-blue-800 mb-4">Modern Technology</h3>
+              <p className="text-gray-600">
+                State-of-the-art facilities and digital learning platforms for enhanced education.
+              </p>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Testimonials Section with Scrolling Effect */}
+      <div className="py-16 bg-gradient-to-br from-blue-600 to-indigo-800">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
+              What Our Community Says
+            </h2>
+            <p className="text-xl text-blue-200 max-w-3xl mx-auto">
+              Hear from our students, parents, and guardians about their experience at Spectra School
+            </p>
+          </div>
+          
+          <div className="relative">
+            <div className="overflow-hidden">
+              <div 
+                className="flex transition-transform duration-1000 ease-in-out"
+                style={{ transform: `translateX(-${currentFeedbackIndex * 100}%)` }}
+              >
+                {testimonials.map((testimonial, index) => (
+                  <div key={index} className="w-full flex-shrink-0 px-4">
+                    <div className="bg-white rounded-2xl p-8 md:p-12 shadow-2xl">
+                      <div className="flex items-center mb-6">
+                        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mr-4">
+                          <span className="text-white text-xl font-bold">{testimonial.name.charAt(0)}</span>
+                        </div>
+                        <div>
+                          <h4 className="text-xl font-bold text-blue-800">{testimonial.name}</h4>
+                          <p className="text-blue-600">{testimonial.role}</p>
+                        </div>
+                      </div>
+                      <div className="flex mb-4">
+                        {[...Array(5)].map((_, i) => (
+                          <FaStar key={i} className="text-yellow-400 text-xl" />
+                        ))}
+                      </div>
+                      <p className="text-gray-700 text-lg leading-relaxed italic">
+                        "{testimonial.message}"
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Navigation Dots */}
+            <div className="flex justify-center mt-8 space-x-2">
+              {testimonials.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentFeedbackIndex(index)}
+                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                    index === currentFeedbackIndex ? 'bg-white' : 'bg-white/50'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* FAQ Section */}
+      <div className="py-16 bg-gradient-to-br from-blue-100 to-indigo-200">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-blue-800 mb-4">
+              Frequently Asked Questions
+            </h2>
+            <div className="w-24 h-1 bg-yellow-400 mx-auto rounded-full"></div>
+          </div>
+          <FAQSection />
+        </div>
+      </div>
+
+      {/* Contact Section */}
+      <div className="py-16 bg-gradient-to-br from-blue-100 to-indigo-200">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 md:p-12">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl sm:text-4xl font-bold text-blue-800 mb-4">Get in Touch</h2>
+              <p className="text-xl text-blue-700">Have questions? We'd love to hear from you!</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-blue-800">Email</p>
+                    <a href="mailto:spectrafinsight@gmail.com" className="text-blue-600 hover:underline">
+                      spectrafinsight@gmail.com
+                    </a>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-blue-800">Phone</p>
+                    <a href="tel:+2347058676851" className="text-blue-600 hover:underline">
+                      (234) 705 8676 851
+                    </a>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-blue-800">Address</p>
+                    <p className="text-blue-600">123 School Lane, Education City</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold text-blue-800 mb-4">Quick Links</h3>
+                <div className="space-y-3">
+                  <a href="/privacy" className="block text-blue-600 hover:text-blue-800 transition-colors duration-300">
+                    Privacy Policy
+                  </a>
+                  <a href="/disclaimer" className="block text-blue-600 hover:text-blue-800 transition-colors duration-300">
+                    Disclaimer
+                  </a>
+                  <a href="/terms" className="block text-blue-600 hover:text-blue-800 transition-colors duration-300">
+                    Terms of Service
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Footer */}
-      <footer className="bg-gray-800 text-gray-200 text-center py-4 mt-12">
-        &copy; {new Date().getFullYear()} School Portal. All rights reserved.
+      <footer className="bg-gradient-to-r from-blue-800 to-indigo-900 text-white py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-lg">
+            &copy; {new Date().getFullYear()} Spectra School. All rights reserved.
+          </p>
+          <p className="text-blue-200 mt-2">
+            Nurturing Excellence, Building Future Leaders
+          </p>
+        </div>
       </footer>
     </div>
   );
 };
 
-// FAQ Section Component
+// Testimonials data
+const testimonials = [
+  {
+    name: "Sarah Williams",
+    role: "Parent",
+    message: "Spectra School has transformed my child's academic journey. The teachers are dedicated, the facilities are excellent, and the results speak for themselves. My daughter has grown not just academically but as a confident individual."
+  },
+  {
+    name: "Michael Chen",
+    role: "Student",
+    message: "Being a student at Spectra has been an amazing experience. The teachers are supportive, the curriculum is challenging yet engaging, and I've made friends for life. The school truly prepares you for the future."
+  },
+  {
+    name: "Dr. Emily Rodriguez",
+    role: "Parent & Guardian",
+    message: "As both a parent and guardian, I can confidently say that Spectra School provides exceptional education. The school's commitment to academic excellence and character development is evident in every aspect."
+  },
+  {
+    name: "David Thompson",
+    role: "Parent",
+    message: "The personalized attention my son receives at Spectra is remarkable. The teachers know each student individually and tailor their approach accordingly. The results have been outstanding."
+  },
+  {
+    name: "Lisa Johnson",
+    role: "Guardian",
+    message: "Spectra School has exceeded all my expectations. The modern facilities, dedicated staff, and comprehensive curriculum create an ideal learning environment. I highly recommend this school."
+  }
+];
+
+// Add FAQ data at the bottom, before export
 const FAQS = [
   {
     question: "How do I register as a student?",
@@ -261,16 +487,16 @@ function FAQSection() {
   return (
     <div className="space-y-4">
       {FAQS.map((faq, idx) => (
-        <div key={idx} className="border rounded-lg bg-white shadow">
+        <div key={idx} className="border rounded-2xl bg-white shadow-lg overflow-hidden transition-all duration-300">
           <button
-            className="w-full text-left px-4 py-3 font-medium text-gray-900 focus:outline-none flex justify-between items-center"
+            className="w-full text-left px-6 py-4 font-semibold text-blue-800 focus:outline-none flex justify-between items-center text-lg"
             onClick={() => toggleIndex(idx)}
             aria-expanded={openIndexes.includes(idx)}
             aria-controls={`faq-answer-${idx}`}
           >
             <span>{faq.question}</span>
             <svg
-              className={`h-5 w-5 ml-2 transform transition-transform duration-200 ${openIndexes.includes(idx) ? 'rotate-180' : ''}`}
+              className={`h-6 w-6 ml-2 transform transition-transform duration-300 ${openIndexes.includes(idx) ? 'rotate-180' : ''}`}
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
@@ -279,14 +505,12 @@ function FAQSection() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
-          {openIndexes.includes(idx) && (
-            <div
-              id={`faq-answer-${idx}`}
-              className="px-4 pb-4 text-gray-700 text-sm xs:text-base border-t"
-            >
-              {faq.answer}
-            </div>
-          )}
+          <div
+            id={`faq-answer-${idx}`}
+            className={`px-6 pb-4 text-gray-700 text-base border-t transition-all duration-300 ${openIndexes.includes(idx) ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}
+          >
+            {faq.answer}
+          </div>
         </div>
       ))}
     </div>
