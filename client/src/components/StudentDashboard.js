@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaUser, FaBook, FaChartBar, FaCog, FaSignOutAlt } from 'react-icons/fa';
+import { FaUser, FaBook, FaChartBar, FaCog, FaSignOutAlt, FaBars, FaTimes, FaGraduationCap, FaClipboardList, FaCheckCircle, FaListAlt } from 'react-icons/fa';
 import { studentApi, subjectApi, examApi } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -15,6 +15,7 @@ const StudentDashboard = () => {
   const [availableSubjects, setAvailableSubjects] = useState([]);
   const [availableExams, setAvailableExams] = useState([]);
   const [completedExams, setCompletedExams] = useState([]);
+  const [navOpen, setNavOpen] = useState(false);
 
   const classes = ['JSS1', 'JSS2', 'JSS3', 'SS1', 'SS2', 'SS3'];
   // const availableSubjects = [
@@ -140,76 +141,108 @@ const StudentDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Navigation Bar */}
-      <nav className="bg-blue-600 text-white p-4">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0">
-          <h1 className="text-xl sm:text-2xl font-bold">Student Portal</h1>
-          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto items-center">
-            <span className="flex items-center space-x-2">
-              <FaUser />
-              <span className="truncate max-w-[120px] sm:max-w-none">{studentData?.fullName || user?.displayName || 'Student'}</span>
-            </span>
-
-            <button 
-              onClick={() => setShowProfile(true)}
-              className="flex items-center space-x-2 hover:text-blue-200"
-            >
-              <FaUser />
-              <span>Profile</span>
-            </button>
-            <button 
-              onClick={() => navigate('/student/results')}
-              className="flex items-center space-x-2 hover:text-blue-200"
-            >
-              <FaChartBar />
-              <span>Results</span>
-            </button>
-            <button 
-              onClick={handleLogout}
-              className="flex items-center space-x-2 hover:text-blue-200"
-            >
-              <FaSignOutAlt />
-              <span>Logout</span>
+      {/* Header Bar */}
+      <header className="bg-gradient-to-r from-blue-700 to-indigo-600 shadow-md animate-fade-in">
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-4">
+          <div className="flex items-center gap-3">
+            <img src={require('../assets/images/SpectraLogo.jpg')} alt="Logo" className="w-10 h-10 rounded-full shadow animate-fade-in" />
+            <h1 className="text-2xl font-extrabold text-white tracking-wide drop-shadow animate-slide-in">Student Portal</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            {/* Hamburger for mobile */}
+            <button className="sm:hidden text-white text-2xl focus:outline-none" onClick={() => setNavOpen(!navOpen)} aria-label="Toggle navigation">
+              {navOpen ? <FaTimes /> : <FaBars />}
             </button>
           </div>
         </div>
+      </header>
+      {/* Navigation Bar */}
+      {/* Desktop Nav */}
+      <nav className="bg-white shadow-sm border-b hidden sm:block animate-fade-in">
+        <div className="max-w-7xl mx-auto px-4">
+          <ul className="flex flex-wrap gap-2 py-3 justify-center sm:justify-end">
+            <li>
+              <button className="px-5 py-2 rounded-full font-medium transition text-sm flex items-center gap-2 bg-blue-600 text-white shadow" onClick={() => setShowProfile(true)}>
+                <FaUser /> Profile
+              </button>
+            </li>
+            <li>
+              <button className="px-5 py-2 rounded-full font-medium transition text-sm flex items-center gap-2 bg-purple-600 text-white shadow" onClick={() => navigate('/student/results')}>
+                <FaChartBar /> Results
+              </button>
+            </li>
+            <li>
+              <button className="px-5 py-2 rounded-full font-medium transition text-sm flex items-center gap-2 bg-green-600 text-white shadow" onClick={handleLogout}>
+                <FaSignOutAlt /> Logout
+              </button>
+            </li>
+          </ul>
+        </div>
       </nav>
-
+      {/* Mobile Nav */}
+      <nav className={`sm:hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-40 z-50 transition-all duration-300 ${navOpen ? 'block animate-fade-in' : 'hidden'}`}
+        onClick={() => setNavOpen(false)}
+      >
+        <div className="bg-white shadow-lg rounded-b-2xl max-w-xs w-11/12 mx-auto mt-4 p-4 animate-slide-in-down" onClick={e => e.stopPropagation()}>
+          <ul className="flex flex-col gap-3">
+            <li>
+              <button className="w-full px-5 py-3 rounded-lg font-medium transition text-base flex items-center gap-3 bg-blue-600 text-white shadow" onClick={() => { setShowProfile(true); setNavOpen(false); }}>
+                <FaUser /> Profile
+              </button>
+            </li>
+            <li>
+              <button className="w-full px-5 py-3 rounded-lg font-medium transition text-base flex items-center gap-3 bg-purple-600 text-white shadow" onClick={() => { navigate('/student/results'); setNavOpen(false); }}>
+                <FaChartBar /> Results
+              </button>
+            </li>
+            <li>
+              <button className="w-full px-5 py-3 rounded-lg font-medium transition text-base flex items-center gap-3 bg-green-600 text-white shadow" onClick={() => { handleLogout(); setNavOpen(false); }}>
+                <FaSignOutAlt /> Logout
+              </button>
+            </li>
+          </ul>
+        </div>
+      </nav>
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-2 xs:px-4 sm:px-6 lg:px-8 py-6 xs:py-8">
+      <div className="max-w-7xl mx-auto px-2 xs:px-4 sm:px-6 lg:px-8 py-6 xs:py-8 animate-fade-in">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 xs:gap-8">
           {/* Student Info Card */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-4 xs:p-6">
-              <h2 className="text-lg xs:text-xl font-semibold mb-3 xs:mb-4">Student Information</h2>
-              <div className="space-y-2 xs:space-y-3">
+          <div className="lg:col-span-1 animate-scale-in">
+            <div className="bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center gap-3 border-t-4 border-blue-500">
+              <FaUser className="text-blue-500 text-3xl mb-1" />
+              <h2 className="text-xl font-bold mb-2 text-gray-800">Student Information</h2>
+              <div className="space-y-2 w-full">
                 <div>
-                  <label className="block text-xs xs:text-sm font-medium text-gray-700">Name:</label>
-                  <p className="text-gray-900 text-xs xs:text-sm">{studentData?.fullName || user?.displayName || 'N/A'}</p>
+                  <label className="block text-xs font-medium text-gray-700">Name:</label>
+                  <p className="text-gray-900 text-sm font-semibold">{studentData?.fullName || user?.displayName || 'N/A'}</p>
                 </div>
                 <div>
-                  <label className="block text-xs xs:text-sm font-medium text-gray-700">Email:</label>
-                  <p className="text-gray-900 text-xs xs:text-sm">{user?.email || 'N/A'}</p>
+                  <label className="block text-xs font-medium text-gray-700">Email:</label>
+                  <p className="text-gray-900 text-sm">{user?.email || 'N/A'}</p>
                 </div>
                 <div>
-                  <label className="block text-xs xs:text-sm font-medium text-gray-700">Current Class:</label>
-                  <p className="text-gray-900 text-xs xs:text-sm">{studentData?.currentClass || selectedClass}</p>
+                  <label className="block text-xs font-medium text-gray-700">Current Class:</label>
+                  <p className="text-gray-900 text-sm">{studentData?.currentClass || selectedClass}</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Available Subjects */}
-          <div className="lg:col-span-2 mt-6 lg:mt-0">
-            <div className="bg-white rounded-lg shadow-md p-4 xs:p-6">
-              <h2 className="text-lg xs:text-xl font-semibold mb-3 xs:mb-4">Available Subjects</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 xs:gap-4">
+          <div className="lg:col-span-2 mt-6 lg:mt-0 animate-fade-in">
+            <div className="bg-white rounded-2xl shadow-lg p-6 border-t-4 border-purple-500">
+              <div className="flex items-center gap-2 mb-2">
+                <FaBook className="text-purple-500 text-2xl" />
+                <h2 className="text-lg font-semibold text-gray-800">Available Subjects</h2>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
                 {availableSubjects.length === 0 ? (
-                  <p className="text-gray-500 text-xs xs:text-sm col-span-2">No subjects available for your class at this time.</p>
+                  <p className="text-gray-500 text-sm col-span-2">No subjects available for your class at this time.</p>
                 ) : (
                   availableSubjects.map((subject) => (
-                    <div key={subject} className="flex items-center p-2 xs:p-3 border rounded-lg bg-gray-50">
-                      <span className="text-gray-900 text-xs xs:text-sm">{subject}</span>
+                    <div key={subject} className="flex items-center gap-2 p-3 border rounded-lg bg-gray-50 animate-fade-in">
+                      <FaBook className="text-blue-400" />
+                      <span className="text-gray-900 text-sm font-medium">{subject}</span>
                     </div>
                   ))
                 )}
@@ -219,26 +252,30 @@ const StudentDashboard = () => {
         </div>
 
         {/* Available Exams Section */}
-        <div className="mt-8">
-          <div className="bg-white rounded-lg shadow-md p-4 xs:p-6">
-            <h2 className="text-lg xs:text-xl font-semibold mb-3 xs:mb-4">Available Exams</h2>
+        <div className="mt-10 animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-lg p-6 border-t-4 border-green-500">
+            <div className="flex items-center gap-2 mb-2">
+              <FaClipboardList className="text-green-500 text-2xl" />
+              <h2 className="text-lg font-semibold text-gray-800">Available Exams</h2>
+            </div>
             {availableExams.length === 0 ? (
-              <p className="text-gray-500 text-xs xs:text-sm">
+              <p className="text-gray-500 text-sm">
                 You have either completed all available exams or there are no active exams for your class at this time.
               </p>
             ) : (
               <ul className="divide-y divide-gray-200">
                 {availableExams.map(exam => (
-                  <li key={exam._id} className="py-3 flex items-center justify-between">
-                    <div>
-                      <span className="font-medium text-gray-900 text-xs xs:text-sm">{exam.title}</span>
-                      <span className="ml-2 text-gray-500 text-xs xs:text-sm">({exam.subject})</span>
+                  <li key={exam._id} className="py-3 flex items-center justify-between animate-fade-in">
+                    <div className="flex items-center gap-2">
+                      <FaBook className="text-blue-400" />
+                      <span className="font-medium text-gray-900 text-sm">{exam.title}</span>
+                      <span className="ml-2 text-gray-500 text-xs">({exam.subject})</span>
                     </div>
                     <button
                       onClick={() => navigate('/exam-selection')}
-                      className="bg-blue-600 text-white px-3 py-1 rounded text-xs xs:text-sm hover:bg-blue-700"
+                      className="bg-green-600 text-white px-4 py-2 rounded-lg text-xs hover:bg-green-700 font-semibold shadow flex items-center gap-2"
                     >
-                      Start Exam
+                      <FaGraduationCap /> Start Exam
                     </button>
                   </li>
                 ))}
@@ -249,16 +286,19 @@ const StudentDashboard = () => {
 
         {/* Completed Exams Section */}
         {completedExams.length > 0 && (
-          <div className="mt-6">
-            <div className="bg-white rounded-lg shadow-md p-4 xs:p-6">
-              <h2 className="text-lg xs:text-xl font-semibold mb-3 xs:mb-4">My Exam Submissions</h2>
+          <div className="mt-8 animate-fade-in">
+            <div className="bg-white rounded-2xl shadow-lg p-6 border-t-4 border-yellow-500">
+              <div className="flex items-center gap-2 mb-2">
+                <FaCheckCircle className="text-yellow-500 text-2xl" />
+                <h2 className="text-lg font-semibold text-gray-800">My Exam Submissions</h2>
+              </div>
               <p className="text-xs text-gray-500 mb-3">These are your submitted exams. Official results will appear in the Results section once approved and released.</p>
               <ul className="divide-y divide-gray-200">
                 {completedExams.map(submission => (
-                  <li key={submission._id} className="py-3 flex items-center justify-between">
+                  <li key={submission._id} className="py-3 flex items-center justify-between animate-fade-in">
                     <div>
-                      <span className="font-medium text-gray-900 text-xs xs:text-sm">{submission.exam.title}</span>
-                      <span className="ml-2 text-gray-500 text-xs xs:text-sm">({submission.exam.subject})</span>
+                      <span className="font-medium text-gray-900 text-sm">{submission.exam.title}</span>
+                      <span className="ml-2 text-gray-500 text-xs">({submission.exam.subject})</span>
                       <div className="text-xs text-gray-400 mt-1">
                         Score: {submission.score}/{submission.exam.totalMarks} 
                         ({((submission.score / submission.exam.totalMarks) * 100).toFixed(1)}%)
@@ -267,7 +307,7 @@ const StudentDashboard = () => {
                         Status: {submission.teacherApproved ? 'Approved' : submission.teacherApproved === false ? 'Rejected' : 'Pending Approval'}
                       </div>
                     </div>
-                    <span className="text-green-600 text-xs xs:text-sm font-medium">Submitted</span>
+                    <span className="text-green-600 text-xs font-medium flex items-center gap-1"><FaCheckCircle /> Submitted</span>
                   </li>
                 ))}
               </ul>
@@ -276,54 +316,40 @@ const StudentDashboard = () => {
         )}
 
         {/* Quick Actions */}
-        <div className="mt-6 xs:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 xs:gap-6">
-          <div className="bg-white rounded-lg shadow-md p-4 xs:p-6">
-            <div className="flex items-center">
-              <FaBook className="h-7 w-7 xs:h-8 xs:w-8 text-blue-600" />
-              <div className="ml-3 xs:ml-4">
-                <h3 className="text-base xs:text-lg font-medium text-gray-900">View Results</h3>
-                <p className="text-gray-500 text-xs xs:text-sm">Check your academic performance</p>
-              </div>
-            </div>
+        <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center gap-3 border-t-4 border-blue-500 animate-scale-in">
+            <FaChartBar className="text-blue-600 text-3xl mb-1" />
+            <h3 className="text-lg font-medium text-gray-900">View Results</h3>
+            <p className="text-gray-500 text-sm">Check your academic performance</p>
             <button
               onClick={() => navigate('/student/results')}
-              className="mt-3 xs:mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 text-xs xs:text-sm"
+              className="mt-3 w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 text-sm font-semibold shadow flex items-center gap-2"
             >
-              View Results
+              <FaChartBar /> View Results
             </button>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-4 xs:p-6">
-            <div className="flex items-center">
-              <FaUser className="h-7 w-7 xs:h-8 xs:w-8 text-green-600" />
-              <div className="ml-3 xs:ml-4">
-                <h3 className="text-base xs:text-lg font-medium text-gray-900">Profile</h3>
-                <p className="text-gray-500 text-xs xs:text-sm">Update your personal information</p>
-              </div>
-            </div>
+          <div className="bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center gap-3 border-t-4 border-green-500 animate-scale-in">
+            <FaUser className="text-green-600 text-3xl mb-1" />
+            <h3 className="text-lg font-medium text-gray-900">Profile</h3>
+            <p className="text-gray-500 text-sm">Update your personal information</p>
             <button
               onClick={() => navigate('/student/profile')}
-              className="mt-3 xs:mt-4 w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 text-xs xs:text-sm"
+              className="mt-3 w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 text-sm font-semibold shadow flex items-center gap-2"
             >
-              View Profile
+              <FaUser /> View Profile
             </button>
           </div>
 
-
-
-          <div className="bg-white rounded-lg shadow-md p-4 xs:p-6">
-            <div className="flex items-center">
-              <FaChartBar className="h-7 w-7 xs:h-8 xs:w-8 text-purple-600" />
-              <div className="ml-3 xs:ml-4">
-                <h3 className="text-base xs:text-lg font-medium text-gray-900">Analytics</h3>
-                <p className="text-gray-500 text-xs xs:text-sm">View your progress analytics</p>
-              </div>
-            </div>
+          <div className="bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center gap-3 border-t-4 border-purple-500 animate-scale-in">
+            <FaListAlt className="text-purple-600 text-3xl mb-1" />
+            <h3 className="text-lg font-medium text-gray-900">Analytics</h3>
+            <p className="text-gray-500 text-sm">View your progress analytics</p>
             <button
               onClick={() => navigate('/student/analytics')}
-              className="mt-3 xs:mt-4 w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 text-xs xs:text-sm"
+              className="mt-3 w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 text-sm font-semibold shadow flex items-center gap-2"
             >
-              View Analytics
+              <FaChartBar /> View Analytics
             </button>
           </div>
         </div>

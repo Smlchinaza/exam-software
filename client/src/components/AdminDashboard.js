@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { subjectApi, teacherApi, examApi } from '../services/api';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { FaChalkboardTeacher, FaBook, FaCheckCircle, FaUserShield, FaClipboardList, FaSignOutAlt, FaBars, FaTimes, FaUser, FaUsers, FaTasks } from 'react-icons/fa';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('subjects');
@@ -41,6 +42,7 @@ const AdminDashboard = () => {
   const [teacherApprovalMessage, setTeacherApprovalMessage] = useState('');
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [navOpen, setNavOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -345,53 +347,143 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="p-2 xs:p-4 sm:p-6 max-w-full sm:max-w-4xl mx-auto">
-      <div className="flex flex-col xs:flex-row xs:justify-between xs:items-center mb-3 xs:mb-4">
-        <h1 className="text-lg xs:text-xl sm:text-2xl font-bold">Admin Dashboard</h1>
-        <button
-          onClick={handleLogout}
-          className="bg-red-600 text-white px-3 xs:px-4 py-2 rounded hover:bg-red-700 text-xs xs:text-sm mt-2 xs:mt-0"
-        >
-          Logout
-        </button>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header Bar */}
+      <header className="bg-gradient-to-r from-red-600 to-pink-500 shadow-md">
+        <div className="max-w-5xl mx-auto flex items-center justify-between px-4 py-4">
+          <div className="flex items-center gap-3">
+            <img src={require('../assets/images/SpectraLogo.jpg')} alt="Logo" className="w-10 h-10 rounded-full shadow animate-fade-in" />
+            <h1 className="text-2xl font-extrabold text-white tracking-wide drop-shadow animate-slide-in">Admin Dashboard</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            {/* Hamburger for mobile */}
+            <button className="md:hidden text-white text-2xl focus:outline-none" onClick={() => setNavOpen(!navOpen)} aria-label="Toggle navigation">
+              {navOpen ? <FaTimes /> : <FaBars />}
+            </button>
+            <button
+              onClick={handleLogout}
+              className="bg-white text-red-600 font-semibold px-4 py-2 rounded-lg shadow hover:bg-red-50 transition text-sm flex items-center gap-2"
+            >
+              <FaSignOutAlt />
+              Logout
+            </button>
+          </div>
+        </div>
+      </header>
+      {/* Tab Navigation */}
+      {/* Desktop Nav */}
+      <nav className="bg-white shadow-sm border-b hidden md:block animate-fade-in">
+        <div className="max-w-5xl mx-auto px-4">
+          <ul className="flex flex-wrap gap-2 py-3 justify-center sm:justify-start">
+            <li>
+              <button
+                className={`px-5 py-2 rounded-full font-medium transition text-sm flex items-center gap-2 ${activeTab === 'assign' ? 'bg-red-600 text-white shadow' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                onClick={() => setActiveTab('assign')}
+              >
+                <FaClipboardList /> Assign Subjects
+              </button>
+            </li>
+            <li>
+              <button
+                className={`px-5 py-2 rounded-full font-medium transition text-sm flex items-center gap-2 ${activeTab === 'subjects' ? 'bg-red-600 text-white shadow' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                onClick={() => setActiveTab('subjects')}
+              >
+                <FaBook /> Manage Subjects
+              </button>
+            </li>
+            <li>
+              <button
+                className={`px-5 py-2 rounded-full font-medium transition text-sm flex items-center gap-2 ${activeTab === 'approve' ? 'bg-red-600 text-white shadow' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                onClick={() => setActiveTab('approve')}
+              >
+                <FaCheckCircle /> Approve Exams
+              </button>
+            </li>
+            <li>
+              <button
+                className={`px-5 py-2 rounded-full font-medium transition text-sm flex items-center gap-2 ${activeTab === 'teacher-approval' ? 'bg-red-600 text-white shadow' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                onClick={() => setActiveTab('teacher-approval')}
+              >
+                <FaChalkboardTeacher /> Approve Teachers
+              </button>
+            </li>
+            <li>
+              <button
+                className={`px-5 py-2 rounded-full font-medium transition text-sm flex items-center gap-2 ${activeTab === 'results' ? 'bg-red-600 text-white shadow' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                onClick={() => setActiveTab('results')}
+              >
+                <FaTasks /> Results Management
+              </button>
+            </li>
+          </ul>
+        </div>
+      </nav>
+      {/* Mobile Nav */}
+      <nav className={`md:hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-40 z-50 transition-all duration-300 ${navOpen ? 'block animate-fade-in' : 'hidden'}`}
+        onClick={() => setNavOpen(false)}
+      >
+        <div className="bg-white shadow-lg rounded-b-2xl max-w-xs w-11/12 mx-auto mt-4 p-4 animate-slide-in-down" onClick={e => e.stopPropagation()}>
+          <ul className="flex flex-col gap-3">
+            <li>
+              <button
+                className={`w-full px-5 py-3 rounded-lg font-medium transition text-base flex items-center gap-3 ${activeTab === 'assign' ? 'bg-red-600 text-white shadow' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                onClick={() => { setActiveTab('assign'); setNavOpen(false); }}
+              >
+                <FaClipboardList /> Assign Subjects
+              </button>
+            </li>
+            <li>
+              <button
+                className={`w-full px-5 py-3 rounded-lg font-medium transition text-base flex items-center gap-3 ${activeTab === 'subjects' ? 'bg-red-600 text-white shadow' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                onClick={() => { setActiveTab('subjects'); setNavOpen(false); }}
+              >
+                <FaBook /> Manage Subjects
+              </button>
+            </li>
+            <li>
+              <button
+                className={`w-full px-5 py-3 rounded-lg font-medium transition text-base flex items-center gap-3 ${activeTab === 'approve' ? 'bg-red-600 text-white shadow' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                onClick={() => { setActiveTab('approve'); setNavOpen(false); }}
+              >
+                <FaCheckCircle /> Approve Exams
+              </button>
+            </li>
+            <li>
+              <button
+                className={`w-full px-5 py-3 rounded-lg font-medium transition text-base flex items-center gap-3 ${activeTab === 'teacher-approval' ? 'bg-red-600 text-white shadow' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                onClick={() => { setActiveTab('teacher-approval'); setNavOpen(false); }}
+              >
+                <FaChalkboardTeacher /> Approve Teachers
+              </button>
+            </li>
+            <li>
+              <button
+                className={`w-full px-5 py-3 rounded-lg font-medium transition text-base flex items-center gap-3 ${activeTab === 'results' ? 'bg-red-600 text-white shadow' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                onClick={() => { setActiveTab('results'); setNavOpen(false); }}
+              >
+                <FaTasks /> Results Management
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={() => { handleLogout(); setNavOpen(false); }}
+                className="w-full px-5 py-3 rounded-lg font-medium transition text-base flex items-center gap-3 bg-gray-100 text-red-600 hover:bg-red-50"
+              >
+                <FaSignOutAlt /> Logout
+              </button>
+            </li>
+          </ul>
+        </div>
+      </nav>
+      {/* User Info */}
+      <div className="max-w-5xl mx-auto px-4 mt-6 mb-4 animate-fade-in">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-pink-50 border border-pink-100 rounded-xl shadow-sm px-4 py-3 gap-2">
+          <div className="text-sm text-gray-700 flex items-center gap-2"><FaUser className="text-pink-400" /><strong>Current User:</strong> {user?.displayName || user?.email}</div>
+          <div className="text-sm text-gray-700 flex items-center gap-2"><FaUserShield className="text-pink-400" /><strong>Role:</strong> {user?.role}</div>
+        </div>
       </div>
-      <div className="mb-3 xs:mb-4 p-2 xs:p-4 bg-blue-50 rounded text-xs xs:text-sm">
-        <p><strong>Current User:</strong> {user?.displayName || user?.email}</p>
-        <p><strong>Role:</strong> {user?.role}</p>
-      </div>
-      <div className="flex flex-col xs:flex-row xs:space-x-4 mb-4 xs:mb-6 gap-2 xs:gap-0">
-        <button
-          className={`px-3 xs:px-4 py-2 rounded text-xs xs:text-sm ${activeTab === 'assign' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
-          onClick={() => setActiveTab('assign')}
-        >
-          Assign Subjects
-        </button>
-        <button
-          className={`px-3 xs:px-4 py-2 rounded text-xs xs:text-sm ${activeTab === 'subjects' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
-          onClick={() => setActiveTab('subjects')}
-        >
-          Manage Subjects
-        </button>
-        <button
-          className={`px-3 xs:px-4 py-2 rounded text-xs xs:text-sm ${activeTab === 'approve' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
-          onClick={() => setActiveTab('approve')}
-        >
-          Approve Exams
-        </button>
-        <button
-          className={`px-3 xs:px-4 py-2 rounded text-xs xs:text-sm ${activeTab === 'teacher-approval' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
-          onClick={() => setActiveTab('teacher-approval')}
-        >
-          Approve Teachers
-        </button>
-        <button
-          className={`px-3 xs:px-4 py-2 rounded text-xs xs:text-sm ${activeTab === 'results' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
-          onClick={() => setActiveTab('results')}
-        >
-          Results Management
-        </button>
-      </div>
-      <div>
+      {/* Main Content */}
+      <div className="max-w-5xl mx-auto px-4 pb-10 animate-fade-in">
         {activeTab === 'assign' && (
           <div>
             <h2 className="text-base xs:text-lg sm:text-xl font-semibold mb-2">Assign Subjects to Teachers</h2>
