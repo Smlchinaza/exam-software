@@ -298,6 +298,24 @@ export const examApi = {
     }
   },
 
+  getAvailableExamsForStudent: async () => {
+    try {
+      const response = await api.get('/exams/available-for-student');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  getCompletedExamsForStudent: async () => {
+    try {
+      const response = await api.get('/exams/completed-for-student');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
   startExam: async (examId) => {
     const response = await api.post(`/exams/${examId}/start`);
     return response.data;
@@ -351,6 +369,69 @@ export const examApi = {
   disapproveExam: async (examId) => {
     try {
       const response = await api.post(`/exams/${examId}/disapprove`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // Teacher approval functions
+  getPendingSubmissions: async (examId) => {
+    try {
+      const response = await api.get(`/exams/${examId}/pending-submissions`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  approveSubmission: async (examId, submissionId, comments) => {
+    try {
+      const response = await api.post(`/exams/${examId}/submissions/${submissionId}/approve`, { comments });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  rejectSubmission: async (examId, submissionId, comments) => {
+    try {
+      const response = await api.post(`/exams/${examId}/submissions/${submissionId}/reject`, { comments });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // Admin functions
+  getApprovedSubmissions: async (term, session) => {
+    try {
+      const params = {};
+      if (term) params.term = term;
+      if (session) params.session = session;
+      const response = await api.get('/exams/approved-submissions', { params });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  releaseResults: async (term, session) => {
+    try {
+      const response = await api.post('/exams/release-results', { term, session });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // Student functions
+  getReleasedResults: async (term, session) => {
+    try {
+      const params = {};
+      if (term) params.term = term;
+      if (session) params.session = session;
+      const response = await api.get('/exams/released-results', { params });
       return response.data;
     } catch (error) {
       throw error.response?.data || error;

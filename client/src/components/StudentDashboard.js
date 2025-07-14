@@ -14,6 +14,7 @@ const StudentDashboard = () => {
   const [studentData, setStudentData] = useState(null);
   const [availableSubjects, setAvailableSubjects] = useState([]);
   const [availableExams, setAvailableExams] = useState([]);
+  const [completedExams, setCompletedExams] = useState([]);
 
   const classes = ['JSS1', 'JSS2', 'JSS3', 'SS1', 'SS2', 'SS3'];
   // const availableSubjects = [
@@ -69,13 +70,22 @@ const StudentDashboard = () => {
         // Fetch subjects for the student's class
         const classSubjects = await subjectApi.getSubjectsByClass(studentInfo.currentClass || 'JSS1');
         setAvailableSubjects(classSubjects.map(s => s.name));
-        // Fetch all active exams for the student's class
-        const allExams = await examApi.getActiveExams();
-        const filteredExams = allExams.filter(exam =>
+        // Fetch available exams for the student (excluding already taken ones)
+        const availableExams = await examApi.getAvailableExamsForStudent();
+        const filteredExams = availableExams.filter(exam =>
           exam.subject &&
           exam.class === (studentInfo.currentClass || 'JSS1')
         );
         setAvailableExams(filteredExams);
+
+        // Fetch completed exams for the student (only show if they want to see their own submissions)
+        // Note: This shows all submissions, not just released results
+        const completedExams = await examApi.getCompletedExamsForStudent();
+        const filteredCompletedExams = completedExams.filter(submission =>
+          submission.exam &&
+          submission.exam.class === (studentInfo.currentClass || 'JSS1')
+        );
+        setCompletedExams(filteredCompletedExams);
       } catch (err) {
         console.error('Error fetching student data:', err);
         setError(err.message || 'Failed to fetch student data');
@@ -148,6 +158,13 @@ const StudentDashboard = () => {
               <span>Profile</span>
             </button>
             <button 
+              onClick={() => navigate('/student/results')}
+              className="flex items-center space-x-2 hover:text-blue-200"
+            >
+              <FaChartBar />
+              <span>Results</span>
+            </button>
+            <button 
               onClick={handleLogout}
               className="flex items-center space-x-2 hover:text-blue-200"
             >
@@ -201,12 +218,14 @@ const StudentDashboard = () => {
           </div>
         </div>
 
-        {/* Add this section below subject registration */}
+        {/* Available Exams Section */}
         <div className="mt-8">
           <div className="bg-white rounded-lg shadow-md p-4 xs:p-6">
             <h2 className="text-lg xs:text-xl font-semibold mb-3 xs:mb-4">Available Exams</h2>
             {availableExams.length === 0 ? (
-              <p className="text-gray-500 text-xs xs:text-sm">No exams available for your class at this time.</p>
+              <p className="text-gray-500 text-xs xs:text-sm">
+                You have either completed all available exams or there are no active exams for your class at this time.
+              </p>
             ) : (
               <ul className="divide-y divide-gray-200">
                 {availableExams.map(exam => (
@@ -227,6 +246,34 @@ const StudentDashboard = () => {
             )}
           </div>
         </div>
+
+        {/* Completed Exams Section */}
+        {completedExams.length > 0 && (
+          <div className="mt-6">
+            <div className="bg-white rounded-lg shadow-md p-4 xs:p-6">
+              <h2 className="text-lg xs:text-xl font-semibold mb-3 xs:mb-4">My Exam Submissions</h2>
+              <p className="text-xs text-gray-500 mb-3">These are your submitted exams. Official results will appear in the Results section once approved and released.</p>
+              <ul className="divide-y divide-gray-200">
+                {completedExams.map(submission => (
+                  <li key={submission._id} className="py-3 flex items-center justify-between">
+                    <div>
+                      <span className="font-medium text-gray-900 text-xs xs:text-sm">{submission.exam.title}</span>
+                      <span className="ml-2 text-gray-500 text-xs xs:text-sm">({submission.exam.subject})</span>
+                      <div className="text-xs text-gray-400 mt-1">
+                        Score: {submission.score}/{submission.exam.totalMarks} 
+                        ({((submission.score / submission.exam.totalMarks) * 100).toFixed(1)}%)
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        Status: {submission.teacherApproved ? 'Approved' : submission.teacherApproved === false ? 'Rejected' : 'Pending Approval'}
+                      </div>
+                    </div>
+                    <span className="text-green-600 text-xs xs:text-sm font-medium">Submitted</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
 
         {/* Quick Actions */}
         <div className="mt-6 xs:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 xs:gap-6">

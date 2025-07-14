@@ -8,9 +8,19 @@ const { authenticateJWT, requireRole } = require("../middleware/auth");
 // Get all exams
 router.get("/", authenticateJWT, async (req, res) => {
   try {
+    console.log('Fetching all exams for user:', req.user.user.id);
     const exams = await Exam.find()
       .populate("createdBy", "displayName email")
       .populate("questions");
+    
+    console.log('Total exams found:', exams.length);
+    console.log('Exams with createdBy:', exams.filter(e => e.createdBy).length);
+    console.log('Exams without createdBy:', exams.filter(e => !e.createdBy).length);
+    
+    if (exams.length > 0) {
+      console.log('Sample exam createdBy:', exams[0].createdBy);
+    }
+    
     res.json(exams);
   } catch (error) {
     console.error("Error fetching exams:", error);
@@ -42,6 +52,64 @@ router.get('/active', authenticateJWT, async (req, res) => {
     console.log('Active exams for students:', exams);
     res.json(exams);
   } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get available exams for a specific student (excluding exams they've already taken)
+router.get('/available-for-student', authenticateJWT, requireRole('student'), async (req, res) => {
+  try {
+    const now = new Date();
+    const studentId = req.user.user.id;
+    
+    // Get all active exams
+    const allActiveExams = await Exam.find({
+      status: 'active',
+      approved: true,
+      startTime: { $lte: now },
+      endTime: { $gte: now }
+    }).populate('createdBy', 'displayName email');
+    
+    // Get exams the student has already taken
+    const takenExams = await ExamSubmission.find({ student: studentId })
+      .select('exam')
+      .lean();
+    
+    const takenExamIds = takenExams.map(submission => submission.exam.toString());
+    
+    // Filter out exams the student has already taken
+    const availableExams = allActiveExams.filter(exam => 
+      !takenExamIds.includes(exam._id.toString())
+    );
+    
+    console.log('Available exams for student:', availableExams.length, 'out of', allActiveExams.length);
+    res.json(availableExams);
+  } catch (err) {
+    console.error('Error fetching available exams for student:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get completed exams for a specific student
+router.get('/completed-for-student', authenticateJWT, requireRole('student'), async (req, res) => {
+  try {
+    const studentId = req.user.user.id;
+    
+    // Get all exams the student has taken
+    const submissions = await ExamSubmission.find({ student: studentId })
+      .populate({
+        path: 'exam',
+        populate: { path: 'createdBy', select: 'displayName email' }
+      })
+      .sort({ submittedAt: -1 });
+    
+    // Filter out submissions where exam might be null (deleted exams)
+    const completedExams = submissions.filter(submission => submission.exam);
+    
+    console.log('Completed exams for student:', completedExams.length);
+    res.json(completedExams);
+  } catch (err) {
+    console.error('Error fetching completed exams for student:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -158,6 +226,69 @@ router.post("/", authenticateJWT, requireRole('teacher'), async (req, res) => {
   } catch (error) {
     console.error("Error creating exam:", error);
     res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Get released results for students
+router.get('/released-results', authenticateJWT, requireRole('student'), async (req, res) => {
+  try {
+    const { term, session } = req.query;
+    console.log('Fetching released results for student:', req.user.user.id);
+    console.log('Term:', term, 'Session:', session);
+    console.log('User object:', req.user);
+    
+    const filter = { 
+      student: req.user.user.id,
+      adminReleased: true 
+    };
+    
+    if (term) filter.term = term;
+    if (session) filter.session = session;
+    
+    console.log('Filter:', filter);
+    
+    // First, let's check if there are any submissions for this student at all
+    const allStudentSubmissions = await ExamSubmission.find({ student: req.user.user.id });
+    console.log('All submissions for student:', allStudentSubmissions.length);
+    console.log('Sample submission:', allStudentSubmissions[0]);
+    
+    const submissions = await ExamSubmission.find(filter)
+      .populate('exam', 'title subject totalMarks')
+      .populate('teacherApprovedBy', 'displayName');
+    
+    console.log('Found released results:', submissions.length);
+    res.json(submissions);
+  } catch (error) {
+    console.error('Error fetching released results:', error);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ message: 'Error fetching released results' });
+  }
+});
+
+// Get approved submissions for admin review
+router.get('/approved-submissions', authenticateJWT, requireRole('admin'), async (req, res) => {
+  try {
+    const { term, session } = req.query;
+    console.log('Fetching approved submissions for admin');
+    console.log('Term:', term, 'Session:', session);
+    
+    const filter = { teacherApproved: true };
+    
+    if (term) filter.term = term;
+    if (session) filter.session = session;
+    
+    console.log('Filter:', filter);
+    
+    const submissions = await ExamSubmission.find(filter)
+      .populate('student', 'displayName email currentClass')
+      .populate('exam', 'title subject')
+      .populate('teacherApprovedBy', 'displayName');
+    
+    console.log('Found approved submissions:', submissions.length);
+    res.json(submissions);
+  } catch (error) {
+    console.error('Error fetching approved submissions:', error);
+    res.status(500).json({ message: 'Error fetching approved submissions' });
   }
 });
 
@@ -373,6 +504,25 @@ router.post("/:id/submit", authenticateJWT, requireRole('student'), async (req, 
     submission.answers = answers;
     submission.score = score;
     submission.submittedAt = new Date();
+    
+    // Add term and session information (you might want to get this from the exam or request body)
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth() + 1;
+    
+    // Determine term based on month (you can adjust this logic)
+    let term;
+    if (currentMonth >= 9 && currentMonth <= 12) {
+      term = '1st';
+    } else if (currentMonth >= 1 && currentMonth <= 4) {
+      term = '2nd';
+    } else {
+      term = '3rd';
+    }
+    
+    submission.term = term;
+    submission.session = `${currentYear}/${currentYear + 1}`;
+    
     await submission.save();
 
     res.json({
@@ -428,6 +578,163 @@ router.post('/:id/start', authenticateJWT, requireRole('student'), async (req, r
   } catch (error) {
     console.error('Error starting exam:', error, error.stack);
     res.status(500).json({ message: 'Error starting exam', error: error.message, stack: error.stack });
+  }
+});
+
+// Teacher approve exam submission
+router.post('/:examId/submissions/:submissionId/approve', authenticateJWT, requireRole('teacher'), async (req, res) => {
+  try {
+    const { comments } = req.body;
+    const submission = await ExamSubmission.findById(req.params.submissionId)
+      .populate('exam')
+      .populate('student', 'displayName email');
+    
+    if (!submission) {
+      return res.status(404).json({ message: 'Submission not found' });
+    }
+    
+    // Check if the teacher owns the exam
+    if (submission.exam.createdBy.toString() !== req.user.user.id) {
+      return res.status(403).json({ message: 'You can only approve submissions for your own exams' });
+    }
+    
+    submission.teacherApproved = true;
+    submission.teacherApprovedAt = new Date();
+    submission.teacherApprovedBy = req.user.user.id;
+    submission.teacherComments = comments || '';
+    
+    await submission.save();
+    
+    res.json({ 
+      message: 'Submission approved successfully',
+      submission: {
+        id: submission._id,
+        studentName: submission.student.displayName,
+        score: submission.score,
+        teacherApproved: submission.teacherApproved,
+        teacherApprovedAt: submission.teacherApprovedAt
+      }
+    });
+  } catch (error) {
+    console.error('Error approving submission:', error);
+    res.status(500).json({ message: 'Error approving submission' });
+  }
+});
+
+// Teacher reject exam submission
+router.post('/:examId/submissions/:submissionId/reject', authenticateJWT, requireRole('teacher'), async (req, res) => {
+  try {
+    const { comments } = req.body;
+    const submission = await ExamSubmission.findById(req.params.submissionId)
+      .populate('exam')
+      .populate('student', 'displayName email');
+    
+    if (!submission) {
+      return res.status(404).json({ message: 'Submission not found' });
+    }
+    
+    // Check if the teacher owns the exam
+    if (submission.exam.createdBy.toString() !== req.user.user.id) {
+      return res.status(403).json({ message: 'You can only reject submissions for your own exams' });
+    }
+    
+    submission.teacherApproved = false;
+    submission.teacherApprovedAt = new Date();
+    submission.teacherApprovedBy = req.user.user.id;
+    submission.teacherComments = comments || '';
+    
+    await submission.save();
+    
+    res.json({ 
+      message: 'Submission rejected successfully',
+      submission: {
+        id: submission._id,
+        studentName: submission.student.displayName,
+        score: submission.score,
+        teacherApproved: submission.teacherApproved,
+        teacherApprovedAt: submission.teacherApprovedAt
+      }
+    });
+  } catch (error) {
+    console.error('Error rejecting submission:', error);
+    res.status(500).json({ message: 'Error rejecting submission' });
+  }
+});
+
+// Admin release results for a term and session
+router.post('/release-results', authenticateJWT, requireRole('admin'), async (req, res) => {
+  try {
+    const { term, session } = req.body;
+    
+    if (!term || !session) {
+      return res.status(400).json({ message: 'Term and session are required' });
+    }
+    
+    // Find all approved submissions for the specified term and session
+    const submissions = await ExamSubmission.find({
+      term,
+      session,
+      teacherApproved: true,
+      adminReleased: false
+    }).populate('student', 'displayName email');
+    
+    if (submissions.length === 0) {
+      return res.status(404).json({ message: 'No approved submissions found for the specified term and session' });
+    }
+    
+    // Release all approved submissions
+    const updatePromises = submissions.map(submission => {
+      submission.adminReleased = true;
+      submission.adminReleasedAt = new Date();
+      submission.adminReleasedBy = req.user.user.id;
+      return submission.save();
+    });
+    
+    await Promise.all(updatePromises);
+    
+    res.json({ 
+      message: `Results released successfully for ${term} term, ${session} session`,
+      releasedCount: submissions.length
+    });
+  } catch (error) {
+    console.error('Error releasing results:', error);
+    res.status(500).json({ message: 'Error releasing results' });
+  }
+});
+
+// Get pending submissions for teacher approval
+router.get('/:examId/pending-submissions', authenticateJWT, requireRole('teacher'), async (req, res) => {
+  try {
+    console.log('Fetching pending submissions for exam:', req.params.examId);
+    console.log('User ID:', req.user.user.id);
+    
+    const exam = await Exam.findById(req.params.examId);
+    if (!exam) {
+      console.log('Exam not found');
+      return res.status(404).json({ message: 'Exam not found' });
+    }
+    
+    console.log('Exam found:', exam.title, 'Created by:', exam.createdBy);
+    
+    // Check if the teacher owns the exam
+    if (exam.createdBy.toString() !== req.user.user.id) {
+      console.log('Teacher not authorized for this exam');
+      return res.status(403).json({ message: 'You can only view submissions for your own exams' });
+    }
+    
+    const submissions = await ExamSubmission.find({
+      exam: exam._id,
+      $or: [
+        { teacherApproved: { $exists: false } },
+        { teacherApproved: null }
+      ]
+    }).populate('student', 'displayName email currentClass');
+    
+    console.log('Found submissions:', submissions.length);
+    res.json(submissions);
+  } catch (error) {
+    console.error('Error fetching pending submissions:', error);
+    res.status(500).json({ message: 'Error fetching pending submissions' });
   }
 });
 

@@ -31,7 +31,45 @@ const examSubmissionSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Question',
     required: true
-  }]
+  }],
+  // Teacher approval status
+  teacherApproved: {
+    type: Boolean,
+    default: false
+  },
+  teacherApprovedAt: {
+    type: Date
+  },
+  teacherApprovedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User"
+  },
+  teacherComments: {
+    type: String,
+    trim: true
+  },
+  // Admin release status
+  adminReleased: {
+    type: Boolean,
+    default: false
+  },
+  adminReleasedAt: {
+    type: Date
+  },
+  adminReleasedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User"
+  },
+  // Term and session for organization
+  term: {
+    type: String,
+    enum: ['1st', '2nd', '3rd'],
+    required: true
+  },
+  session: {
+    type: String,
+    required: true
+  }
 }, {
   timestamps: true
 });

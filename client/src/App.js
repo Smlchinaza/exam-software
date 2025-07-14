@@ -23,10 +23,10 @@ import AdminDashboard from './components/AdminDashboard';
 import AdminLogin from './components/AdminLogin';
 import TeacherProfile from './components/TeacherProfile';
 import TeacherStudents from './components/TeacherStudents';
+import TeacherResults from './components/TeacherResults';
+import AdminResults from './components/AdminResults';
 // Placeholder components for scaffolding
-const TeacherResults = () => <div className="p-8">Results Page (Coming Soon)</div>;
 const TeacherSettings = () => <div className="p-8">Settings Page (Coming Soon)</div>;
-// import AdminDashboard from './components/AdminDashboard';
 
 function AppLayout() {
   const location = useLocation();
@@ -64,6 +64,7 @@ function AppLayout() {
         <Route path="/teacher/exam/:examId/results" element={<ProtectedRoute role="teacher"><ExamResults /></ProtectedRoute>} />
         <Route path="/teacher/profile" element={<ProtectedRoute role="teacher"><TeacherProfile /></ProtectedRoute>} />
         <Route path="/admin/dashboard" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/admin/results" element={<ProtectedRoute role="admin"><AdminResults /></ProtectedRoute>} />
         <Route path="/admin/login" element={<AdminLogin />} />
         {/* Fallback Route */}
         <Route path="*" element={<Navigate to="/" replace />} />

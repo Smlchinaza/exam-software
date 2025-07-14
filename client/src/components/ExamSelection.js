@@ -40,9 +40,9 @@ function ExamSelection() {
         }
         setStudentName(user?.displayName || email);
 
-        // Fetch available exams
-        const activeExams = await examApi.getActiveExams();
-        setAvailableExams(activeExams);
+        // Fetch available exams (excluding already taken ones)
+        const availableExams = await examApi.getAvailableExamsForStudent();
+        setAvailableExams(availableExams);
       } catch (err) {
         setError("Failed to fetch available exams");
         console.error("Error fetching data:", err);
@@ -119,9 +119,10 @@ function ExamSelection() {
         {availableExams.length === 0 ? (
           <div className="bg-white rounded-lg shadow-lg p-8 text-center">
             <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">No Active Exams</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">No Available Exams</h2>
             <p className="text-gray-600">
-              There are currently no active exams available. Please check back later or contact your teacher.
+              You have either completed all available exams or there are no active exams at this time. 
+              Check back later for new exams or contact your teacher.
             </p>
           </div>
         ) : (

@@ -384,6 +384,12 @@ const AdminDashboard = () => {
         >
           Approve Teachers
         </button>
+        <button
+          className={`px-3 xs:px-4 py-2 rounded text-xs xs:text-sm ${activeTab === 'results' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+          onClick={() => setActiveTab('results')}
+        >
+          Results Management
+        </button>
       </div>
       <div>
         {activeTab === 'assign' && (
@@ -882,6 +888,40 @@ const AdminDashboard = () => {
                 </tbody>
               </table>
             )}
+          </div>
+        )}
+        {activeTab === 'results' && (
+          <div>
+            <h2 className="text-base xs:text-lg sm:text-xl font-semibold mb-2">Results Management</h2>
+            <p className="text-xs xs:text-sm text-gray-600 mb-4">
+              Manage and release exam results for students. Teachers must approve submissions before results can be released.
+            </p>
+            <div className="bg-blue-50 p-4 rounded-lg mb-4">
+              <h3 className="text-sm xs:text-base font-semibold mb-2">Quick Actions</h3>
+              <div className="flex flex-col xs:flex-row gap-2">
+                <button
+                  onClick={() => navigate('/admin/results')}
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-xs xs:text-sm"
+                >
+                  View Results Portal
+                </button>
+                <button
+                  onClick={() => navigate('/teacher/results')}
+                  className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-xs xs:text-sm"
+                >
+                  Teacher Approval Portal
+                </button>
+              </div>
+            </div>
+            <div className="bg-yellow-50 p-4 rounded-lg">
+              <h3 className="text-sm xs:text-base font-semibold mb-2">Results Workflow</h3>
+              <ol className="text-xs xs:text-sm text-gray-700 space-y-1">
+                <li>1. Students submit exams</li>
+                <li>2. Teachers review and approve submissions</li>
+                <li>3. Admin releases approved results for students to view</li>
+                <li>4. Students can access their released results</li>
+              </ol>
+            </div>
           </div>
         )}
       </div>
