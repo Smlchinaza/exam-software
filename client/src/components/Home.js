@@ -128,6 +128,36 @@ const Home = () => {
 
         </div>
 
+        {/* Take Exam Section - Prominent for Students */}
+        <div className="mt-8 xs:mt-10 sm:mt-12 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-lg p-6 xs:p-8 text-center">
+          <h2 className="text-lg xs:text-xl sm:text-2xl md:text-3xl font-extrabold text-white mb-4 xs:mb-6">
+            Ready to Take Your Exam?
+          </h2>
+          <p className="text-yellow-100 text-sm xs:text-base sm:text-lg mb-6 xs:mb-8 max-w-2xl mx-auto">
+            Access your assigned exams securely and start your academic assessment right away.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              to="/exam-selection"
+              className="inline-flex items-center px-6 xs:px-8 py-3 xs:py-4 border border-transparent text-base xs:text-lg font-medium rounded-md shadow-sm text-yellow-600 bg-white hover:bg-yellow-50 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 14l9-5-9-5-9 5 9 5zm0 0v6m0 0H6m6 0h6"></path>
+              </svg>
+              Take Exam Now
+            </Link>
+            <Link
+              to="/auth-email"
+              className="inline-flex items-center px-6 xs:px-8 py-3 xs:py-4 border-2 border-white text-base xs:text-lg font-medium rounded-md text-white hover:bg-white hover:text-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+              </svg>
+              Enter with Email
+            </Link>
+          </div>
+        </div>
+
         {/* Features Section */}
         <div className="mt-8 xs:mt-10 sm:mt-12">
           <h2 className="text-lg xs:text-xl sm:text-2xl md:text-3xl font-extrabold text-gray-900 text-center mb-4 xs:mb-6 sm:mb-8">

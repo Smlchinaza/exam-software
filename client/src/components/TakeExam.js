@@ -16,6 +16,8 @@ function TakeExam() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [assignedQuestions, setAssignedQuestions] = useState([]);
+  const [examStarted, setExamStarted] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // Check for student email on mount and fetch display name
   useEffect(() => {
@@ -45,6 +47,23 @@ function TakeExam() {
       });
   }, [navigate]);
 
+  // Check for existing exam in progress
+  useEffect(() => {
+    const examInProgress = localStorage.getItem('examInProgress');
+    if (examInProgress) {
+      const examState = JSON.parse(examInProgress);
+      if (examState.examId === examId) {
+        // Restore exam state
+        setAnswers(examState.answers || {});
+        setTimeLeft(examState.timeLeft || 0);
+        setExamStarted(true);
+      } else {
+        // Different exam, clear the old state
+        localStorage.removeItem('examInProgress');
+      }
+    }
+  }, [examId]);
+
   // Fetch exam data and assigned questions
   useEffect(() => {
     if (!examId) {
@@ -62,14 +81,50 @@ function TakeExam() {
         // Call /exams/:id/start to get assigned questions
         const { assignedQuestions } = await examApi.startExam(examId);
         setAssignedQuestions(assignedQuestions);
-        // Initialize answers object
-        const initialAnswers = {};
-        assignedQuestions.forEach((q) => {
-          initialAnswers[q._id] = "";
-        });
+        
+        // Check if we have saved answers
+        const examInProgress = localStorage.getItem('examInProgress');
+        let initialAnswers = {};
+        
+        if (examInProgress) {
+          const examState = JSON.parse(examInProgress);
+          if (examState.examId === examId && examState.answers) {
+            initialAnswers = examState.answers;
+          }
+        }
+        
+        // Initialize answers object if no saved answers
+        if (Object.keys(initialAnswers).length === 0) {
+          assignedQuestions.forEach((q) => {
+            initialAnswers[q._id] = "";
+          });
+        }
+        
         setAnswers(initialAnswers);
-        // Set timer based on exam duration
-        setTimeLeft(examData.duration * 60);
+        
+        // Set timer based on exam duration or saved time
+        const examInProgressData = localStorage.getItem('examInProgress');
+        if (examInProgressData) {
+          const examState = JSON.parse(examInProgressData);
+          if (examState.examId === examId && examState.timeLeft) {
+            setTimeLeft(examState.timeLeft);
+          } else {
+            setTimeLeft(examData.duration * 60);
+          }
+        } else {
+          setTimeLeft(examData.duration * 60);
+        }
+        
+        // Mark exam as started
+        setExamStarted(true);
+        
+        // Store exam state in localStorage
+        localStorage.setItem('examInProgress', JSON.stringify({
+          examId,
+          answers: initialAnswers,
+          timeLeft: examData.duration * 60,
+          startedAt: Date.now()
+        }));
       } catch (err) {
         setError("Failed to fetch exam data");
         console.error("Error fetching exam:", err);
@@ -80,12 +135,73 @@ function TakeExam() {
     fetchExamAndQuestions();
   }, [examId, navigate]);
 
+  // Add beforeunload event listener to warn when leaving the page
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (examStarted && !submitted && !loading) {
+        e.preventDefault();
+        e.returnValue = "Are you sure you want to leave? Your exam will be automatically submitted.";
+        return "Are you sure you want to leave? Your exam will be automatically submitted.";
+      }
+    };
+
+    // Prevent browser back button navigation
+    const handlePopState = (e) => {
+      if (examStarted && !submitted && !loading) {
+        e.preventDefault();
+        window.history.pushState(null, '', window.location.pathname);
+        alert("You cannot leave the exam once started. Your exam will be automatically submitted if you try to leave.");
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
+    
+    // Push current state to prevent back navigation
+    if (examStarted && !submitted) {
+      window.history.pushState(null, '', window.location.pathname);
+    }
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [examStarted, submitted, loading]);
+
   const handleLogout = () => {
-    localStorage.removeItem("studentEmail");
-    navigate("/auth-email");
+    if (examStarted && !submitted) {
+      setShowLogoutConfirm(true);
+    } else {
+      localStorage.removeItem("studentEmail");
+      navigate("/auth-email");
+    }
+  };
+
+  const handleConfirmLogout = async () => {
+    try {
+      // Auto-submit the exam before logout
+      if (examStarted && !submitted) {
+        await examApi.submitExam(examId, answers);
+      }
+      localStorage.removeItem("studentEmail");
+      navigate("/auth-email");
+    } catch (error) {
+      console.error("Error auto-submitting exam:", error);
+      // Still logout even if auto-submit fails
+      localStorage.removeItem("studentEmail");
+      navigate("/auth-email");
+    }
+  };
+
+  const handleCancelLogout = () => {
+    setShowLogoutConfirm(false);
   };
 
   const handleBackToExams = () => {
+    if (examStarted && !submitted) {
+      alert("You cannot leave the exam once started. Your exam will be automatically submitted if you try to leave.");
+      return;
+    }
     navigate("/exam-selection");
   };
 
@@ -98,18 +214,35 @@ function TakeExam() {
           handleSubmit();
           return 0;
         }
-        return prev - 1;
+        const newTime = prev - 1;
+        
+        // Update localStorage with new time
+        if (examStarted) {
+          const examState = JSON.parse(localStorage.getItem('examInProgress') || '{}');
+          examState.timeLeft = newTime;
+          localStorage.setItem('examInProgress', JSON.stringify(examState));
+        }
+        
+        return newTime;
       });
     }, 1000);
     
     return () => clearInterval(timer);
-  }, [timeLeft, submitted, exam]);
+  }, [timeLeft, submitted, exam, examStarted]);
 
   const handleAnswerChange = (questionId, value) => {
-    setAnswers((prev) => ({
-      ...prev,
+    const newAnswers = {
+      ...answers,
       [questionId]: value,
-    }));
+    };
+    setAnswers(newAnswers);
+    
+    // Update localStorage with new answers
+    if (examStarted) {
+      const examState = JSON.parse(localStorage.getItem('examInProgress') || '{}');
+      examState.answers = newAnswers;
+      localStorage.setItem('examInProgress', JSON.stringify(examState));
+    }
   };
 
   const handleSubmit = async () => {
@@ -120,6 +253,8 @@ function TakeExam() {
     try {
       await examApi.submitExam(examId, answers);
       setSubmitted(true);
+      // Clear exam state from localStorage
+      localStorage.removeItem('examInProgress');
       alert("Exam submitted successfully! Thank you for participating.");
       setTimeout(() => {
         navigate("/exam-selection");
@@ -209,19 +344,26 @@ function TakeExam() {
         <div className="border-b pb-4 mb-4 sm:mb-6">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
             <div className="w-full sm:w-auto">
-              <button
-                onClick={handleBackToExams}
-                className="flex items-center text-blue-600 hover:text-blue-800 mb-2"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Exams
-              </button>
+              {!examStarted && (
+                <button
+                  onClick={handleBackToExams}
+                  className="flex items-center text-blue-600 hover:text-blue-800 mb-2"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Exams
+                </button>
+              )}
               <h1 className="text-xl sm:text-2xl font-bold mb-2">
                 {exam.title}
               </h1>
               <p className="text-gray-600 text-sm sm:text-base">
                 {exam.description}
               </p>
+              {examStarted && !submitted && (
+                <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-yellow-800 text-sm">
+                  ⚠️ You cannot leave this page once the exam has started. Your exam will be automatically submitted if you try to leave.
+                </div>
+              )}
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 text-red-600">
@@ -302,6 +444,32 @@ function TakeExam() {
           </div>
         )}
       </div>
+
+      {/* Logout Confirmation Dialog */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-4">Confirm Logout</h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to logout? Your exam will be automatically submitted with your current answers.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={handleConfirmLogout}
+                className="flex-1 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+              >
+                Logout & Submit
+              </button>
+              <button
+                onClick={handleCancelLogout}
+                className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

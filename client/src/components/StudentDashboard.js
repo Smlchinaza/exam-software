@@ -42,16 +42,29 @@ const StudentDashboard = () => {
           setSelectedClass(response.currentClass || 'JSS1');
           studentInfo = response;
         } catch (err) {
-          // If student data doesn't exist, create a basic student profile
-          console.log('Student data not found, creating basic profile...');
-          setStudentData({
-            _id: user._id || user.id,
-            fullName: user.displayName || `${user.firstName} ${user.lastName}`,
-            email: user.email,
-            currentClass: 'JSS1'
-          });
-          setSelectedClass('JSS1');
-          studentInfo = { currentClass: 'JSS1' };
+          // If student data doesn't exist, try to create one
+          console.log('Student data not found, attempting to create student record...');
+          try {
+            const newStudent = await studentApi.createStudentFromUser({
+              fullName: user.displayName || `${user.firstName} ${user.lastName}`,
+              currentClass: 'JSS1'
+            });
+            setStudentData(newStudent);
+            setSelectedClass(newStudent.currentClass || 'JSS1');
+            studentInfo = newStudent;
+            console.log('Student record created successfully');
+          } catch (createErr) {
+            // If creation fails, use basic profile
+            console.log('Failed to create student record, using basic profile...');
+            setStudentData({
+              _id: user._id || user.id,
+              fullName: user.displayName || `${user.firstName} ${user.lastName}`,
+              email: user.email,
+              currentClass: 'JSS1'
+            });
+            setSelectedClass('JSS1');
+            studentInfo = { currentClass: 'JSS1' };
+          }
         }
         // Fetch subjects for the student's class
         const classSubjects = await subjectApi.getSubjectsByClass(studentInfo.currentClass || 'JSS1');
@@ -126,6 +139,7 @@ const StudentDashboard = () => {
               <FaUser />
               <span className="truncate max-w-[120px] sm:max-w-none">{studentData?.fullName || user?.displayName || 'Student'}</span>
             </span>
+
             <button 
               onClick={() => setShowProfile(true)}
               className="flex items-center space-x-2 hover:text-blue-200"
@@ -202,7 +216,7 @@ const StudentDashboard = () => {
                       <span className="ml-2 text-gray-500 text-xs xs:text-sm">({exam.subject})</span>
                     </div>
                     <button
-                      onClick={() => navigate(`/exams/${exam._id}`)}
+                      onClick={() => navigate('/exam-selection')}
                       className="bg-blue-600 text-white px-3 py-1 rounded text-xs xs:text-sm hover:bg-blue-700"
                     >
                       Start Exam
@@ -247,6 +261,8 @@ const StudentDashboard = () => {
               View Profile
             </button>
           </div>
+
+
 
           <div className="bg-white rounded-lg shadow-md p-4 xs:p-6">
             <div className="flex items-center">

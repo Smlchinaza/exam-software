@@ -85,6 +85,15 @@ export const studentApi = {
     }
   },
 
+  createStudentFromUser: async (studentData) => {
+    try {
+      const response = await api.post('/students/create-from-user', studentData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
   updateStudent: async (id, studentData) => {
     try {
       const response = await api.put(`/students/${id}`, studentData);

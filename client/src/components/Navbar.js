@@ -59,6 +59,13 @@ const Navbar = () => {
                       Dashboard
                     </Link>
                     <Link
+                      to="/exam-selection"
+                      className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+                      onClick={() => setNavCollapsed(true)}
+                    >
+                      Take Exams
+                    </Link>
+                    <Link
                       to="/student/profile"
                       className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
                       onClick={() => setNavCollapsed(true)}
@@ -96,6 +103,13 @@ const Navbar = () => {
               </>
             ) : (
               <>
+                <Link
+                  to="/exam-selection"
+                  className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+                  onClick={() => setNavCollapsed(true)}
+                >
+                  Take Exams
+                </Link>
                 <Link
                   to="/student/login"
                   className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"

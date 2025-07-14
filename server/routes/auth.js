@@ -75,20 +75,28 @@ router.post('/register', async (req, res) => {
       if (!currentClass || !dateOfBirth || !gender || !phone || !address || !parentName || !parentPhone || !emergencyContact) {
         return res.status(400).json({ message: 'All student fields are required' });
       }
-      const student = new Student({
-        admissionNumber: `ADM${Date.now()}`,
-        fullName: displayName,
-        dateOfBirth,
-        gender,
-        currentClass,
-        email,
-        phone,
-        address,
-        parentName,
-        parentPhone,
-        emergencyContact
-      });
-      await student.save();
+      
+      try {
+        const student = new Student({
+          admissionNumber: `ADM${Date.now()}`,
+          fullName: displayName,
+          dateOfBirth,
+          gender,
+          currentClass,
+          email,
+          phone,
+          address,
+          parentName,
+          parentPhone,
+          emergencyContact
+        });
+        await student.save();
+        console.log('Student record created successfully:', { email, studentId: student._id });
+      } catch (studentError) {
+        console.error('Error creating student record:', studentError);
+        // Don't fail the entire registration if student record creation fails
+        // The user can still log in and access basic functionality
+      }
     }
 
     // Create JWT token

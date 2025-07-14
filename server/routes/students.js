@@ -46,6 +46,35 @@ router.get('/:id', async (req, res) => {
     if (userRole === 'student' && req.params.id === userEmail) {
       // Student is trying to access their own data by email
       student = await Student.findOne({ email: req.params.id });
+      
+      // If student not found and user is trying to access their own data, try to create one
+      if (!student && req.params.id === userEmail) {
+        try {
+          // Get user data to create student record
+          const User = require('../models/users/User');
+          const user = await User.findOne({ email: userEmail });
+          
+          if (user) {
+            student = new Student({
+              admissionNumber: `ADM${Date.now()}`,
+              fullName: user.displayName || `${user.firstName} ${user.lastName}`,
+              email: userEmail,
+              currentClass: 'JSS1',
+              dateOfBirth: new Date(),
+              gender: 'Not specified',
+              phone: '',
+              address: '',
+              parentName: '',
+              parentPhone: '',
+              emergencyContact: ''
+            });
+            await student.save();
+            console.log('Auto-created student record for:', userEmail);
+          }
+        } catch (createError) {
+          console.error('Error auto-creating student record:', createError);
+        }
+      }
     } else {
       // Try to find by ID (for teachers/admins or direct ID access)
       student = await Student.findById(req.params.id);
@@ -69,8 +98,52 @@ router.get('/:id', async (req, res) => {
 
 // Create a new student
 router.post('/', async (req, res) => {
-  const student = new Student(req.body);
   try {
+    // Check if student already exists with this email
+    const existingStudent = await Student.findOne({ email: req.body.email });
+    if (existingStudent) {
+      return res.status(400).json({ message: 'Student with this email already exists' });
+    }
+    
+    const student = new Student(req.body);
+    const newStudent = await student.save();
+    res.status(201).json(newStudent);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// Create student record from user data (for existing users without student records)
+router.post('/create-from-user', authenticateJWT, async (req, res) => {
+  try {
+    const userRole = req.user?.user?.role || req.user?.role;
+    const userEmail = req.user?.user?.email || req.user?.email;
+    
+    if (userRole !== 'student') {
+      return res.status(403).json({ message: 'Only students can create student records' });
+    }
+    
+    // Check if student record already exists
+    const existingStudent = await Student.findOne({ email: userEmail });
+    if (existingStudent) {
+      return res.json(existingStudent);
+    }
+    
+    // Create basic student record
+    const student = new Student({
+      admissionNumber: `ADM${Date.now()}`,
+      fullName: req.body.fullName || 'Student',
+      email: userEmail,
+      currentClass: req.body.currentClass || 'JSS1',
+      dateOfBirth: req.body.dateOfBirth || new Date(),
+      gender: req.body.gender || 'Not specified',
+      phone: req.body.phone || '',
+      address: req.body.address || '',
+      parentName: req.body.parentName || '',
+      parentPhone: req.body.parentPhone || '',
+      emergencyContact: req.body.emergencyContact || ''
+    });
+    
     const newStudent = await student.save();
     res.status(201).json(newStudent);
   } catch (error) {
