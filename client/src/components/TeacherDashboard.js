@@ -21,11 +21,42 @@ function TeacherDashboard() {
   const [mySubjects, setMySubjects] = useState([]);
   const [studentsBySubject, setStudentsBySubject] = useState({});
   const [activeNav, setActiveNav] = useState('dashboard');
+  const [showProfile, setShowProfile] = useState(false);
+  const [examHistory, setExamHistory] = useState([]);
+  const [examHistoryLoading, setExamHistoryLoading] = useState(false);
+  const [examHistoryError, setExamHistoryError] = useState('');
 
   useEffect(() => {
     fetchDashboardData();
     fetchMySubjectsAndStudents();
   }, []);
+
+  useEffect(() => {
+    if (activeNav === 'exam-history' && user) {
+      setExamHistoryLoading(true);
+      setExamHistoryError('');
+      api.get('/exams/history-with-counts')
+        .then(res => {
+          const userId = String(user?._id || user?.id || user?.userId);
+          console.log('TeacherDashboard: userId for filtering:', userId);
+          const teacherExams = (res.data || []).filter(exam => {
+            // Log each exam's createdBy for debugging
+            console.log('Exam:', exam.title, 'createdBy:', exam.createdBy);
+            if (!exam.createdBy) return false; // Exclude exams without createdBy
+            if (typeof exam.createdBy === 'string') {
+              return exam.createdBy === userId;
+            }
+            if (typeof exam.createdBy === 'object' && exam.createdBy._id) {
+              return String(exam.createdBy._id) === userId;
+            }
+            return false;
+          });
+          setExamHistory(teacherExams);
+        })
+        .catch(err => setExamHistoryError('Failed to fetch exam history.'))
+        .finally(() => setExamHistoryLoading(false));
+    }
+  }, [activeNav, user]);
 
   const handleLogout = () => {
     logout();
@@ -51,12 +82,12 @@ function TeacherDashboard() {
         return now >= startTime && now <= endTime;
       });
 
-      setStats({
+      setStats(prev => ({
+        ...prev,
         totalQuestions: questions.length,
-        activeExams: activeExams.length,
-        totalStudents: 0, // TODO: Implement student count
-        averageScore: 0 // TODO: Implement average score
-      });
+        activeExams: activeExams.length
+        // Do not touch totalStudents or averageScore here
+      }));
 
       // Sort exams by creation date and take the 5 most recent
       const sortedExams = exams
@@ -86,11 +117,13 @@ function TeacherDashboard() {
       setMySubjects(subjects || []);
       // For each subject, fetch students for that subject and class
       const studentsMap = {};
+      let totalStudentsOfferingMySubjects = 0;
       if (subjects && Array.isArray(subjects)) {
         for (const subj of subjects) {
           try {
             const students = await studentApi.getStudentsBySubjectAndClass(subj.name, subj.class);
             studentsMap[`${subj.name}|${subj.class}`] = students || [];
+            totalStudentsOfferingMySubjects += (students || []).length;
           } catch (studentError) {
             console.error(`Error fetching students for ${subj.name}:`, studentError);
             studentsMap[`${subj.name}|${subj.class}`] = [];
@@ -98,11 +131,13 @@ function TeacherDashboard() {
         }
       }
       setStudentsBySubject(studentsMap);
+      setStats(prev => ({ ...prev, totalStudents: totalStudentsOfferingMySubjects }));
     } catch (err) {
       console.error('Error fetching subjects:', err);
       setError('Failed to fetch assigned subjects or students');
       setMySubjects([]);
       setStudentsBySubject({});
+      setStats(prev => ({ ...prev, totalStudents: 0 }));
     }
   };
 
@@ -127,9 +162,6 @@ function TeacherDashboard() {
               </li>
               <li className="hover:bg-gray-50 p-2 rounded">
                 <button onClick={() => navigate('/teacher/results')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Results</button>
-              </li>
-              <li className="hover:bg-gray-50 p-2 rounded">
-                <button onClick={() => navigate('/teacher/students')} className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit">Students</button>
               </li>
             </ul>
           </div>
@@ -198,11 +230,8 @@ function TeacherDashboard() {
               <li className={`${activeNav==='results' ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-50'} p-2 rounded flex items-center gap-2`}>
                 <button onClick={() => {navigate('/teacher/results'); setActiveNav('results'); setMobileNavOpen(false);}} className="flex items-center gap-2 w-full text-left"><FaTasks /> Results</button>
               </li>
-              <li className={`${activeNav==='students' ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-50'} p-2 rounded flex items-center gap-2`}>
-                <button onClick={() => {navigate('/teacher/students'); setActiveNav('students'); setMobileNavOpen(false);}} className="flex items-center gap-2 w-full text-left"><FaUsers /> Students</button>
-              </li>
-              <li className={`${activeNav==='profile' ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-50'} p-2 rounded flex items-center gap-2`}>
-                <button onClick={() => {navigate('/teacher/profile'); setActiveNav('profile'); setMobileNavOpen(false);}} className="flex items-center gap-2 w-full text-left"><FaUserCircle /> Profile</button>
+              <li className={`${activeNav==='exam-history' ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-50'} p-2 rounded flex items-center gap-2`}>
+                <button onClick={() => {navigate('/teacher/exam-history'); setActiveNav('exam-history'); setMobileNavOpen(false);}} className="flex items-center gap-2 w-full text-left"><FaListAlt /> Exam History</button>
               </li>
               <li className="hover:bg-red-50 p-2 rounded border-t mt-4 flex items-center gap-2">
                 <button onClick={() => {handleLogout(); setMobileNavOpen(false);}} className="flex items-center gap-2 w-full text-left text-red-600 hover:text-red-700"><FaSignOutAlt /> Logout</button>
@@ -234,11 +263,8 @@ function TeacherDashboard() {
             <li className={`${activeNav==='results' ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-50'} p-2 rounded flex items-center gap-2`}>
               <button onClick={() => {navigate('/teacher/results'); setActiveNav('results');}} className="flex items-center gap-2 w-full text-left"><FaTasks /> Results</button>
             </li>
-            <li className={`${activeNav==='students' ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-50'} p-2 rounded flex items-center gap-2`}>
-              <button onClick={() => {navigate('/teacher/students'); setActiveNav('students');}} className="flex items-center gap-2 w-full text-left"><FaUsers /> Students</button>
-            </li>
-            <li className={`${activeNav==='profile' ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-50'} p-2 rounded flex items-center gap-2`}>
-              <button onClick={() => {navigate('/teacher/profile'); setActiveNav('profile');}} className="flex items-center gap-2 w-full text-left"><FaUserCircle /> Profile</button>
+            <li className={`${activeNav==='exam-history' ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-50'} p-2 rounded flex items-center gap-2`}>
+              <button onClick={() => {navigate('/teacher/exam-history'); setActiveNav('exam-history');}} className="flex items-center gap-2 w-full text-left"><FaListAlt /> Exam History</button>
             </li>
             <li className="hover:bg-red-50 p-2 rounded border-t mt-4 flex items-center gap-2">
               <button onClick={handleLogout} className="flex items-center gap-2 w-full text-left text-red-600 hover:text-red-700"><FaSignOutAlt /> Logout</button>
@@ -254,7 +280,7 @@ function TeacherDashboard() {
               <FaChartBar className="text-blue-600" /> Dashboard Overview
             </h2>
             <button
-              onClick={() => navigate('/teacher/profile')}
+              onClick={() => setShowProfile(!showProfile)}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-semibold shadow flex items-center gap-2 animate-fade-in"
             >
               <FaUserCircle /> Profile
@@ -264,6 +290,25 @@ function TeacherDashboard() {
           {error && (
             <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded text-left text-sm animate-fade-in">
               {error}
+            </div>
+          )}
+
+          {showProfile && (
+            <div className="absolute right-4 mt-2 w-64 bg-white rounded-lg shadow-lg border p-4 z-50 animate-fade-in">
+              <div className="flex items-center gap-3 mb-2">
+                <FaUserCircle className="text-3xl text-blue-500" />
+                <div>
+                  <div className="font-bold text-gray-800">{user?.displayName || user?.firstName + ' ' + user?.lastName}</div>
+                  <div className="text-xs text-gray-500">{user?.email}</div>
+                </div>
+              </div>
+              <div className="text-sm text-gray-700 mb-2">Role: {user?.role}</div>
+              <button
+                onClick={() => setShowProfile(false)}
+                className="w-full mt-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded px-3 py-1 text-xs"
+              >
+                Close
+              </button>
             </div>
           )}
 
@@ -403,6 +448,48 @@ function TeacherDashboard() {
               ))
             )}
           </div>
+
+          {/* Exam History */}
+          {activeNav === 'exam-history' && (
+            <div className="mt-10 animate-fade-in">
+              <div className="flex items-center gap-2 mb-2">
+                <FaListAlt className="text-purple-500" />
+                <h3 className="text-lg font-semibold text-gray-800">My Exam History</h3>
+              </div>
+              {examHistoryLoading ? (
+                <div className="text-center py-8">Loading...</div>
+              ) : examHistoryError ? (
+                <div className="text-red-600 mb-2">{examHistoryError}</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full bg-white border rounded text-xs xs:text-sm">
+                    <thead>
+                      <tr>
+                        <th className="px-2 xs:px-4 py-2 border">Subject</th>
+                        <th className="px-2 xs:px-4 py-2 border">Class</th>
+                        <th className="px-2 xs:px-4 py-2 border">Exam Date</th>
+                        <th className="px-2 xs:px-4 py-2 border">No of Students</th>
+                        <th className="px-2 xs:px-4 py-2 border">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {examHistory.length === 0 ? (
+                        <tr><td colSpan={5} className="text-center py-4">No exams found.</td></tr>
+                      ) : examHistory.map(exam => (
+                        <tr key={exam._id}>
+                          <td className="px-2 xs:px-4 py-2 border">{exam.subject}</td>
+                          <td className="px-2 xs:px-4 py-2 border">{exam.class}</td>
+                          <td className="px-2 xs:px-4 py-2 border">{exam.startTime ? new Date(exam.startTime).toLocaleDateString() : 'N/A'}</td>
+                          <td className="px-2 xs:px-4 py-2 border">{exam.submissionsCount}</td>
+                          <td className="px-2 xs:px-4 py-2 border">{exam.status}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -303,6 +303,43 @@ router.get('/approved-submissions', authenticateJWT, requireRole('admin'), async
   }
 });
 
+// Place static routes BEFORE dynamic ones
+router.get('/history-with-counts', authenticateJWT, requireRole('admin'), async (req, res) => {
+  try {
+    // Get all exams with teacher info
+    const exams = await Exam.find()
+      .populate('createdBy', 'displayName email')
+      .lean();
+
+    // Defensive: Only keep exams with a valid createdBy
+    const validExams = exams.filter(exam => exam.createdBy && (exam.createdBy._id || typeof exam.createdBy === 'string'));
+
+    // Get counts of submissions per exam in one aggregation
+    let counts = [];
+    try {
+      counts = await ExamSubmission.aggregate([
+        { $group: { _id: '$exam', count: { $sum: 1 } } }
+      ]);
+    } catch (aggErr) {
+      console.error('Aggregation error in /history-with-counts:', aggErr);
+      counts = [];
+    }
+    const countMap = {};
+    counts.forEach(c => { if (c._id) countMap[c._id.toString()] = c.count; });
+
+    // Attach submissionsCount to each exam
+    const examsWithCounts = validExams.map(exam => ({
+      ...exam,
+      submissionsCount: countMap[exam._id.toString()] || 0
+    }));
+
+    res.json(examsWithCounts);
+  } catch (error) {
+    console.error('Error fetching exam history with counts:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Get a single exam
 router.get("/:id", authenticateJWT, async (req, res) => {
   try {

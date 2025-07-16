@@ -40,9 +40,16 @@ const AdminDashboard = () => {
   const [teacherApprovalLoading, setTeacherApprovalLoading] = useState(false);
   const [teacherApprovalError, setTeacherApprovalError] = useState('');
   const [teacherApprovalMessage, setTeacherApprovalMessage] = useState('');
+  const [examHistory, setExamHistory] = useState([]);
+  const [examHistoryLoading, setExamHistoryLoading] = useState(false);
+  const [examHistoryError, setExamHistoryError] = useState('');
+  const [approvedExams, setApprovedExams] = useState([]);
+  const [approvedExamsLoading, setApprovedExamsLoading] = useState(false);
+  const [approvedExamsError, setApprovedExamsError] = useState('');
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [navOpen, setNavOpen] = useState(false);
+  const [unassignSuccess, setUnassignSuccess] = useState('');
 
   const handleLogout = () => {
     logout();
@@ -61,6 +68,14 @@ const AdminDashboard = () => {
     }
     if (activeTab === 'teacher-approval') {
       fetchUnapprovedTeachers();
+    }
+    if (activeTab === 'exam-history') {
+      setExamHistoryLoading(true);
+      setExamHistoryError('');
+      api.get('/exams/history-with-counts')
+        .then(res => setExamHistory(res.data))
+        .catch(err => setExamHistoryError('Failed to fetch exam history.'))
+        .finally(() => setExamHistoryLoading(false));
     }
   }, [activeTab, user]);
 
@@ -84,6 +99,34 @@ const AdminDashboard = () => {
       fetchTeachersForAssign();
     }
   }, [activeTab, user]);
+
+  // Fetch exam history when tab is selected
+  useEffect(() => {
+    if (activeTab === 'exam-history') {
+      setExamHistoryLoading(true);
+      setExamHistoryError('');
+      api.get('/exams/history-with-counts')
+        .then(res => setExamHistory(res.data))
+        .catch(err => setExamHistoryError('Failed to fetch exam history.'))
+        .finally(() => setExamHistoryLoading(false));
+    }
+  }, [activeTab]);
+
+  // Fetch all approved exams when the approve tab is active
+  useEffect(() => {
+    if (activeTab === 'approve') {
+      setApprovedExamsLoading(true);
+      setApprovedExamsError('');
+      api.get('/exams')
+        .then(res => {
+          // Filter for approved exams
+          const approved = (res.data || []).filter(exam => exam.approved === true);
+          setApprovedExams(approved);
+        })
+        .catch(() => setApprovedExamsError('Failed to fetch approved exams.'))
+        .finally(() => setApprovedExamsLoading(false));
+    }
+  }, [activeTab]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -315,6 +358,19 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleUnassignTeacher = async (subjectId, teacherId) => {
+    const confirm = window.confirm('Are you sure you want to unassign this teacher from the subject?');
+    if (!confirm) return;
+    try {
+      await subjectApi.unassignTeachers(subjectId, [teacherId]);
+      setUnassignSuccess('Teacher unassigned successfully!');
+      fetchData(); // Refresh assignments
+      setTimeout(() => setUnassignSuccess(''), 2500);
+    } catch (err) {
+      alert('Failed to unassign teacher');
+    }
+  };
+
   const openUnassignModal = (subject) => {
     setSelectedSubjectForUnassign(subject._id);
     setShowUnassignModal(true);
@@ -409,6 +465,14 @@ const AdminDashboard = () => {
             </li>
             <li>
               <button
+                className={`px-5 py-2 rounded-full font-medium transition text-sm flex items-center gap-2 ${activeTab === 'exam-history' ? 'bg-red-600 text-white shadow' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                onClick={() => setActiveTab('exam-history')}
+              >
+                <FaTasks /> Exam History
+              </button>
+            </li>
+            <li>
+              <button
                 className={`px-5 py-2 rounded-full font-medium transition text-sm flex items-center gap-2 ${activeTab === 'results' ? 'bg-red-600 text-white shadow' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
                 onClick={() => setActiveTab('results')}
               >
@@ -458,6 +522,14 @@ const AdminDashboard = () => {
             </li>
             <li>
               <button
+                className={`w-full px-5 py-3 rounded-lg font-medium transition text-base flex items-center gap-3 ${activeTab === 'exam-history' ? 'bg-red-600 text-white shadow' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                onClick={() => { setActiveTab('exam-history'); setNavOpen(false); }}
+              >
+                <FaTasks /> Exam History
+              </button>
+            </li>
+            <li>
+              <button
                 className={`w-full px-5 py-3 rounded-lg font-medium transition text-base flex items-center gap-3 ${activeTab === 'results' ? 'bg-red-600 text-white shadow' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
                 onClick={() => { setActiveTab('results'); setNavOpen(false); }}
               >
@@ -489,6 +561,9 @@ const AdminDashboard = () => {
             <h2 className="text-base xs:text-lg sm:text-xl font-semibold mb-2">Assign Subjects to Teachers</h2>
             {error && <div className="mb-2 text-xs xs:text-sm text-red-600">{error}</div>}
             {message && <div className="mb-2 text-xs xs:text-sm text-green-600">{message}</div>}
+            {unassignSuccess && (
+              <div className="mb-2 text-green-600 text-sm font-semibold">{unassignSuccess}</div>
+            )}
             {/* Class Filter Dropdown for Assign */}
             <div className="mb-3 xs:mb-4 flex items-center space-x-2">
               <label className="text-xs xs:text-sm font-medium">Filter by Class:</label>
@@ -577,36 +652,30 @@ const AdminDashboard = () => {
                 <thead>
                   <tr>
                     <th className="px-2 xs:px-4 py-2 border">Subject</th>
-                    <th className="px-2 xs:px-4 py-2 border">Teachers</th>
-                    <th className="px-2 xs:px-4 py-2 border">Actions</th>
+                    <th className="px-2 xs:px-4 py-2 border">Class</th>
+                    <th className="px-2 xs:px-4 py-2 border">Assigned Teachers</th>
+                    <th className="px-2 xs:px-4 py-2 border">Teacher Count</th>
                   </tr>
                 </thead>
                 <tbody>
                   {subjects.map(subject => (
                     <tr key={subject._id}>
                       <td className="px-2 xs:px-4 py-2 border">{subject.name}</td>
+                      <td className="px-2 xs:px-4 py-2 border">{subject.class}</td>
                       <td className="px-2 xs:px-4 py-2 border">
-                        {subject.teachers && subject.teachers.length > 0
-                          ? subject.teachers.map(t => t.displayName || t.email).join(', ')
-                          : <span className="text-gray-400">No teachers assigned</span>}
+                        {subject.teachers && subject.teachers.length > 0 ? (
+                          <div className="space-y-1">
+                            {subject.teachers.map(teacher => (
+                              <div key={teacher._id} className="text-xs text-gray-700 bg-gray-50 px-2 py-1 rounded">
+                                {teacher.displayName || teacher.email}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-gray-400 italic">No teachers assigned</span>
+                        )}
                       </td>
-                      <td className="px-2 xs:px-4 py-2 border">
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => openUnassignModal(subject)}
-                            className="bg-orange-600 text-white px-2 py-1 rounded text-sm hover:bg-orange-700"
-                            disabled={!subject.teachers || subject.teachers.length === 0}
-                          >
-                            Unassign
-                          </button>
-                          <button
-                            onClick={() => openDeleteModal(subject)}
-                            className="bg-red-600 text-white px-2 py-1 rounded text-sm hover:bg-red-700"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
+                      <td className="px-2 xs:px-4 py-2 border">{subject.teachers ? subject.teachers.length : 0} teacher(s)</td>
                     </tr>
                   ))}
                 </tbody>
@@ -827,61 +896,6 @@ const AdminDashboard = () => {
             <h2 className="text-base xs:text-lg sm:text-xl font-semibold mb-2">Approve Exams</h2>
             {approvalError && <div className="mb-2 text-xs xs:text-sm text-red-600">{approvalError}</div>}
             {approvalMessage && <div className="mb-2 text-xs xs:text-sm text-green-600">{approvalMessage}</div>}
-            {/* Pending Approval Exams */}
-            <div className="mb-6 xs:mb-8 overflow-x-auto">
-              <h3 className="text-xs xs:text-sm sm:text-lg font-medium mb-3 xs:mb-4">Exams Pending Approval</h3>
-              {approvalLoading ? (
-                <div>Loading...</div>
-              ) : (
-                <div>
-                  {pendingApprovalExams.length === 0 ? (
-                    <div className="bg-gray-100 p-2 xs:p-4 rounded text-xs xs:text-sm">No exams pending approval.</div>
-                  ) : (
-                    <table className="min-w-full bg-white border rounded text-xs xs:text-sm">
-                      <thead>
-                        <tr>
-                          <th className="px-2 xs:px-4 py-2 border">Title</th>
-                          <th className="px-2 xs:px-4 py-2 border">Subject</th>
-                          <th className="px-2 xs:px-4 py-2 border">Created By</th>
-                          <th className="px-2 xs:px-4 py-2 border">Submitted</th>
-                          <th className="px-2 xs:px-4 py-2 border">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {pendingApprovalExams.map(exam => (
-                          <tr key={exam._id}>
-                            <td className="px-2 xs:px-4 py-2 border">{exam.title}</td>
-                            <td className="px-2 xs:px-4 py-2 border">{exam.subject}</td>
-                            <td className="px-2 xs:px-4 py-2 border">{exam.createdBy?.displayName || exam.createdBy?.email || 'N/A'}</td>
-                            <td className="px-2 xs:px-4 py-2 border">
-                              {exam.submittedForApprovalAt ? new Date(exam.submittedForApprovalAt).toLocaleDateString() : 'N/A'}
-                            </td>
-                            <td className="px-2 xs:px-4 py-2 border">
-                              <div className="flex space-x-2">
-                                <button
-                                  onClick={() => handleApproveExam(exam._id)}
-                                  className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
-                                  disabled={approvalLoading}
-                                >
-                                  Approve
-                                </button>
-                                <button
-                                  onClick={() => openRejectModal(exam)}
-                                  className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
-                                  disabled={approvalLoading}
-                                >
-                                  Reject
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
-                </div>
-              )}
-            </div>
             {/* Unapproved Exams (Legacy) */}
             <div className="overflow-x-auto">
               <h3 className="text-xs xs:text-sm sm:text-lg font-medium mb-3 xs:mb-4">All Unapproved Exams</h3>
@@ -941,6 +955,51 @@ const AdminDashboard = () => {
                 </div>
               )}
             </div>
+            <div className="overflow-x-auto mt-8">
+              <h3 className="text-xs xs:text-sm sm:text-lg font-medium mb-3 xs:mb-4">All Approved Exams</h3>
+              {approvedExamsLoading ? (
+                <div>Loading...</div>
+              ) : approvedExamsError ? (
+                <div className="text-red-600 mb-2">{approvedExamsError}</div>
+              ) : (
+                <table className="min-w-full bg-white border rounded text-xs xs:text-sm">
+                  <thead>
+                    <tr>
+                      <th className="px-2 xs:px-4 py-2 border">Title</th>
+                      <th className="px-2 xs:px-4 py-2 border">Subject</th>
+                      <th className="px-2 xs:px-4 py-2 border">Status</th>
+                      <th className="px-2 xs:px-4 py-2 border">Created By</th>
+                      <th className="px-2 xs:px-4 py-2 border">Approved At</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {approvedExams.length === 0 ? (
+                      <tr><td colSpan={5} className="text-center py-4">No approved exams.</td></tr>
+                    ) : approvedExams.map(exam => (
+                      <tr key={exam._id}>
+                        <td className="px-2 xs:px-4 py-2 border">{exam.title}</td>
+                        <td className="px-2 xs:px-4 py-2 border">{exam.subject}</td>
+                        <td className="px-2 xs:px-4 py-2 border">{
+  (() => {
+    const now = new Date();
+    const start = exam.startTime ? new Date(exam.startTime) : null;
+    const end = exam.endTime ? new Date(exam.endTime) : null;
+    if (start && end) {
+      if (now > end) return 'completed';
+      if (now < start) return 'draft';
+      if (now >= start && now <= end) return 'active';
+    }
+    return exam.status;
+  })()
+}</td>
+                        <td className="px-2 xs:px-4 py-2 border">{exam.createdBy?.displayName || exam.createdBy?.email || 'N/A'}</td>
+                        <td className="px-2 xs:px-4 py-2 border">{exam.approvedAt ? new Date(exam.approvedAt).toLocaleDateString() : 'N/A'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
           </div>
         )}
         {activeTab === 'teacher-approval' && (
@@ -979,6 +1038,57 @@ const AdminDashboard = () => {
                   ))}
                 </tbody>
               </table>
+            )}
+          </div>
+        )}
+        {activeTab === 'exam-history' && (
+          <div>
+            <h2 className="text-base xs:text-lg sm:text-xl font-semibold mb-2">Exam History</h2>
+            {examHistoryLoading ? (
+              <div>Loading...</div>
+            ) : examHistoryError ? (
+              <div className="text-red-600 mb-2">{examHistoryError}</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full bg-white border rounded text-xs xs:text-sm">
+                  <thead>
+                    <tr>
+                      <th className="px-2 xs:px-4 py-2 border">Teacher Name</th>
+                      <th className="px-2 xs:px-4 py-2 border">Subject</th>
+                      <th className="px-2 xs:px-4 py-2 border">Class</th>
+                      <th className="px-2 xs:px-4 py-2 border">Exam Date</th>
+                      <th className="px-2 xs:px-4 py-2 border">No of Students</th>
+                      <th className="px-2 xs:px-4 py-2 border">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {examHistory.length === 0 ? (
+                      <tr><td colSpan={6} className="text-center py-4">No exams found.</td></tr>
+                    ) : examHistory.map(exam => (
+                      <tr key={exam._id}>
+                        <td className="px-2 xs:px-4 py-2 border">{exam.createdBy?.displayName || exam.createdBy?.email || 'N/A'}</td>
+                        <td className="px-2 xs:px-4 py-2 border">{exam.subject}</td>
+                        <td className="px-2 xs:px-4 py-2 border">{exam.class}</td>
+                        <td className="px-2 xs:px-4 py-2 border">{exam.startTime ? new Date(exam.startTime).toLocaleDateString() : 'N/A'}</td>
+                        <td className="px-2 xs:px-4 py-2 border">{exam.submissionsCount}</td>
+                        <td className="px-2 xs:px-4 py-2 border">{
+  (() => {
+    const now = new Date();
+    const start = exam.startTime ? new Date(exam.startTime) : null;
+    const end = exam.endTime ? new Date(exam.endTime) : null;
+    if (start && end) {
+      if (now > end) return 'completed';
+      if (now < start) return 'draft';
+      if (now >= start && now <= end) return 'active';
+    }
+    return exam.status;
+  })()
+}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         )}
