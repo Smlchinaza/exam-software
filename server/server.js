@@ -47,10 +47,11 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Apply dynamic rate limiting to all routes (adjusts based on user role)
-app.use(dynamicLimiter);
+// app.use(dynamicLimiter);
 
 // Routes with specific rate limiting
-app.use("/api/auth", authLimiter, authRoutes);
+// app.use("/api/auth", authLimiter, authRoutes);
+app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/questions", uploadLimiter, questionRoutes);
 app.use("/api/exams", examSubmissionLimiter, examRoutes);
