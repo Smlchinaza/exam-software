@@ -36,6 +36,44 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []);
 
+  useEffect(() => {
+    if (!user) return;
+
+    let timer;
+    const logoutAfterInactivity = () => {
+      logout();
+      window.location.href = "/login";
+    };
+
+    const resetTimer = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(logoutAfterInactivity, 300000); // 5 minutes
+    };
+
+    // List of events that indicate user activity
+    const activityEvents = [
+      "mousemove",
+      "mousedown",
+      "keydown",
+      "touchstart",
+      "scroll"
+    ];
+
+    activityEvents.forEach(event => {
+      window.addEventListener(event, resetTimer);
+    });
+
+    // Start the timer initially
+    resetTimer();
+
+    return () => {
+      if (timer) clearTimeout(timer);
+      activityEvents.forEach(event => {
+        window.removeEventListener(event, resetTimer);
+      });
+    };
+  }, [user]);
+
   const login = async (emailOrObj, password, rememberMe) => {
     let email, role;
     if (typeof emailOrObj === 'object') {
