@@ -548,6 +548,15 @@ router.post("/:id/submit", authenticateJWT, requireRole('student'), async (req, 
     submission.term = exam.term;
     submission.session = exam.session;
     
+    // Calculate elapsed time and enforce max duration
+    if (submission.startedAt) {
+      const elapsedSeconds = (Date.now() - new Date(submission.startedAt).getTime()) / 1000;
+      submission.timeSpent = Math.ceil(elapsedSeconds / 60); // in minutes
+      if (elapsedSeconds > exam.duration * 60) {
+        return res.status(400).json({ message: 'Exam time exceeded.' });
+      }
+    }
+
     await submission.save();
 
     res.json({
@@ -596,7 +605,8 @@ router.post('/:id/start', authenticateJWT, requireRole('student'), async (req, r
       assignedQuestions,
       score: 0,
       session: exam.session, // add session from exam
-      term: exam.term        // add term from exam
+      term: exam.term,       // add term from exam
+      startedAt: new Date()  // set start time
     });
     await submission.save();
     // Populate assignedQuestions for return

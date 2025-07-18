@@ -86,13 +86,14 @@ function TakeExam() {
         // Fetch exam meta
         const examData = await examApi.getExam(examId);
         setExam(examData);
-        // Call /exams/:id/start to get assigned questions
+        // Always fetch assigned questions from backend
         const { assignedQuestions } = await examApi.startExam(examId);
         setAssignedQuestions(assignedQuestions);
-        // Check if we have saved answers
+        // Try to restore from localStorage
         const examInProgress = localStorage.getItem(getExamInProgressKey(examId, studentEmail));
         let initialAnswers = {};
         let initialTimeLeft;
+        let localAssignedQuestions = [];
         if (examInProgress) {
           const examState = JSON.parse(examInProgress);
           if (examState.examId === examId && examState.answers) {
@@ -101,28 +102,38 @@ function TakeExam() {
           if (examState.examId === examId && examState.timeLeft) {
             initialTimeLeft = examState.timeLeft;
           }
+          if (examState.examId === examId && examState.assignedQuestions) {
+            localAssignedQuestions = examState.assignedQuestions;
+          }
         }
+        // If localStorage assignedQuestions is missing or doesn't match backend, use backend
+        let questionsToUse = assignedQuestions;
+        if (localAssignedQuestions.length === assignedQuestions.length && localAssignedQuestions.every((q, i) => q._id === assignedQuestions[i]._id)) {
+          questionsToUse = localAssignedQuestions;
+        }
+        setAssignedQuestions(questionsToUse);
         // Initialize answers object if no saved answers
         if (Object.keys(initialAnswers).length === 0) {
-          assignedQuestions.forEach((q) => {
+          questionsToUse.forEach((q) => {
             initialAnswers[q._id] = "";
           });
         }
         setAnswers(initialAnswers);
-        // Set timer based on exam duration or saved time
+        // Set timer based on exam duration or saved time, but never allow 0 on initial load
+        let timeToSet = examData.duration * 60;
         if (typeof initialTimeLeft === 'number' && initialTimeLeft > 0) {
-          setTimeLeft(initialTimeLeft);
-        } else {
-          setTimeLeft(examData.duration * 60);
+          timeToSet = initialTimeLeft;
         }
+        setTimeLeft(timeToSet);
         setTimerInitialized(true);
         // Mark exam as started
         setExamStarted(true);
-        // Store exam state in localStorage
+        // Store exam state in localStorage (including assignedQuestions)
         localStorage.setItem(getExamInProgressKey(examId, studentEmail), JSON.stringify({
           examId,
           answers: initialAnswers,
-          timeLeft: typeof initialTimeLeft === 'number' && initialTimeLeft > 0 ? initialTimeLeft : examData.duration * 60,
+          timeLeft: timeToSet,
+          assignedQuestions: questionsToUse,
           startedAt: Date.now()
         }));
       } catch (err) {
