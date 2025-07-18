@@ -1,0 +1,13 @@
+config:
+  target: "https://exam-software-65fk.onrender.com"
+  phases:
+    - duration: 60
+      arrivalRate: 100
+scenarios:
+  - flow:
+      - post:
+          url: "/api/exams/686461765ff2ffe2d70eaa7e/submit"
+          json:
+            answers:
+              - questionId: "687413aa77f924a2c93acbbd"
+                answer: "A" 

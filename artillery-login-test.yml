@@ -1,0 +1,17 @@
+config:
+  target: "https://exam-software-65fk.onrender.com"
+  phases:
+    - duration: 60
+      arrivalRate: 10
+  payload:
+    path: "users.csv"
+    fields:
+      - "email"
+      - "password"
+scenarios:
+  - flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "{{ email }}"
+            password: "{{ password }}" 

@@ -13,6 +13,13 @@ A full-stack web application for managing online exams, supporting multiple user
 - Role-based dashboards with customized views
 - Secure exam environment (anti-cheating measures, time limits)
 - Password recovery and account management
+- **Distinct dashboards for Admin, Teacher, and Student roles**
+- **Exam submission and result export (JSON/HTML reports)**
+- **Teacher-student management (teachers can view/manage their students)**
+- **Enhanced profile management for all user roles**
+- **Exam approval and moderation workflows**
+- **Rate limiting and security middleware for backend APIs**
+- **Automated load and performance testing with Artillery scripts**
 
 ## Directory Structure
 ```

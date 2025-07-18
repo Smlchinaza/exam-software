@@ -1,0 +1,36 @@
+config:
+  target: "https://exam-software-65fk.onrender.com"
+  phases:
+    - duration: 60
+      arrivalRate: 2
+  payload:
+    path: "users.csv"
+    fields:
+      - "email"
+      - "password"
+scenarios:
+  - flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "{{ email }}"
+            password: "{{ password }}"
+          capture:
+            - json: $.token
+              as: token
+      - get:
+          url: "/api/exams"
+          headers:
+            Authorization: "Bearer {{ token }}"
+      # - post:
+      #     url: "/api/exams/6874e77dbdc6ba42e8940597/submit"
+      #     headers:
+      #       Authorization: "Bearer {{ token }}"
+      #     json:
+      #       answers:
+      #         - questionId: "6874159377f924a2c93acbf1"
+      #           answer: "A"
+      # - get:
+      #     url: "/api/exams/6874e77dbdc6ba42e8940597/results"
+      #     headers:
+      #       Authorization: "Bearer {{ token }}" 

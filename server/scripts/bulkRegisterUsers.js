@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { parse } = require('csv-parse');
 const axios = require('axios');
+const { once } = require('events');
 
 const CSV_FILE = path.join(__dirname, '../../users.csv'); // Adjust path if needed
 const REGISTER_URL = 'http://localhost:5000/api/auth/register';
@@ -27,18 +28,18 @@ async function registerUser(user) {
   }
 }
 
-function parseCSVAndRegister() {
-  fs.createReadStream(CSV_FILE)
-    .pipe(parse({ columns: ['email', 'password'], from_line: 2, trim: true }))
-    .on('data', (row) => {
-      registerUser(row);
-    })
-    .on('end', () => {
-      console.log('Bulk registration complete.');
-    })
-    .on('error', (err) => {
-      console.error('Error reading CSV:', err);
-    });
+async function parseCSVAndRegister() {
+  const registrations = [];
+  const parser = fs.createReadStream(CSV_FILE)
+    .pipe(parse({ columns: ['email', 'password'], from_line: 2, trim: true }));
+
+  parser.on('data', (row) => {
+    registrations.push(registerUser(row));
+  });
+
+  await once(parser, 'end');
+  await Promise.all(registrations);
+  console.log('Bulk registration complete.');
 }
 
 parseCSVAndRegister(); 
