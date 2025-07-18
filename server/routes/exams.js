@@ -544,23 +544,9 @@ router.post("/:id/submit", authenticateJWT, requireRole('student'), async (req, 
     submission.score = score;
     submission.submittedAt = new Date();
     
-    // Add term and session information (you might want to get this from the exam or request body)
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth() + 1;
-    
-    // Determine term based on month (you can adjust this logic)
-    let term;
-    if (currentMonth >= 9 && currentMonth <= 12) {
-      term = '1st';
-    } else if (currentMonth >= 1 && currentMonth <= 4) {
-      term = '2nd';
-    } else {
-      term = '3rd';
-    }
-    
-    submission.term = term;
-    submission.session = `${currentYear}/${currentYear + 1}`;
+    // Set term and session from the exam to ensure consistency
+    submission.term = exam.term;
+    submission.session = exam.session;
     
     await submission.save();
 

@@ -7,6 +7,7 @@ function TakeExam() {
   const navigate = useNavigate();
   const { examId } = useParams();
   const [studentName, setStudentName] = useState("");
+  const [studentEmail, setStudentEmail] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [exam, setExam] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -18,6 +19,11 @@ function TakeExam() {
   const [assignedQuestions, setAssignedQuestions] = useState([]);
   const [examStarted, setExamStarted] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  // Add a flag to track if timer is initialized
+  const [timerInitialized, setTimerInitialized] = useState(false);
+
+  // Helper to get unique localStorage key
+  const getExamInProgressKey = (examId, email) => `examInProgress_${examId}_${email}`;
 
   // Check for student email on mount and fetch display name
   useEffect(() => {
@@ -26,6 +32,7 @@ function TakeExam() {
       navigate("/auth-email");
       return;
     }
+    setStudentEmail(email);
     // Fetch all student users and verify the email exists
     userApi
       .getAllStudentUsers()
@@ -49,7 +56,8 @@ function TakeExam() {
 
   // Check for existing exam in progress
   useEffect(() => {
-    const examInProgress = localStorage.getItem('examInProgress');
+    if (!studentEmail) return;
+    const examInProgress = localStorage.getItem(getExamInProgressKey(examId, studentEmail));
     if (examInProgress) {
       const examState = JSON.parse(examInProgress);
       if (examState.examId === examId) {
@@ -59,14 +67,14 @@ function TakeExam() {
         setExamStarted(true);
       } else {
         // Different exam, clear the old state
-        localStorage.removeItem('examInProgress');
+        localStorage.removeItem(getExamInProgressKey(examId, studentEmail));
       }
     }
-  }, [examId]);
+  }, [examId, studentEmail]);
 
   // Fetch exam data and assigned questions
   useEffect(() => {
-    if (!examId) {
+    if (!examId || !studentEmail) {
       navigate("/exam-selection");
       return;
     }
@@ -81,48 +89,40 @@ function TakeExam() {
         // Call /exams/:id/start to get assigned questions
         const { assignedQuestions } = await examApi.startExam(examId);
         setAssignedQuestions(assignedQuestions);
-        
         // Check if we have saved answers
-        const examInProgress = localStorage.getItem('examInProgress');
+        const examInProgress = localStorage.getItem(getExamInProgressKey(examId, studentEmail));
         let initialAnswers = {};
-        
+        let initialTimeLeft;
         if (examInProgress) {
           const examState = JSON.parse(examInProgress);
           if (examState.examId === examId && examState.answers) {
             initialAnswers = examState.answers;
           }
+          if (examState.examId === examId && examState.timeLeft) {
+            initialTimeLeft = examState.timeLeft;
+          }
         }
-        
         // Initialize answers object if no saved answers
         if (Object.keys(initialAnswers).length === 0) {
           assignedQuestions.forEach((q) => {
             initialAnswers[q._id] = "";
           });
         }
-        
         setAnswers(initialAnswers);
-        
         // Set timer based on exam duration or saved time
-        const examInProgressData = localStorage.getItem('examInProgress');
-        if (examInProgressData) {
-          const examState = JSON.parse(examInProgressData);
-          if (examState.examId === examId && examState.timeLeft) {
-            setTimeLeft(examState.timeLeft);
-          } else {
-            setTimeLeft(examData.duration * 60);
-          }
+        if (typeof initialTimeLeft === 'number' && initialTimeLeft > 0) {
+          setTimeLeft(initialTimeLeft);
         } else {
           setTimeLeft(examData.duration * 60);
         }
-        
+        setTimerInitialized(true);
         // Mark exam as started
         setExamStarted(true);
-        
         // Store exam state in localStorage
-        localStorage.setItem('examInProgress', JSON.stringify({
+        localStorage.setItem(getExamInProgressKey(examId, studentEmail), JSON.stringify({
           examId,
           answers: initialAnswers,
-          timeLeft: examData.duration * 60,
+          timeLeft: typeof initialTimeLeft === 'number' && initialTimeLeft > 0 ? initialTimeLeft : examData.duration * 60,
           startedAt: Date.now()
         }));
       } catch (err) {
@@ -133,7 +133,7 @@ function TakeExam() {
       }
     };
     fetchExamAndQuestions();
-  }, [examId, navigate]);
+  }, [examId, navigate, studentEmail]);
 
   // Add beforeunload event listener to warn when leaving the page
   useEffect(() => {
@@ -168,11 +168,34 @@ function TakeExam() {
     };
   }, [examStarted, submitted, loading]);
 
+  // Timer effect: only run if timerInitialized and not loading
+  useEffect(() => {
+    if (!timerInitialized || loading || submitted || !exam || typeof timeLeft !== 'number' || timeLeft <= 0) return;
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          handleSubmit();
+          return 0;
+        }
+        const newTime = prev - 1;
+        // Update localStorage with new time
+        if (examStarted) {
+          const examState = JSON.parse(localStorage.getItem(getExamInProgressKey(examId, studentEmail)) || '{}');
+          examState.timeLeft = newTime;
+          localStorage.setItem(getExamInProgressKey(examId, studentEmail), JSON.stringify(examState));
+        }
+        return newTime;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [timeLeft, submitted, exam, examStarted, examId, studentEmail, timerInitialized, loading]);
+
   const handleLogout = () => {
     if (examStarted && !submitted) {
       setShowLogoutConfirm(true);
     } else {
       localStorage.removeItem("studentEmail");
+      if (studentEmail) localStorage.removeItem(getExamInProgressKey(examId, studentEmail));
       navigate("/auth-email");
     }
   };
@@ -184,11 +207,13 @@ function TakeExam() {
         await examApi.submitExam(examId, answers);
       }
       localStorage.removeItem("studentEmail");
+      if (studentEmail) localStorage.removeItem(getExamInProgressKey(examId, studentEmail));
       navigate("/auth-email");
     } catch (error) {
       console.error("Error auto-submitting exam:", error);
       // Still logout even if auto-submit fails
       localStorage.removeItem("studentEmail");
+      if (studentEmail) localStorage.removeItem(getExamInProgressKey(examId, studentEmail));
       navigate("/auth-email");
     }
   };
@@ -205,31 +230,6 @@ function TakeExam() {
     navigate("/exam-selection");
   };
 
-  useEffect(() => {
-    if (submitted || !exam || timeLeft <= 0) return;
-    
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          handleSubmit();
-          return 0;
-        }
-        const newTime = prev - 1;
-        
-        // Update localStorage with new time
-        if (examStarted) {
-          const examState = JSON.parse(localStorage.getItem('examInProgress') || '{}');
-          examState.timeLeft = newTime;
-          localStorage.setItem('examInProgress', JSON.stringify(examState));
-        }
-        
-        return newTime;
-      });
-    }, 1000);
-    
-    return () => clearInterval(timer);
-  }, [timeLeft, submitted, exam, examStarted]);
-
   const handleAnswerChange = (questionId, value) => {
     const newAnswers = {
       ...answers,
@@ -239,9 +239,9 @@ function TakeExam() {
     
     // Update localStorage with new answers
     if (examStarted) {
-      const examState = JSON.parse(localStorage.getItem('examInProgress') || '{}');
+      const examState = JSON.parse(localStorage.getItem(getExamInProgressKey(examId, studentEmail)) || '{}');
       examState.answers = newAnswers;
-      localStorage.setItem('examInProgress', JSON.stringify(examState));
+      localStorage.setItem(getExamInProgressKey(examId, studentEmail), JSON.stringify(examState));
     }
   };
 
@@ -254,7 +254,7 @@ function TakeExam() {
       await examApi.submitExam(examId, answers);
       setSubmitted(true);
       // Clear exam state from localStorage
-      localStorage.removeItem('examInProgress');
+      localStorage.removeItem(getExamInProgressKey(examId, studentEmail));
       alert("Exam submitted successfully! Thank you for participating.");
       setTimeout(() => {
         navigate("/exam-selection");
@@ -436,7 +436,7 @@ function TakeExam() {
           <div className="mt-6 sm:mt-8">
             <button
               onClick={handleSubmit}
-              disabled={submitted || submitting || timeLeft <= 0}
+              disabled={submitted || submitting || timeLeft <= 0 || !timerInitialized || loading}
               className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-300 text-sm sm:text-base"
             >
               {submitting ? "Submitting..." : "Submit Exam"}

@@ -114,7 +114,7 @@ const TeacherLogin = () => {
             </div>
           )}
 
-          <div className="rounded-md shadow-sm -space-y-px">
+          <div className="rounded-md shadow-sm">
             <div>
               <label htmlFor="email" className="sr-only">
                 Email address
@@ -136,7 +136,7 @@ const TeacherLogin = () => {
                 />
               </div>
             </div>
-            <div>
+            <div className="mt-4">
               <label htmlFor="password" className="sr-only">
                 Password
               </label>

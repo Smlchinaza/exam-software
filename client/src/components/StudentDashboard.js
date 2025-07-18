@@ -299,12 +299,14 @@ const StudentDashboard = () => {
                     <div>
                       <span className="font-medium text-gray-900 text-sm">{submission.exam.title}</span>
                       <span className="ml-2 text-gray-500 text-xs">({submission.exam.subject})</span>
-                      <div className="text-xs text-gray-400 mt-1">
-                        Score: {submission.score}/{submission.exam.totalMarks} 
-                        ({((submission.score / submission.exam.totalMarks) * 100).toFixed(1)}%)
-                      </div>
+                      {submission.adminReleased ? (
+                        <div className="text-xs text-gray-400 mt-1">
+                          Score: {submission.score}/{submission.exam.totalMarks} 
+                          ({((submission.score / submission.exam.totalMarks) * 100).toFixed(1)}%)
+                        </div>
+                      ) : null}
                       <div className="text-xs text-gray-400">
-                        Status: {submission.teacherApproved ? 'Approved' : submission.teacherApproved === false ? 'Rejected' : 'Pending Approval'}
+                        Status: {submission.adminReleased ? 'Released' : submission.teacherApproved === true ? 'Approved (awaiting release)' : submission.teacherApproved === false ? 'Rejected' : 'Pending Approval'}
                       </div>
                     </div>
                     <span className="text-green-600 text-xs font-medium flex items-center gap-1"><FaCheckCircle /> Submitted</span>

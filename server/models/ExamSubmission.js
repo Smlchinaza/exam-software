@@ -63,7 +63,7 @@ const examSubmissionSchema = new mongoose.Schema({
   // Term and session for organization
   term: {
     type: String,
-    enum: ['1st', '2nd', '3rd'],
+    enum: ['1st Term', '2nd Term', '3rd Term'],
     required: true
   },
   session: {
