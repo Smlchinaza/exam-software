@@ -6,19 +6,18 @@ const { authenticateJWT } = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const fsp = require('fs').promises;
 const pdfParse = require('pdf-parse');
 const mammoth = require('mammoth');
 
 // Get all questions
 router.get('/', authenticateJWT, async (req, res) => {
   try {
-    console.log('Fetching questions for teacher:', req.user.user.id);
+    // Restore original DB query
     const questions = await Question.find({ createdBy: req.user.user.id }).sort({ createdAt: -1 });
-    
     // Handle migration for existing questions without term and class
     const questionsToUpdate = questions.filter(q => !q.term || !q.class);
     if (questionsToUpdate.length > 0) {
-      console.log(`Found ${questionsToUpdate.length} questions that need migration`);
       for (const question of questionsToUpdate) {
         await Question.findByIdAndUpdate(question._id, {
           term: question.term || '1st Term',
@@ -27,11 +26,9 @@ router.get('/', authenticateJWT, async (req, res) => {
       }
       // Fetch updated questions
       const updatedQuestions = await Question.find({ createdBy: req.user.user.id }).sort({ createdAt: -1 });
-      console.log(`Found ${updatedQuestions.length} questions for teacher ${req.user.user.id} after migration`);
-      res.json(updatedQuestions);
+      return res.json(updatedQuestions);
     } else {
-      console.log(`Found ${questions.length} questions for teacher ${req.user.user.id}`);
-      res.json(questions);
+      return res.json(questions);
     }
   } catch (error) {
     console.error('Error fetching questions:', error);
@@ -177,12 +174,18 @@ router.delete('/:id', authenticateJWT, async (req, res) => {
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadDir = path.join(__dirname, '../uploads');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
+  destination: async function (req, file, cb) {
+    try {
+      const uploadDir = path.join(__dirname, '../uploads');
+      try {
+        await fsp.access(uploadDir);
+      } catch {
+        await fsp.mkdir(uploadDir, { recursive: true });
+      }
+      cb(null, uploadDir);
+    } catch (err) {
+      cb(err);
     }
-    cb(null, uploadDir);
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + path.extname(file.originalname));
@@ -219,7 +222,7 @@ router.post('/upload', authenticateJWT, upload.single('file'), async (req, res) 
     try {
       // Process the file based on its type
       if (fileExt === '.pdf') {
-        const dataBuffer = fs.readFileSync(filePath);
+        const dataBuffer = await fsp.readFile(filePath);
         const data = await pdfParse(dataBuffer);
         text = data.text;
       } else if (fileExt === '.docx') {
@@ -228,7 +231,7 @@ router.post('/upload', authenticateJWT, upload.single('file'), async (req, res) 
       }
 
       // Clean up the uploaded file
-      fs.unlinkSync(filePath);
+      await fsp.unlink(filePath);
 
       // Process the text into questions
       const questions = processDocumentText(text);
@@ -258,9 +261,9 @@ router.post('/upload', authenticateJWT, upload.single('file'), async (req, res) 
       });
     } catch (error) {
       // Clean up the file if there's an error
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
+      try {
+        await fsp.unlink(filePath);
+      } catch {}
       throw error;
     }
   } catch (error) {

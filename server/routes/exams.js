@@ -8,19 +8,10 @@ const { authenticateJWT, requireRole } = require("../middleware/auth");
 // Get all exams
 router.get("/", authenticateJWT, async (req, res) => {
   try {
-    console.log('Fetching all exams for user:', req.user.user.id);
+    // Restore original DB query
     const exams = await Exam.find()
       .populate("createdBy", "displayName email")
       .populate("questions");
-    
-    console.log('Total exams found:', exams.length);
-    console.log('Exams with createdBy:', exams.filter(e => e.createdBy).length);
-    console.log('Exams without createdBy:', exams.filter(e => !e.createdBy).length);
-    
-    if (exams.length > 0) {
-      console.log('Sample exam createdBy:', exams[0].createdBy);
-    }
-    
     res.json(exams);
   } catch (error) {
     console.error("Error fetching exams:", error);
