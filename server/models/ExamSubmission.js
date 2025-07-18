@@ -39,8 +39,7 @@ const examSubmissionSchema = new mongoose.Schema({
   }],
   // Teacher approval status
   teacherApproved: {
-    type: Boolean,
-    default: false
+    type: Boolean
   },
   teacherApprovedAt: {
     type: Date

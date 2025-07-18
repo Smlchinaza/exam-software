@@ -13,7 +13,7 @@ const AdminResults = () => {
   const [selectedSession, setSelectedSession] = useState('');
   const [showReleaseForm, setShowReleaseForm] = useState(false);
 
-  const terms = ['1st', '2nd', '3rd'];
+  const terms = ['1st Term', '2nd Term', '3rd Term'];
   const currentYear = new Date().getFullYear();
   const sessions = [`${currentYear-1}/${currentYear}`, `${currentYear}/${currentYear+1}`, `${currentYear+1}/${currentYear+2}`];
 
@@ -73,6 +73,7 @@ const AdminResults = () => {
   };
 
   const calculatePercentage = (score, totalMarks) => {
+    if (!totalMarks || isNaN(score) || isNaN(totalMarks)) return 0;
     return ((score / totalMarks) * 100).toFixed(1);
   };
 
@@ -151,7 +152,7 @@ const AdminResults = () => {
                 >
                   <option value="">All Terms</option>
                   {terms.map(term => (
-                    <option key={term} value={term}>{term} Term</option>
+                    <option key={term} value={term}>{term}</option>
                   ))}
                 </select>
               </div>
@@ -210,7 +211,12 @@ const AdminResults = () => {
               <p className="text-sm text-yellow-600">Average Percentage</p>
               <p className="text-2xl font-bold text-yellow-800">
                 {approvedSubmissions.length > 0 
-                  ? (approvedSubmissions.reduce((sum, sub) => sum + calculatePercentage(sub.score, sub.exam.totalMarks), 0) / approvedSubmissions.length).toFixed(1) + '%'
+                  ? (() => {
+                      const validSubs = approvedSubmissions.filter(sub => sub.exam.totalMarks && !isNaN(sub.score) && !isNaN(sub.exam.totalMarks));
+                      if (validSubs.length === 0) return '0%';
+                      const avg = validSubs.reduce((sum, sub) => sum + parseFloat(calculatePercentage(sub.score, sub.exam.totalMarks)), 0) / validSubs.length;
+                      return avg.toFixed(1) + '%';
+                    })()
                   : '0%'
                 }
               </p>
@@ -344,7 +350,7 @@ const AdminResults = () => {
                 >
                   <option value="">Select Term</option>
                   {terms.map(term => (
-                    <option key={term} value={term}>{term} Term</option>
+                    <option key={term} value={term}>{term}</option>
                   ))}
                 </select>
               </div>

@@ -21,6 +21,7 @@ function TakeExam() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   // Add a flag to track if timer is initialized
   const [timerInitialized, setTimerInitialized] = useState(false);
+  const [studentEmailLoaded, setStudentEmailLoaded] = useState(false);
 
   // Helper to get unique localStorage key
   const getExamInProgressKey = (examId, email) => `examInProgress_${examId}_${email}`;
@@ -29,10 +30,11 @@ function TakeExam() {
   useEffect(() => {
     const email = localStorage.getItem("studentEmail");
     if (!email) {
-      navigate("/auth-email");
+      setStudentEmailLoaded(true);
       return;
     }
     setStudentEmail(email);
+    setStudentEmailLoaded(true);
     // Fetch all student users and verify the email exists
     userApi
       .getAllStudentUsers()
@@ -74,7 +76,9 @@ function TakeExam() {
 
   // Fetch exam data and assigned questions
   useEffect(() => {
+    if (!studentEmailLoaded) return;
     if (!examId || !studentEmail) {
+      console.log('[TakeExam] Missing examId or studentEmail, navigating to /exam-selection');
       navigate("/exam-selection");
       return;
     }
@@ -83,12 +87,16 @@ function TakeExam() {
       try {
         setLoading(true);
         setError("");
+        console.log('[TakeExam] Fetching exam meta for', examId);
         // Fetch exam meta
         const examData = await examApi.getExam(examId);
         setExam(examData);
+        console.log('[TakeExam] Exam meta:', examData);
         // Always fetch assigned questions from backend
+        console.log('[TakeExam] Fetching assigned questions from backend');
         const { assignedQuestions } = await examApi.startExam(examId);
         setAssignedQuestions(assignedQuestions);
+        console.log('[TakeExam] Assigned questions:', assignedQuestions);
         // Try to restore from localStorage
         const examInProgress = localStorage.getItem(getExamInProgressKey(examId, studentEmail));
         let initialAnswers = {};
@@ -136,15 +144,21 @@ function TakeExam() {
           assignedQuestions: questionsToUse,
           startedAt: Date.now()
         }));
+        console.log('[TakeExam] State initialized:', {
+          examId,
+          answers: initialAnswers,
+          timeLeft: timeToSet,
+          assignedQuestions: questionsToUse
+        });
       } catch (err) {
         setError("Failed to fetch exam data");
-        console.error("Error fetching exam:", err);
+        console.error('[TakeExam] Error fetching exam:', err);
       } finally {
         setLoading(false);
       }
     };
     fetchExamAndQuestions();
-  }, [examId, navigate, studentEmail]);
+  }, [examId, navigate, studentEmail, studentEmailLoaded]);
 
   // Add beforeunload event listener to warn when leaving the page
   useEffect(() => {
@@ -291,6 +305,7 @@ function TakeExam() {
   }
 
   if (loading) {
+    console.log('[TakeExam] Rendering loading spinner');
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-center min-h-screen">
@@ -301,6 +316,7 @@ function TakeExam() {
   }
 
   if (error) {
+    console.log('[TakeExam] Rendering error:', error);
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
@@ -319,6 +335,7 @@ function TakeExam() {
   }
 
   if (!exam) {
+    console.log('[TakeExam] No exam data found');
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
@@ -334,6 +351,7 @@ function TakeExam() {
     );
   }
 
+  console.log('[TakeExam] Rendering exam UI');
   return (
     <div className="container mx-auto px-4 py-4 sm:py-8">
       <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
