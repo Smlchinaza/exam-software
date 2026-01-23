@@ -30,8 +30,6 @@ const AdminDashboard = () => {
   const [error, setError] = useState("");
   const [unapprovedExams, setUnapprovedExams] = useState([]);
   const [examLoading, setExamLoading] = useState(false);
-  const [examMessage, setExamMessage] = useState("");
-  const [examError, setExamError] = useState("");
   const [selectedSubjectForUnassign, setSelectedSubjectForUnassign] =
     useState("");
   const [selectedTeachersForUnassign, setSelectedTeachersForUnassign] =
@@ -39,7 +37,6 @@ const AdminDashboard = () => {
   const [showUnassignModal, setShowUnassignModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [subjectToDelete, setSubjectToDelete] = useState(null);
-  const [pendingApprovalExams, setPendingApprovalExams] = useState([]);
   const [approvalLoading, setApprovalLoading] = useState(false);
   const [approvalMessage, setApprovalMessage] = useState("");
   const [approvalError, setApprovalError] = useState("");
@@ -62,11 +59,100 @@ const AdminDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [navOpen, setNavOpen] = useState(false);
-  const [unassignSuccess, setUnassignSuccess] = useState("");
 
   const handleLogout = () => {
     logout();
     navigate("/");
+  };
+
+  const fetchData = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const [subjectsRes, teachersRes, statsRes] = await Promise.all([
+        subjectApi.getAllSubjects(),
+        teacherApi.getAllTeachers(),
+        subjectApi.getSubjectStats(),
+      ]);
+      setSubjects(subjectsRes);
+      setTeachers(teachersRes);
+      setSubjectStats(statsRes);
+    } catch (err) {
+      setError("Failed to fetch data.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchSubjectsByClass = React.useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      let subjectsRes;
+      if (selectedClass) {
+        subjectsRes = await subjectApi.getSubjectsByClass(selectedClass);
+      } else {
+        subjectsRes = await subjectApi.getAllSubjects();
+      }
+      setSubjects(subjectsRes);
+    } catch (err) {
+      setError("Failed to fetch subjects.");
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedClass]);
+
+  const fetchAssignSubjectsByClass = React.useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      let subjectsRes;
+      if (selectedAssignClass) {
+        subjectsRes = await subjectApi.getSubjectsByClass(selectedAssignClass);
+      } else {
+        subjectsRes = await subjectApi.getAllSubjects();
+      }
+      setSubjects(subjectsRes);
+    } catch (err) {
+      setError("Failed to fetch subjects.");
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedAssignClass]);
+
+  const fetchTeachersForAssign = async () => {
+    try {
+      const teachersRes = await teacherApi.getAllTeachers();
+      setTeachers(teachersRes);
+    } catch (err) {
+      setError("Failed to fetch teachers.");
+    }
+  };
+
+  const fetchUnapprovedExams = async () => {
+    setExamLoading(true);
+    setApprovalError("");
+    try {
+      const exams = await examApi.getUnapprovedExams();
+      setUnapprovedExams(exams);
+    } catch (err) {
+      setApprovalError("Failed to fetch unapproved exams.");
+    } finally {
+      setExamLoading(false);
+    }
+  };
+
+  const fetchUnapprovedTeachers = async () => {
+    setTeacherApprovalLoading(true);
+    setTeacherApprovalError("");
+    try {
+      const res = await api.get("/users/unapproved-teachers");
+      setUnapprovedTeachers(res.data);
+    } catch (err) {
+      setTeacherApprovalError("Failed to fetch unapproved teachers.");
+    } finally {
+      setTeacherApprovalLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -77,7 +163,6 @@ const AdminDashboard = () => {
     }
     if (activeTab === "approve") {
       fetchUnapprovedExams();
-      fetchPendingApprovalExams();
     }
     if (activeTab === "teacher-approval") {
       fetchUnapprovedTeachers();
@@ -146,109 +231,6 @@ const AdminDashboard = () => {
     }
   }, [activeTab]);
 
-  const fetchData = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const [subjectsRes, teachersRes, statsRes] = await Promise.all([
-        subjectApi.getAllSubjects(),
-        teacherApi.getAllTeachers(),
-        subjectApi.getSubjectStats(),
-      ]);
-      setSubjects(subjectsRes);
-      setTeachers(teachersRes);
-      setSubjectStats(statsRes);
-    } catch (err) {
-      setError("Failed to fetch data.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchSubjectsByClass = React.useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      let subjectsRes;
-      if (selectedClass) {
-        subjectsRes = await subjectApi.getSubjectsByClass(selectedClass);
-      } else {
-        subjectsRes = await subjectApi.getAllSubjects();
-      }
-      setSubjects(subjectsRes);
-    } catch (err) {
-      setError("Failed to fetch subjects.");
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedClass]);
-
-  const fetchAssignSubjectsByClass = React.useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      let subjectsRes;
-      if (selectedAssignClass) {
-        subjectsRes = await subjectApi.getSubjectsByClass(selectedAssignClass);
-      } else {
-        subjectsRes = await subjectApi.getAllSubjects();
-      }
-      setSubjects(subjectsRes);
-    } catch (err) {
-      setError("Failed to fetch subjects.");
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedAssignClass]);
-
-  const fetchTeachersForAssign = async () => {
-    try {
-      const teachersRes = await teacherApi.getAllTeachers();
-      setTeachers(teachersRes);
-    } catch (err) {
-      setError("Failed to fetch teachers.");
-    }
-  };
-
-  const fetchUnapprovedExams = async () => {
-    setExamLoading(true);
-    setExamError("");
-    try {
-      const exams = await examApi.getUnapprovedExams();
-      setUnapprovedExams(exams);
-    } catch (err) {
-      setExamError("Failed to fetch unapproved exams.");
-    } finally {
-      setExamLoading(false);
-    }
-  };
-
-  const fetchPendingApprovalExams = async () => {
-    setApprovalLoading(true);
-    setApprovalError("");
-    try {
-      const exams = await examApi.getPendingApprovalExams();
-      setPendingApprovalExams(exams);
-    } catch (err) {
-      setApprovalError("Failed to fetch pending approval exams.");
-    } finally {
-      setApprovalLoading(false);
-    }
-  };
-
-  const fetchUnapprovedTeachers = async () => {
-    setTeacherApprovalLoading(true);
-    setTeacherApprovalError("");
-    try {
-      const res = await api.get("/users/unapproved-teachers");
-      setUnapprovedTeachers(res.data);
-    } catch (err) {
-      setTeacherApprovalError("Failed to fetch unapproved teachers.");
-    } finally {
-      setTeacherApprovalLoading(false);
-    }
-  };
-
   const handleAssign = async () => {
     if (!selectedSubject || selectedTeachers.length === 0) {
       setError("Please select a subject and at least one teacher.");
@@ -297,7 +279,6 @@ const AdminDashboard = () => {
       await examApi.approveExam(examId);
       setApprovalMessage("Exam approved successfully!");
       fetchUnapprovedExams();
-      fetchPendingApprovalExams();
     } catch (err) {
       setApprovalError("Failed to approve exam.");
     } finally {
@@ -316,7 +297,6 @@ const AdminDashboard = () => {
       setRejectReason("");
       setExamToReject(null);
       fetchUnapprovedExams();
-      fetchPendingApprovalExams();
     } catch (err) {
       setApprovalError("Failed to reject exam.");
     } finally {
@@ -412,18 +392,17 @@ const AdminDashboard = () => {
   */
 
   const handleDisapproveExam = async (examId) => {
-    setExamLoading(true);
-    setExamError("");
-    setExamMessage("");
+    setApprovalLoading(true);
+    setApprovalError("");
+    setApprovalMessage("");
     try {
       await examApi.disapproveExam(examId);
-      setExamMessage("Exam disapproved successfully!");
+      setApprovalMessage("Exam disapproved successfully!");
       fetchUnapprovedExams();
-      fetchPendingApprovalExams();
     } catch (err) {
-      setExamError("Failed to disapprove exam.");
+      setApprovalError("Failed to disapprove exam.");
     } finally {
-      setExamLoading(false);
+      setApprovalLoading(false);
     }
   };
 
@@ -635,11 +614,6 @@ const AdminDashboard = () => {
             {message && (
               <div className="mb-2 text-xs xs:text-sm text-green-600">
                 {message}
-              </div>
-            )}
-            {unassignSuccess && (
-              <div className="mb-2 text-green-600 text-sm font-semibold">
-                {unassignSuccess}
               </div>
             )}
             {/* Class Filter Dropdown for Assign */}
