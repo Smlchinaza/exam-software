@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaEdit } from 'react-icons/fa';
-import { studentApi } from '../services/api';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { FaEdit } from "react-icons/fa";
+import { studentApi } from "../services/api";
+import { useNavigate } from "react-router-dom";
 
 const StudentProfile = () => {
   const navigate = useNavigate();
@@ -9,26 +9,26 @@ const StudentProfile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [profile, setProfile] = useState({
-    fullName: '',
-    admissionNumber: '',
-    dateOfBirth: '',
-    gender: '',
-    class: '',
-    email: '',
-    phone: '',
-    address: '',
-    parentName: '',
-    parentPhone: '',
-    emergencyContact: ''
+    fullName: "",
+    admissionNumber: "",
+    dateOfBirth: "",
+    gender: "",
+    class: "",
+    email: "",
+    phone: "",
+    address: "",
+    parentName: "",
+    parentPhone: "",
+    emergencyContact: "",
   });
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         setLoading(true);
-        const studentId = localStorage.getItem('studentId');
+        const studentId = localStorage.getItem("studentId");
         if (!studentId) {
-          navigate('/login');
+          navigate("/login");
           return;
         }
 
@@ -36,7 +36,7 @@ const StudentProfile = () => {
         setProfile({
           fullName: response.data.fullName,
           admissionNumber: response.data.admissionNumber,
-          dateOfBirth: response.data.dateOfBirth.split('T')[0],
+          dateOfBirth: response.data.dateOfBirth.split("T")[0],
           gender: response.data.gender,
           class: response.data.currentClass,
           email: response.data.email,
@@ -44,10 +44,10 @@ const StudentProfile = () => {
           address: response.data.address,
           parentName: response.data.parentName,
           parentPhone: response.data.parentPhone,
-          emergencyContact: response.data.emergencyContact
+          emergencyContact: response.data.emergencyContact,
         });
       } catch (err) {
-        setError(err.response?.data?.message || 'Failed to fetch profile');
+        setError(err.response?.data?.message || "Failed to fetch profile");
       } finally {
         setLoading(false);
       }
@@ -58,18 +58,18 @@ const StudentProfile = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setProfile(prev => ({
+    setProfile((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const studentId = localStorage.getItem('studentId');
+      const studentId = localStorage.getItem("studentId");
       if (!studentId) {
-        navigate('/login');
+        navigate("/login");
         return;
       }
 
@@ -83,13 +83,13 @@ const StudentProfile = () => {
         address: profile.address,
         parentName: profile.parentName,
         parentPhone: profile.parentPhone,
-        emergencyContact: profile.emergencyContact
+        emergencyContact: profile.emergencyContact,
       });
 
       setIsEditing(false);
       setError(null);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update profile');
+      setError(err.response?.data?.message || "Failed to update profile");
     }
   };
 
@@ -113,12 +113,15 @@ const StudentProfile = () => {
           className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
         >
           <FaEdit />
-          <span>{isEditing ? 'Cancel' : 'Edit Profile'}</span>
+          <span>{isEditing ? "Cancel" : "Edit Profile"}</span>
         </button>
       </div>
 
       {error && (
-        <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+        <div
+          className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+          role="alert"
+        >
           <strong className="font-bold">Error!</strong>
           <span className="block sm:inline"> {error}</span>
         </div>
@@ -128,10 +131,14 @@ const StudentProfile = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Personal Information */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-700">Personal Information</h3>
-            
+            <h3 className="text-lg font-semibold text-gray-700">
+              Personal Information
+            </h3>
+
             <div>
-              <label className="block text-sm font-medium text-gray-600">Full Name</label>
+              <label className="block text-sm font-medium text-gray-600">
+                Full Name
+              </label>
               <input
                 type="text"
                 name="fullName"
@@ -143,7 +150,9 @@ const StudentProfile = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-600">Admission Number</label>
+              <label className="block text-sm font-medium text-gray-600">
+                Admission Number
+              </label>
               <input
                 type="text"
                 name="admissionNumber"
@@ -154,7 +163,9 @@ const StudentProfile = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-600">Date of Birth</label>
+              <label className="block text-sm font-medium text-gray-600">
+                Date of Birth
+              </label>
               <input
                 type="date"
                 name="dateOfBirth"
@@ -166,7 +177,9 @@ const StudentProfile = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-600">Gender</label>
+              <label className="block text-sm font-medium text-gray-600">
+                Gender
+              </label>
               <select
                 name="gender"
                 value={profile.gender}
@@ -182,10 +195,14 @@ const StudentProfile = () => {
 
           {/* Contact Information */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-700">Contact Information</h3>
-            
+            <h3 className="text-lg font-semibold text-gray-700">
+              Contact Information
+            </h3>
+
             <div>
-              <label className="block text-sm font-medium text-gray-600">Email</label>
+              <label className="block text-sm font-medium text-gray-600">
+                Email
+              </label>
               <input
                 type="email"
                 name="email"
@@ -197,7 +214,9 @@ const StudentProfile = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-600">Phone Number</label>
+              <label className="block text-sm font-medium text-gray-600">
+                Phone Number
+              </label>
               <input
                 type="tel"
                 name="phone"
@@ -209,7 +228,9 @@ const StudentProfile = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-600">Address</label>
+              <label className="block text-sm font-medium text-gray-600">
+                Address
+              </label>
               <textarea
                 name="address"
                 value={profile.address}
@@ -223,10 +244,14 @@ const StudentProfile = () => {
 
           {/* Parent/Guardian Information */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-700">Parent/Guardian Information</h3>
-            
+            <h3 className="text-lg font-semibold text-gray-700">
+              Parent/Guardian Information
+            </h3>
+
             <div>
-              <label className="block text-sm font-medium text-gray-600">Parent/Guardian Name</label>
+              <label className="block text-sm font-medium text-gray-600">
+                Parent/Guardian Name
+              </label>
               <input
                 type="text"
                 name="parentName"
@@ -238,7 +263,9 @@ const StudentProfile = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-600">Parent/Guardian Phone</label>
+              <label className="block text-sm font-medium text-gray-600">
+                Parent/Guardian Phone
+              </label>
               <input
                 type="tel"
                 name="parentPhone"
@@ -250,7 +277,9 @@ const StudentProfile = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-600">Emergency Contact</label>
+              <label className="block text-sm font-medium text-gray-600">
+                Emergency Contact
+              </label>
               <input
                 type="tel"
                 name="emergencyContact"
@@ -278,4 +307,4 @@ const StudentProfile = () => {
   );
 };
 
-export default StudentProfile; 
+export default StudentProfile;

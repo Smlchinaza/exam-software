@@ -1,14 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { FaUser, FaBook, FaChartBar, FaCog, FaSignOutAlt, FaBars, FaTimes, FaGraduationCap, FaClipboardList, FaCheckCircle, FaListAlt } from 'react-icons/fa';
-import { studentApi, subjectApi, examApi } from '../services/api';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import React, { useState, useEffect } from "react";
+import {
+  FaUser,
+  FaBook,
+  FaChartBar,
+  FaSignOutAlt,
+  FaBars,
+  FaTimes,
+  FaGraduationCap,
+  FaClipboardList,
+  FaCheckCircle,
+  FaListAlt,
+} from "react-icons/fa";
+import { studentApi, subjectApi, examApi } from "../services/api";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const [selectedClass, setSelectedClass] = useState('');
-  const [showProfile, setShowProfile] = useState(false);
+  const [selectedClass, setSelectedClass] = useState("");
+  // const [showProfile, setShowProfile] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [studentData, setStudentData] = useState(null);
@@ -17,7 +28,7 @@ const StudentDashboard = () => {
   const [completedExams, setCompletedExams] = useState([]);
   const [navOpen, setNavOpen] = useState(false);
 
-  const classes = ['JSS1', 'JSS2', 'JSS3', 'SS1', 'SS2', 'SS3'];
+  // const classes = ['JSS1', 'JSS2', 'JSS3', 'SS1', 'SS2', 'SS3'];
   // const availableSubjects = [
   //   'Mathematics', 'English', 'Physics', 'Chemistry', 'Biology',
   //   'Economics', 'Government', 'Literature', 'History', 'Geography',
@@ -29,10 +40,10 @@ const StudentDashboard = () => {
     const fetchStudentData = async () => {
       try {
         setLoading(true);
-        
+
         // Check if user is authenticated and is a student
-        if (!user || user.role !== 'student') {
-          navigate('/student/login');
+        if (!user || user.role !== "student") {
+          navigate("/student/login");
           return;
         }
 
@@ -41,55 +52,64 @@ const StudentDashboard = () => {
         try {
           const response = await studentApi.getStudent(user.email);
           setStudentData(response);
-          setSelectedClass(response.currentClass || 'JSS1');
+          setSelectedClass(response.currentClass || "JSS1");
           studentInfo = response;
         } catch (err) {
           // If student data doesn't exist, try to create one
-          console.log('Student data not found, attempting to create student record...');
+          console.log(
+            "Student data not found, attempting to create student record...",
+          );
           try {
             const newStudent = await studentApi.createStudentFromUser({
-              fullName: user.displayName || `${user.firstName} ${user.lastName}`,
-              currentClass: 'JSS1'
+              fullName:
+                user.displayName || `${user.firstName} ${user.lastName}`,
+              currentClass: "JSS1",
             });
             setStudentData(newStudent);
-            setSelectedClass(newStudent.currentClass || 'JSS1');
+            setSelectedClass(newStudent.currentClass || "JSS1");
             studentInfo = newStudent;
-            console.log('Student record created successfully');
+            console.log("Student record created successfully");
           } catch (createErr) {
             // If creation fails, use basic profile
-            console.log('Failed to create student record, using basic profile...');
+            console.log(
+              "Failed to create student record, using basic profile...",
+            );
             setStudentData({
               _id: user._id || user.id,
-              fullName: user.displayName || `${user.firstName} ${user.lastName}`,
+              fullName:
+                user.displayName || `${user.firstName} ${user.lastName}`,
               email: user.email,
-              currentClass: 'JSS1'
+              currentClass: "JSS1",
             });
-            setSelectedClass('JSS1');
-            studentInfo = { currentClass: 'JSS1' };
+            setSelectedClass("JSS1");
+            studentInfo = { currentClass: "JSS1" };
           }
         }
         // Fetch subjects for the student's class
-        const classSubjects = await subjectApi.getSubjectsByClass(studentInfo.currentClass || 'JSS1');
-        setAvailableSubjects(classSubjects.map(s => s.name));
+        const classSubjects = await subjectApi.getSubjectsByClass(
+          studentInfo.currentClass || "JSS1",
+        );
+        setAvailableSubjects(classSubjects.map((s) => s.name));
         // Fetch available exams for the student (excluding already taken ones)
         const availableExams = await examApi.getAvailableExamsForStudent();
-        const filteredExams = availableExams.filter(exam =>
-          exam.subject &&
-          exam.class === (studentInfo.currentClass || 'JSS1')
+        const filteredExams = availableExams.filter(
+          (exam) =>
+            exam.subject && exam.class === (studentInfo.currentClass || "JSS1"),
         );
         setAvailableExams(filteredExams);
 
         // Fetch completed exams for the student (only show if they want to see their own submissions)
         // Note: This shows all submissions, not just released results
         const completedExams = await examApi.getCompletedExamsForStudent();
-        const filteredCompletedExams = completedExams.filter(submission =>
-          submission.exam &&
-          submission.exam.class === (studentInfo.currentClass || 'JSS1')
+        const filteredCompletedExams = completedExams.filter(
+          (submission) =>
+            submission.exam &&
+            submission.exam.class === (studentInfo.currentClass || "JSS1"),
         );
         setCompletedExams(filteredCompletedExams);
       } catch (err) {
-        console.error('Error fetching student data:', err);
-        setError(err.message || 'Failed to fetch student data');
+        console.error("Error fetching student data:", err);
+        setError(err.message || "Failed to fetch student data");
       } finally {
         setLoading(false);
       }
@@ -98,6 +118,7 @@ const StudentDashboard = () => {
     fetchStudentData();
   }, [user, navigate]);
 
+  /*
   const handleClassSelect = async (className) => {
     try {
       setSelectedClass(className);
@@ -109,12 +130,11 @@ const StudentDashboard = () => {
       setError(err.message || 'Failed to update class');
     }
   };
-
-
+  */
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate("/");
   };
 
   if (loading) {
@@ -131,7 +151,10 @@ const StudentDashboard = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+        <div
+          className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+          role="alert"
+        >
           <strong className="font-bold">Error!</strong>
           <span className="block sm:inline"> {error}</span>
         </div>
@@ -145,12 +168,22 @@ const StudentDashboard = () => {
       <header className="bg-gradient-to-r from-blue-700 to-indigo-600 shadow-md animate-fade-in">
         <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-4">
           <div className="flex items-center gap-3">
-            <img src={require('../assets/images/SpectraLogo.jpg')} alt="Logo" className="w-10 h-10 rounded-full shadow animate-fade-in" />
-            <h1 className="text-2xl font-extrabold text-white tracking-wide drop-shadow animate-slide-in">Student Portal</h1>
+            <img
+              src={require("../assets/images/SpectraLogo.jpg")}
+              alt="Logo"
+              className="w-10 h-10 rounded-full shadow animate-fade-in"
+            />
+            <h1 className="text-2xl font-extrabold text-white tracking-wide drop-shadow animate-slide-in">
+              Student Portal
+            </h1>
           </div>
           <div className="flex items-center gap-2">
             {/* Hamburger for mobile */}
-            <button className="sm:hidden text-white text-2xl focus:outline-none" onClick={() => setNavOpen(!navOpen)} aria-label="Toggle navigation">
+            <button
+              className="sm:hidden text-white text-2xl focus:outline-none"
+              onClick={() => setNavOpen(!navOpen)}
+              aria-label="Toggle navigation"
+            >
               {navOpen ? <FaTimes /> : <FaBars />}
             </button>
           </div>
@@ -162,17 +195,26 @@ const StudentDashboard = () => {
         <div className="max-w-7xl mx-auto px-4">
           <ul className="flex flex-wrap gap-2 py-3 justify-center sm:justify-end">
             <li>
-              <button className="px-5 py-2 rounded-full font-medium transition text-sm flex items-center gap-2 bg-blue-600 text-white shadow" onClick={() => setShowProfile(true)}>
+              <button
+                className="px-5 py-2 rounded-full font-medium transition text-sm flex items-center gap-2 bg-blue-600 text-white shadow"
+                onClick={() => navigate("/student/profile")}
+              >
                 <FaUser /> Profile
               </button>
             </li>
             <li>
-              <button className="px-5 py-2 rounded-full font-medium transition text-sm flex items-center gap-2 bg-purple-600 text-white shadow" onClick={() => navigate('/student/results')}>
+              <button
+                className="px-5 py-2 rounded-full font-medium transition text-sm flex items-center gap-2 bg-purple-600 text-white shadow"
+                onClick={() => navigate("/student/results")}
+              >
                 <FaChartBar /> Results
               </button>
             </li>
             <li>
-              <button className="px-5 py-2 rounded-full font-medium transition text-sm flex items-center gap-2 bg-green-600 text-white shadow" onClick={handleLogout}>
+              <button
+                className="px-5 py-2 rounded-full font-medium transition text-sm flex items-center gap-2 bg-green-600 text-white shadow"
+                onClick={handleLogout}
+              >
                 <FaSignOutAlt /> Logout
               </button>
             </li>
@@ -180,23 +222,45 @@ const StudentDashboard = () => {
         </div>
       </nav>
       {/* Mobile Nav */}
-      <nav className={`sm:hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-40 z-50 transition-all duration-300 ${navOpen ? 'block animate-fade-in' : 'hidden'}`}
+      <nav
+        className={`sm:hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-40 z-50 transition-all duration-300 ${navOpen ? "block animate-fade-in" : "hidden"}`}
         onClick={() => setNavOpen(false)}
       >
-        <div className="bg-white shadow-lg rounded-b-2xl max-w-xs w-11/12 mx-auto mt-4 p-4 animate-slide-in-down" onClick={e => e.stopPropagation()}>
+        <div
+          className="bg-white shadow-lg rounded-b-2xl max-w-xs w-11/12 mx-auto mt-4 p-4 animate-slide-in-down"
+          onClick={(e) => e.stopPropagation()}
+        >
           <ul className="flex flex-col gap-3">
             <li>
-              <button className="w-full px-5 py-3 rounded-lg font-medium transition text-base flex items-center gap-3 bg-blue-600 text-white shadow" onClick={() => { setShowProfile(true); setNavOpen(false); }}>
+              <button
+                className="w-full px-5 py-3 rounded-lg font-medium transition text-base flex items-center gap-3 bg-blue-600 text-white shadow"
+                onClick={() => {
+                  navigate("/student/profile");
+                  setNavOpen(false);
+                }}
+              >
                 <FaUser /> Profile
               </button>
             </li>
             <li>
-              <button className="w-full px-5 py-3 rounded-lg font-medium transition text-base flex items-center gap-3 bg-purple-600 text-white shadow" onClick={() => { navigate('/student/results'); setNavOpen(false); }}>
+              <button
+                className="w-full px-5 py-3 rounded-lg font-medium transition text-base flex items-center gap-3 bg-purple-600 text-white shadow"
+                onClick={() => {
+                  navigate("/student/results");
+                  setNavOpen(false);
+                }}
+              >
                 <FaChartBar /> Results
               </button>
             </li>
             <li>
-              <button className="w-full px-5 py-3 rounded-lg font-medium transition text-base flex items-center gap-3 bg-green-600 text-white shadow" onClick={() => { handleLogout(); setNavOpen(false); }}>
+              <button
+                className="w-full px-5 py-3 rounded-lg font-medium transition text-base flex items-center gap-3 bg-green-600 text-white shadow"
+                onClick={() => {
+                  handleLogout();
+                  setNavOpen(false);
+                }}
+              >
                 <FaSignOutAlt /> Logout
               </button>
             </li>
@@ -210,19 +274,33 @@ const StudentDashboard = () => {
           <div className="lg:col-span-1 animate-scale-in">
             <div className="bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center gap-3 border-t-4 border-blue-500">
               <FaUser className="text-blue-500 text-3xl mb-1" />
-              <h2 className="text-xl font-bold mb-2 text-gray-800">Student Information</h2>
+              <h2 className="text-xl font-bold mb-2 text-gray-800">
+                Student Information
+              </h2>
               <div className="space-y-2 w-full">
                 <div>
-                  <label className="block text-xs font-medium text-gray-700">Name:</label>
-                  <p className="text-gray-900 text-sm font-semibold">{studentData?.fullName || user?.displayName || 'N/A'}</p>
+                  <label className="block text-xs font-medium text-gray-700">
+                    Name:
+                  </label>
+                  <p className="text-gray-900 text-sm font-semibold">
+                    {studentData?.fullName || user?.displayName || "N/A"}
+                  </p>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700">Email:</label>
-                  <p className="text-gray-900 text-sm">{user?.email || 'N/A'}</p>
+                  <label className="block text-xs font-medium text-gray-700">
+                    Email:
+                  </label>
+                  <p className="text-gray-900 text-sm">
+                    {user?.email || "N/A"}
+                  </p>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700">Current Class:</label>
-                  <p className="text-gray-900 text-sm">{studentData?.currentClass || selectedClass}</p>
+                  <label className="block text-xs font-medium text-gray-700">
+                    Current Class:
+                  </label>
+                  <p className="text-gray-900 text-sm">
+                    {studentData?.currentClass || selectedClass}
+                  </p>
                 </div>
               </div>
             </div>
@@ -233,16 +311,25 @@ const StudentDashboard = () => {
             <div className="bg-white rounded-2xl shadow-lg p-6 border-t-4 border-purple-500">
               <div className="flex items-center gap-2 mb-2">
                 <FaBook className="text-purple-500 text-2xl" />
-                <h2 className="text-lg font-semibold text-gray-800">Available Subjects</h2>
+                <h2 className="text-lg font-semibold text-gray-800">
+                  Available Subjects
+                </h2>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
                 {availableSubjects.length === 0 ? (
-                  <p className="text-gray-500 text-sm col-span-2">No subjects available for your class at this time.</p>
+                  <p className="text-gray-500 text-sm col-span-2">
+                    No subjects available for your class at this time.
+                  </p>
                 ) : (
                   availableSubjects.map((subject) => (
-                    <div key={subject} className="flex items-center gap-2 p-3 border rounded-lg bg-gray-50 animate-fade-in">
+                    <div
+                      key={subject}
+                      className="flex items-center gap-2 p-3 border rounded-lg bg-gray-50 animate-fade-in"
+                    >
                       <FaBook className="text-blue-400" />
-                      <span className="text-gray-900 text-sm font-medium">{subject}</span>
+                      <span className="text-gray-900 text-sm font-medium">
+                        {subject}
+                      </span>
                     </div>
                   ))
                 )}
@@ -256,23 +343,33 @@ const StudentDashboard = () => {
           <div className="bg-white rounded-2xl shadow-lg p-6 border-t-4 border-green-500">
             <div className="flex items-center gap-2 mb-2">
               <FaClipboardList className="text-green-500 text-2xl" />
-              <h2 className="text-lg font-semibold text-gray-800">Available Exams</h2>
+              <h2 className="text-lg font-semibold text-gray-800">
+                Available Exams
+              </h2>
             </div>
             {availableExams.length === 0 ? (
               <p className="text-gray-500 text-sm">
-                You have either completed all available exams or there are no active exams for your class at this time.
+                You have either completed all available exams or there are no
+                active exams for your class at this time.
               </p>
             ) : (
               <ul className="divide-y divide-gray-200">
-                {availableExams.map(exam => (
-                  <li key={exam._id} className="py-3 flex items-center justify-between animate-fade-in">
+                {availableExams.map((exam) => (
+                  <li
+                    key={exam._id}
+                    className="py-3 flex items-center justify-between animate-fade-in"
+                  >
                     <div className="flex items-center gap-2">
                       <FaBook className="text-blue-400" />
-                      <span className="font-medium text-gray-900 text-sm">{exam.title}</span>
-                      <span className="ml-2 text-gray-500 text-xs">({exam.subject})</span>
+                      <span className="font-medium text-gray-900 text-sm">
+                        {exam.title}
+                      </span>
+                      <span className="ml-2 text-gray-500 text-xs">
+                        ({exam.subject})
+                      </span>
                     </div>
                     <button
-                      onClick={() => navigate('/exam-selection')}
+                      onClick={() => navigate("/exam-selection")}
                       className="bg-green-600 text-white px-4 py-2 rounded-lg text-xs hover:bg-green-700 font-semibold shadow flex items-center gap-2"
                     >
                       <FaGraduationCap /> Start Exam
@@ -290,26 +387,52 @@ const StudentDashboard = () => {
             <div className="bg-white rounded-2xl shadow-lg p-6 border-t-4 border-yellow-500">
               <div className="flex items-center gap-2 mb-2">
                 <FaCheckCircle className="text-yellow-500 text-2xl" />
-                <h2 className="text-lg font-semibold text-gray-800">My Exam Submissions</h2>
+                <h2 className="text-lg font-semibold text-gray-800">
+                  My Exam Submissions
+                </h2>
               </div>
-              <p className="text-xs text-gray-500 mb-3">These are your submitted exams. Official results will appear in the Results section once approved and released.</p>
+              <p className="text-xs text-gray-500 mb-3">
+                These are your submitted exams. Official results will appear in
+                the Results section once approved and released.
+              </p>
               <ul className="divide-y divide-gray-200">
-                {completedExams.map(submission => (
-                  <li key={submission._id} className="py-3 flex items-center justify-between animate-fade-in">
+                {completedExams.map((submission) => (
+                  <li
+                    key={submission._id}
+                    className="py-3 flex items-center justify-between animate-fade-in"
+                  >
                     <div>
-                      <span className="font-medium text-gray-900 text-sm">{submission.exam.title}</span>
-                      <span className="ml-2 text-gray-500 text-xs">({submission.exam.subject})</span>
+                      <span className="font-medium text-gray-900 text-sm">
+                        {submission.exam.title}
+                      </span>
+                      <span className="ml-2 text-gray-500 text-xs">
+                        ({submission.exam.subject})
+                      </span>
                       {submission.adminReleased ? (
                         <div className="text-xs text-gray-400 mt-1">
-                          Score: {submission.score}/{submission.exam.totalMarks} 
-                          ({((submission.score / submission.exam.totalMarks) * 100).toFixed(1)}%)
+                          Score: {submission.score}/{submission.exam.totalMarks}
+                          (
+                          {(
+                            (submission.score / submission.exam.totalMarks) *
+                            100
+                          ).toFixed(1)}
+                          %)
                         </div>
                       ) : null}
                       <div className="text-xs text-gray-400">
-                        Status: {submission.adminReleased ? 'Released' : submission.teacherApproved === true ? 'Approved (awaiting release)' : submission.teacherApproved === false ? 'Rejected' : 'Pending Approval'}
+                        Status:{" "}
+                        {submission.adminReleased
+                          ? "Released"
+                          : submission.teacherApproved === true
+                            ? "Approved (awaiting release)"
+                            : submission.teacherApproved === false
+                              ? "Rejected"
+                              : "Pending Approval"}
                       </div>
                     </div>
-                    <span className="text-green-600 text-xs font-medium flex items-center gap-1"><FaCheckCircle /> Submitted</span>
+                    <span className="text-green-600 text-xs font-medium flex items-center gap-1">
+                      <FaCheckCircle /> Submitted
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -322,9 +445,11 @@ const StudentDashboard = () => {
           <div className="bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center gap-3 border-t-4 border-blue-500 animate-scale-in">
             <FaChartBar className="text-blue-600 text-3xl mb-1" />
             <h3 className="text-lg font-medium text-gray-900">View Results</h3>
-            <p className="text-gray-500 text-sm">Check your academic performance</p>
+            <p className="text-gray-500 text-sm">
+              Check your academic performance
+            </p>
             <button
-              onClick={() => navigate('/student/results')}
+              onClick={() => navigate("/student/results")}
               className="mt-3 w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 text-sm font-semibold shadow flex items-center gap-2"
             >
               <FaChartBar /> View Results
@@ -334,9 +459,11 @@ const StudentDashboard = () => {
           <div className="bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center gap-3 border-t-4 border-green-500 animate-scale-in">
             <FaUser className="text-green-600 text-3xl mb-1" />
             <h3 className="text-lg font-medium text-gray-900">Profile</h3>
-            <p className="text-gray-500 text-sm">Update your personal information</p>
+            <p className="text-gray-500 text-sm">
+              Update your personal information
+            </p>
             <button
-              onClick={() => navigate('/student/profile')}
+              onClick={() => navigate("/student/profile")}
               className="mt-3 w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 text-sm font-semibold shadow flex items-center gap-2"
             >
               <FaUser /> View Profile
@@ -346,9 +473,11 @@ const StudentDashboard = () => {
           <div className="bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center gap-3 border-t-4 border-purple-500 animate-scale-in">
             <FaListAlt className="text-purple-600 text-3xl mb-1" />
             <h3 className="text-lg font-medium text-gray-900">Analytics</h3>
-            <p className="text-gray-500 text-sm">View your progress analytics</p>
+            <p className="text-gray-500 text-sm">
+              View your progress analytics
+            </p>
             <button
-              onClick={() => navigate('/student/analytics')}
+              onClick={() => navigate("/student/analytics")}
               className="mt-3 w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 text-sm font-semibold shadow flex items-center gap-2"
             >
               <FaChartBar /> View Analytics
@@ -360,4 +489,4 @@ const StudentDashboard = () => {
   );
 };
 
-export default StudentDashboard; 
+export default StudentDashboard;

@@ -1,68 +1,85 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { examApi } from '../services/api';
-import { CheckCircle, Eye, Clock, Download, Calendar } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import { examApi } from "../services/api";
+import { CheckCircle, Clock, Download } from "lucide-react";
 
 const AdminResults = () => {
   const { user: currentUser } = useAuth();
   const [approvedSubmissions, setApprovedSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [releasing, setReleasing] = useState(false);
-  const [selectedTerm, setSelectedTerm] = useState('');
-  const [selectedSession, setSelectedSession] = useState('');
+  const [selectedTerm, setSelectedTerm] = useState("");
+  const [selectedSession, setSelectedSession] = useState("");
   const [showReleaseForm, setShowReleaseForm] = useState(false);
 
-  const terms = ['1st Term', '2nd Term', '3rd Term'];
+  const terms = ["1st Term", "2nd Term", "3rd Term"];
   const currentYear = new Date().getFullYear();
-  const sessions = [`${currentYear-1}/${currentYear}`, `${currentYear}/${currentYear+1}`, `${currentYear+1}/${currentYear+2}`];
+  const sessions = [
+    `${currentYear - 1}/${currentYear}`,
+    `${currentYear}/${currentYear + 1}`,
+    `${currentYear + 1}/${currentYear + 2}`,
+  ];
 
-  useEffect(() => {
-    if (currentUser && currentUser.role === 'admin') {
-      fetchApprovedSubmissions();
-    }
-  }, [currentUser, selectedTerm, selectedSession]);
-
-  const fetchApprovedSubmissions = async () => {
+  const fetchApprovedSubmissions = React.useCallback(async () => {
     try {
       setLoading(true);
-      setError('');
-      console.log('AdminResults - Current user:', currentUser);
-      console.log('AdminResults - User role:', currentUser?.role);
-      
+      setError("");
+      console.log("AdminResults - Current user:", currentUser);
+      console.log("AdminResults - User role:", currentUser?.role);
+
       if (!currentUser || !currentUser.id) {
-        setError('User not authenticated');
+        setError("User not authenticated");
         return;
       }
-      
-      console.log('AdminResults - Fetching with term:', selectedTerm, 'session:', selectedSession);
-      
-      const submissions = await examApi.getApprovedSubmissions(selectedTerm, selectedSession);
-      console.log('AdminResults - Submissions:', submissions);
+
+      console.log(
+        "AdminResults - Fetching with term:",
+        selectedTerm,
+        "session:",
+        selectedSession,
+      );
+
+      const submissions = await examApi.getApprovedSubmissions(
+        selectedTerm,
+        selectedSession,
+      );
+      console.log("AdminResults - Submissions:", submissions);
       setApprovedSubmissions(submissions);
     } catch (err) {
-      setError('Failed to fetch approved submissions');
-      console.error('Error fetching submissions:', err);
+      setError("Failed to fetch approved submissions");
+      console.error("Error fetching submissions:", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentUser, selectedTerm, selectedSession]);
+
+  useEffect(() => {
+    if (currentUser && currentUser.role === "admin") {
+      fetchApprovedSubmissions();
+    }
+  }, [currentUser, selectedTerm, selectedSession, fetchApprovedSubmissions]);
 
   const handleReleaseResults = async () => {
     if (!selectedTerm || !selectedSession) {
-      alert('Please select both term and session');
+      alert("Please select both term and session");
       return;
     }
 
     try {
       setReleasing(true);
-      const result = await examApi.releaseResults(selectedTerm, selectedSession);
-      alert(`Results released successfully! ${result.releasedCount} submissions released.`);
+      const result = await examApi.releaseResults(
+        selectedTerm,
+        selectedSession,
+      );
+      alert(
+        `Results released successfully! ${result.releasedCount} submissions released.`,
+      );
       setShowReleaseForm(false);
       fetchApprovedSubmissions(); // Refresh the list
     } catch (err) {
-      alert('Failed to release results');
-      console.error('Error releasing results:', err);
+      alert("Failed to release results");
+      console.error("Error releasing results:", err);
     } finally {
       setReleasing(false);
     }
@@ -78,8 +95,21 @@ const AdminResults = () => {
   };
 
   const exportToCSV = () => {
-    const headers = ['Student Name', 'Email', 'Class', 'Exam Title', 'Subject', 'Score', 'Total Marks', 'Percentage', 'Term', 'Session', 'Approved By', 'Approved At'];
-    const rows = approvedSubmissions.map(sub => [
+    const headers = [
+      "Student Name",
+      "Email",
+      "Class",
+      "Exam Title",
+      "Subject",
+      "Score",
+      "Total Marks",
+      "Percentage",
+      "Term",
+      "Session",
+      "Approved By",
+      "Approved At",
+    ];
+    const rows = approvedSubmissions.map((sub) => [
       sub.student.displayName,
       sub.student.email,
       sub.student.currentClass,
@@ -90,21 +120,27 @@ const AdminResults = () => {
       `${calculatePercentage(sub.score, sub.exam.totalMarks)}%`,
       sub.term,
       sub.session,
-      sub.teacherApprovedBy?.displayName || 'N/A',
-      formatDate(sub.teacherApprovedAt)
+      sub.teacherApprovedBy?.displayName || "N/A",
+      formatDate(sub.teacherApprovedAt),
     ]);
 
-    let csvContent = '';
-    csvContent += headers.join(',') + '\n';
-    rows.forEach(row => {
-      csvContent += row.map(field => '"' + String(field).replace(/"/g, '""') + '"').join(',') + '\n';
+    let csvContent = "";
+    csvContent += headers.join(",") + "\n";
+    rows.forEach((row) => {
+      csvContent +=
+        row
+          .map((field) => '"' + String(field).replace(/"/g, '""') + '"')
+          .join(",") + "\n";
     });
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
-    link.setAttribute('download', `results_${selectedTerm}_${selectedSession}.csv`);
+    link.setAttribute(
+      "download",
+      `results_${selectedTerm}_${selectedSession}.csv`,
+    );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -144,28 +180,36 @@ const AdminResults = () => {
           <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
             <div className="flex flex-col sm:flex-row gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Term</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Term
+                </label>
                 <select
                   value={selectedTerm}
                   onChange={(e) => setSelectedTerm(e.target.value)}
                   className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
                 >
                   <option value="">All Terms</option>
-                  {terms.map(term => (
-                    <option key={term} value={term}>{term}</option>
+                  {terms.map((term) => (
+                    <option key={term} value={term}>
+                      {term}
+                    </option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Session</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Session
+                </label>
                 <select
                   value={selectedSession}
                   onChange={(e) => setSelectedSession(e.target.value)}
                   className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
                 >
                   <option value="">All Sessions</option>
-                  {sessions.map(session => (
-                    <option key={session} value={session}>{session}</option>
+                  {sessions.map((session) => (
+                    <option key={session} value={session}>
+                      {session}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -196,35 +240,59 @@ const AdminResults = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="bg-blue-50 p-4 rounded-lg">
               <p className="text-sm text-blue-600">Total Submissions</p>
-              <p className="text-2xl font-bold text-blue-800">{approvedSubmissions.length}</p>
+              <p className="text-2xl font-bold text-blue-800">
+                {approvedSubmissions.length}
+              </p>
             </div>
             <div className="bg-green-50 p-4 rounded-lg">
               <p className="text-sm text-green-600">Average Score</p>
               <p className="text-2xl font-bold text-green-800">
-                {approvedSubmissions.length > 0 
-                  ? (approvedSubmissions.reduce((sum, sub) => sum + sub.score, 0) / approvedSubmissions.length).toFixed(1)
-                  : '0'
-                }
+                {approvedSubmissions.length > 0
+                  ? (
+                      approvedSubmissions.reduce(
+                        (sum, sub) => sum + sub.score,
+                        0,
+                      ) / approvedSubmissions.length
+                    ).toFixed(1)
+                  : "0"}
               </p>
             </div>
             <div className="bg-yellow-50 p-4 rounded-lg">
               <p className="text-sm text-yellow-600">Average Percentage</p>
               <p className="text-2xl font-bold text-yellow-800">
-                {approvedSubmissions.length > 0 
+                {approvedSubmissions.length > 0
                   ? (() => {
-                      const validSubs = approvedSubmissions.filter(sub => sub.exam.totalMarks && !isNaN(sub.score) && !isNaN(sub.exam.totalMarks));
-                      if (validSubs.length === 0) return '0%';
-                      const avg = validSubs.reduce((sum, sub) => sum + parseFloat(calculatePercentage(sub.score, sub.exam.totalMarks)), 0) / validSubs.length;
-                      return avg.toFixed(1) + '%';
+                      const validSubs = approvedSubmissions.filter(
+                        (sub) =>
+                          sub.exam.totalMarks &&
+                          !isNaN(sub.score) &&
+                          !isNaN(sub.exam.totalMarks),
+                      );
+                      if (validSubs.length === 0) return "0%";
+                      const avg =
+                        validSubs.reduce(
+                          (sum, sub) =>
+                            sum +
+                            parseFloat(
+                              calculatePercentage(
+                                sub.score,
+                                sub.exam.totalMarks,
+                              ),
+                            ),
+                          0,
+                        ) / validSubs.length;
+                      return avg.toFixed(1) + "%";
                     })()
-                  : '0%'
-                }
+                  : "0%"}
               </p>
             </div>
             <div className="bg-purple-50 p-4 rounded-lg">
               <p className="text-sm text-purple-600">Unique Students</p>
               <p className="text-2xl font-bold text-purple-800">
-                {new Set(approvedSubmissions.map(sub => sub.student._id)).size}
+                {
+                  new Set(approvedSubmissions.map((sub) => sub.student._id))
+                    .size
+                }
               </p>
             </div>
           </div>
@@ -235,7 +303,7 @@ const AdminResults = () => {
           <h2 className="text-lg font-semibold mb-4">
             Approved Submissions ({approvedSubmissions.length})
           </h2>
-          
+
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
@@ -303,7 +371,11 @@ const AdminResults = () => {
                             {submission.score}/{submission.exam.totalMarks}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {calculatePercentage(submission.score, submission.exam.totalMarks)}%
+                            {calculatePercentage(
+                              submission.score,
+                              submission.exam.totalMarks,
+                            )}
+                            %
                           </div>
                         </div>
                       </td>
@@ -316,7 +388,7 @@ const AdminResults = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {submission.teacherApprovedBy?.displayName || 'N/A'}
+                        {submission.teacherApprovedBy?.displayName || "N/A"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatDate(submission.teacherApprovedAt)}
@@ -336,12 +408,15 @@ const AdminResults = () => {
           <div className="bg-white rounded-lg p-6 max-w-md mx-4">
             <h3 className="text-lg font-semibold mb-4">Release Results</h3>
             <p className="text-gray-600 mb-6">
-              This will release all approved results for the selected term and session to students.
+              This will release all approved results for the selected term and
+              session to students.
             </p>
-            
+
             <div className="space-y-4 mb-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Term *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Term *
+                </label>
                 <select
                   value={selectedTerm}
                   onChange={(e) => setSelectedTerm(e.target.value)}
@@ -349,13 +424,17 @@ const AdminResults = () => {
                   required
                 >
                   <option value="">Select Term</option>
-                  {terms.map(term => (
-                    <option key={term} value={term}>{term}</option>
+                  {terms.map((term) => (
+                    <option key={term} value={term}>
+                      {term}
+                    </option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Session *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Session *
+                </label>
                 <select
                   value={selectedSession}
                   onChange={(e) => setSelectedSession(e.target.value)}
@@ -363,20 +442,22 @@ const AdminResults = () => {
                   required
                 >
                   <option value="">Select Session</option>
-                  {sessions.map(session => (
-                    <option key={session} value={session}>{session}</option>
+                  {sessions.map((session) => (
+                    <option key={session} value={session}>
+                      {session}
+                    </option>
                   ))}
                 </select>
               </div>
             </div>
-            
+
             <div className="flex gap-3">
               <button
                 onClick={handleReleaseResults}
                 disabled={!selectedTerm || !selectedSession || releasing}
                 className="flex-1 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:bg-gray-400"
               >
-                {releasing ? 'Releasing...' : 'Release Results'}
+                {releasing ? "Releasing..." : "Release Results"}
               </button>
               <button
                 onClick={() => setShowReleaseForm(false)}
@@ -392,4 +473,4 @@ const AdminResults = () => {
   );
 };
 
-export default AdminResults; 
+export default AdminResults;

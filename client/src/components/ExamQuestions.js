@@ -1,32 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { examApi } from '../services/api';
-import { ArrowLeft, Clock, BookOpen, FileText } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { examApi } from "../services/api";
+import { ArrowLeft, BookOpen, FileText } from "lucide-react";
 
 const ExamQuestions = () => {
   const { examId } = useParams();
   const navigate = useNavigate();
   const [examData, setExamData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    fetchExamQuestions();
-  }, [examId]);
-
-  const fetchExamQuestions = async () => {
+  const fetchExamQuestions = React.useCallback(async () => {
     try {
       setLoading(true);
-      setError('');
+      setError("");
       const data = await examApi.getExamQuestions(examId);
       setExamData(data);
     } catch (err) {
-      setError('Failed to fetch exam questions');
-      console.error('Error fetching exam questions:', err);
+      setError("Failed to fetch exam questions");
+      console.error("Error fetching exam questions:", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [examId]);
+
+  useEffect(() => {
+    fetchExamQuestions();
+  }, [examId, fetchExamQuestions]);
 
   if (loading) {
     return (
@@ -81,14 +81,16 @@ const ExamQuestions = () => {
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
         </button>
-        
+
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{examData.title}</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            {examData.title}
+          </h1>
           <div className="flex items-center text-gray-600 mb-4">
             <BookOpen className="w-4 h-4 mr-2" />
             <span>{examData.subject}</span>
           </div>
-          
+
           <div className="flex items-center justify-between text-sm text-gray-500">
             <div className="flex items-center">
               <FileText className="w-4 h-4 mr-1" />
@@ -107,14 +109,14 @@ const ExamQuestions = () => {
                 Question {index + 1}
               </h3>
               <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                Original: {question.marks} mark{question.marks !== 1 ? 's' : ''}
+                Original: {question.marks} mark{question.marks !== 1 ? "s" : ""}
               </span>
             </div>
-            
+
             <p className="text-gray-700 mb-4 leading-relaxed">
               {question.question}
             </p>
-            
+
             <div className="space-y-2">
               {question.options.map((option, optionIndex) => (
                 <div
@@ -128,7 +130,7 @@ const ExamQuestions = () => {
                 </div>
               ))}
             </div>
-            
+
             {question.explanation && (
               <div className="mt-4 p-4 bg-blue-50 rounded-lg">
                 <h4 className="font-medium text-blue-900 mb-2">Explanation:</h4>
@@ -152,4 +154,4 @@ const ExamQuestions = () => {
   );
 };
 
-export default ExamQuestions; 
+export default ExamQuestions;

@@ -1,30 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import api from '../services/api';
-import { Search } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../services/api";
+import { Search } from "lucide-react";
 
 function CreateExam() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [questions, setQuestions] = useState([]);
   const [selectedQuestions, setSelectedQuestions] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTerm, setSelectedTerm] = useState('all');
-  const [selectedClass, setSelectedClass] = useState('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTerm, setSelectedTerm] = useState("all");
+  const [selectedClass, setSelectedClass] = useState("all");
   const [examData, setExamData] = useState({
-    title: '',
-    description: '',
+    title: "",
+    description: "",
     duration: 60, // in minutes
     totalMarks: 100, // Default total marks
-    startTime: '',
-    endTime: '',
-    subject: '',
-    class: '', // <-- add class field
-    instructions: '',
+    startTime: "",
+    endTime: "",
+    subject: "",
+    class: "", // <-- add class field
+    instructions: "",
     questionsPerStudent: 1,
-    session: '', // <-- add session field
-    term: '' // <-- add term field
+    session: "", // <-- add session field
+    term: "", // <-- add term field
   });
 
   useEffect(() => {
@@ -34,36 +34,39 @@ function CreateExam() {
   const fetchQuestions = async () => {
     try {
       setLoading(true);
-      setError('');
-      
-      const response = await api.get('/questions');
+      setError("");
 
-      console.log('Fetched questions:', response.data);
-      
+      const response = await api.get("/questions");
+
+      console.log("Fetched questions:", response.data);
+
       if (Array.isArray(response.data)) {
         setQuestions(response.data);
       } else {
-        throw new Error('Invalid response format');
+        throw new Error("Invalid response format");
       }
     } catch (error) {
-      console.error('Error fetching questions:', error);
-      setError(error.response?.data?.message || 'Failed to fetch questions. Please try again.');
+      console.error("Error fetching questions:", error);
+      setError(
+        error.response?.data?.message ||
+          "Failed to fetch questions. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
   };
 
   const handleInputChange = (field, value) => {
-    setExamData(prev => ({
+    setExamData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   const handleQuestionSelect = (questionId) => {
-    setSelectedQuestions(prev => {
+    setSelectedQuestions((prev) => {
       if (prev.includes(questionId)) {
-        return prev.filter(id => id !== questionId);
+        return prev.filter((id) => id !== questionId);
       } else {
         return [...prev, questionId];
       }
@@ -73,71 +76,73 @@ function CreateExam() {
   // Calculate marks per question based on total marks and questions per student
   const calculateMarksPerQuestion = () => {
     if (examData.questionsPerStudent <= 0) return 0;
-    return Math.round((examData.totalMarks / examData.questionsPerStudent) * 100) / 100;
-  };
-
-  // Calculate total marks from individual question marks (for display purposes)
-  const calculateTotalMarksFromQuestions = () => {
-    return selectedQuestions.reduce((total, questionId) => {
-      const question = questions.find(q => q._id === questionId);
-      return total + (question?.marks || 0);
-    }, 0);
+    return (
+      Math.round((examData.totalMarks / examData.questionsPerStudent) * 100) /
+      100
+    );
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (selectedQuestions.length === 0) {
-      setError('Please select at least one question');
+      setError("Please select at least one question");
       return;
     }
 
     // Validate required fields
     if (!examData.title.trim()) {
-      setError('Please enter an exam title');
+      setError("Please enter an exam title");
       return;
     }
 
     if (!examData.subject) {
-      setError('Please select a subject');
+      setError("Please select a subject");
       return;
     }
 
     if (!examData.class) {
-      setError('Please select a class');
+      setError("Please select a class");
       return;
     }
 
     if (!examData.startTime || !examData.endTime) {
-      setError('Please set both start and end times');
+      setError("Please set both start and end times");
       return;
     }
 
-    if (examData.questionsPerStudent < 1 || examData.questionsPerStudent > selectedQuestions.length) {
-      setError('Questions per student must be at least 1 and not more than the number of selected questions');
+    if (
+      examData.questionsPerStudent < 1 ||
+      examData.questionsPerStudent > selectedQuestions.length
+    ) {
+      setError(
+        "Questions per student must be at least 1 and not more than the number of selected questions",
+      );
       return;
     }
 
     if (examData.totalMarks <= 0) {
-      setError('Total marks must be greater than 0');
+      setError("Total marks must be greater than 0");
       return;
     }
 
     if (!examData.session.trim()) {
-      setError('Please enter a session (e.g. 2023/2024)');
+      setError("Please enter a session (e.g. 2023/2024)");
       return;
     }
     if (!examData.term) {
-      setError('Please select a term');
+      setError("Please select a term");
       return;
     }
 
     try {
       setLoading(true);
-      setError('');
+      setError("");
 
       // Get the subject from the first selected question
-      const firstQuestion = questions.find(q => q._id === selectedQuestions[0]);
+      const firstQuestion = questions.find(
+        (q) => q._id === selectedQuestions[0],
+      );
       const subject = firstQuestion?.subject || examData.subject;
 
       const examDataToSubmit = {
@@ -149,18 +154,18 @@ function CreateExam() {
         questionsPerStudent: examData.questionsPerStudent,
         marksPerQuestion: calculateMarksPerQuestion(), // Add marks per question
         session: examData.session,
-        term: examData.term
+        term: examData.term,
       };
 
-      console.log('Submitting exam data:', examDataToSubmit);
+      console.log("Submitting exam data:", examDataToSubmit);
 
-      const response = await api.post('/exams', examDataToSubmit);
+      const response = await api.post("/exams", examDataToSubmit);
 
-      console.log('Exam created:', response.data);
-      navigate('/dashboard');
+      console.log("Exam created:", response.data);
+      navigate("/dashboard");
     } catch (error) {
-      console.error('Error creating exam:', error);
-      setError(error.response?.data?.message || 'Failed to create exam');
+      console.error("Error creating exam:", error);
+      setError(error.response?.data?.message || "Failed to create exam");
     } finally {
       setLoading(false);
     }
@@ -168,11 +173,11 @@ function CreateExam() {
 
   const getSubjectStats = () => {
     const stats = {};
-    questions.forEach(q => {
+    questions.forEach((q) => {
       // Only count questions that match the current filters
-      const matchesTerm = selectedTerm === 'all' || q.term === selectedTerm;
-      const matchesClass = selectedClass === 'all' || q.class === selectedClass;
-      
+      const matchesTerm = selectedTerm === "all" || q.term === selectedTerm;
+      const matchesClass = selectedClass === "all" || q.class === selectedClass;
+
       if (matchesTerm && matchesClass) {
         if (!stats[q.subject]) {
           stats[q.subject] = { total: 0, selected: 0 };
@@ -186,21 +191,32 @@ function CreateExam() {
     return stats;
   };
 
-  const filteredQuestions = questions.filter(question => {
-    const matchesSearch = question.question.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSubject = !examData.subject || question.subject === examData.subject;
+  const filteredQuestions = questions.filter((question) => {
+    const matchesSearch = question.question
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesSubject =
+      !examData.subject || question.subject === examData.subject;
     const matchesClass = !examData.class || question.class === examData.class;
-    const matchesTerm = selectedTerm === 'all' || question.term === selectedTerm;
-    const matchesClassFilter = selectedClass === 'all' || question.class === selectedClass;
-    return matchesSearch && matchesSubject && matchesClass && matchesTerm && matchesClassFilter;
+    const matchesTerm =
+      selectedTerm === "all" || question.term === selectedTerm;
+    const matchesClassFilter =
+      selectedClass === "all" || question.class === selectedClass;
+    return (
+      matchesSearch &&
+      matchesSubject &&
+      matchesClass &&
+      matchesTerm &&
+      matchesClassFilter
+    );
   });
 
   const subjectStats = getSubjectStats();
   const marksPerQuestion = calculateMarksPerQuestion();
 
   // Get unique terms and classes for better organization
-  const uniqueTerms = [...new Set(questions.map(q => q.term))].sort();
-  const uniqueClasses = [...new Set(questions.map(q => q.class))].sort();
+  const uniqueTerms = [...new Set(questions.map((q) => q.term))].sort();
+  const uniqueClasses = [...new Set(questions.map((q) => q.class))].sort();
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -218,21 +234,27 @@ function CreateExam() {
           <h2 className="text-xl font-semibold mb-4 text-left">Exam Details</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 text-left">Title</label>
+              <label className="block text-sm font-medium text-gray-700 text-left">
+                Title
+              </label>
               <input
                 type="text"
                 required
                 value={examData.title}
-                onChange={(e) => handleInputChange('title', e.target.value)}
+                onChange={(e) => handleInputChange("title", e.target.value)}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-left"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 text-left">Description</label>
+              <label className="block text-sm font-medium text-gray-700 text-left">
+                Description
+              </label>
               <textarea
                 value={examData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("description", e.target.value)
+                }
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-left"
                 rows="3"
               />
@@ -240,27 +262,33 @@ function CreateExam() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 text-left">Subject</label>
+                <label className="block text-sm font-medium text-gray-700 text-left">
+                  Subject
+                </label>
                 <select
                   required
                   value={examData.subject}
-                  onChange={(e) => handleInputChange('subject', e.target.value)}
+                  onChange={(e) => handleInputChange("subject", e.target.value)}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-left"
                 >
                   <option value="">Select Subject</option>
-                  {Object.keys(subjectStats).sort().map(subject => (
-                    <option key={subject} value={subject}>
-                      {subject} ({subjectStats[subject].total} questions)
-                    </option>
-                  ))}
+                  {Object.keys(subjectStats)
+                    .sort()
+                    .map((subject) => (
+                      <option key={subject} value={subject}>
+                        {subject} ({subjectStats[subject].total} questions)
+                      </option>
+                    ))}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 text-left">Class</label>
+                <label className="block text-sm font-medium text-gray-700 text-left">
+                  Class
+                </label>
                 <select
                   required
                   value={examData.class}
-                  onChange={(e) => handleInputChange('class', e.target.value)}
+                  onChange={(e) => handleInputChange("class", e.target.value)}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-left"
                 >
                   <option value="">Select Class</option>
@@ -276,25 +304,33 @@ function CreateExam() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 text-left">Duration (minutes)</label>
+                <label className="block text-sm font-medium text-gray-700 text-left">
+                  Duration (minutes)
+                </label>
                 <input
                   type="number"
                   required
                   min="1"
                   value={examData.duration}
-                  onChange={(e) => handleInputChange('duration', parseInt(e.target.value))}
+                  onChange={(e) =>
+                    handleInputChange("duration", parseInt(e.target.value))
+                  }
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-left"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 text-left">Total Marks</label>
+                <label className="block text-sm font-medium text-gray-700 text-left">
+                  Total Marks
+                </label>
                 <input
                   type="number"
                   required
                   min="1"
                   value={examData.totalMarks}
-                  onChange={(e) => handleInputChange('totalMarks', parseInt(e.target.value))}
+                  onChange={(e) =>
+                    handleInputChange("totalMarks", parseInt(e.target.value))
+                  }
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-left"
                 />
               </div>
@@ -302,36 +338,49 @@ function CreateExam() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 text-left">Start Time</label>
+                <label className="block text-sm font-medium text-gray-700 text-left">
+                  Start Time
+                </label>
                 <input
                   type="datetime-local"
                   required
                   value={examData.startTime}
-                  onChange={(e) => handleInputChange('startTime', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("startTime", e.target.value)
+                  }
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-left"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 text-left">End Time</label>
+                <label className="block text-sm font-medium text-gray-700 text-left">
+                  End Time
+                </label>
                 <input
                   type="datetime-local"
                   required
                   value={examData.endTime}
-                  onChange={(e) => handleInputChange('endTime', e.target.value)}
+                  onChange={(e) => handleInputChange("endTime", e.target.value)}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-left"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 text-left">Questions Per Student</label>
+              <label className="block text-sm font-medium text-gray-700 text-left">
+                Questions Per Student
+              </label>
               <input
                 type="number"
                 min="1"
                 max={selectedQuestions.length}
                 value={examData.questionsPerStudent}
-                onChange={e => handleInputChange('questionsPerStudent', Number(e.target.value))}
+                onChange={(e) =>
+                  handleInputChange(
+                    "questionsPerStudent",
+                    Number(e.target.value),
+                  )
+                }
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-left"
                 required
               />
@@ -339,22 +388,26 @@ function CreateExam() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 text-left">Session</label>
+                <label className="block text-sm font-medium text-gray-700 text-left">
+                  Session
+                </label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. 2023/2024"
                   value={examData.session}
-                  onChange={(e) => handleInputChange('session', e.target.value)}
+                  onChange={(e) => handleInputChange("session", e.target.value)}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-left"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 text-left">Term</label>
+                <label className="block text-sm font-medium text-gray-700 text-left">
+                  Term
+                </label>
                 <select
                   required
                   value={examData.term}
-                  onChange={(e) => handleInputChange('term', e.target.value)}
+                  onChange={(e) => handleInputChange("term", e.target.value)}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-left"
                 >
                   <option value="">Select Term</option>
@@ -371,15 +424,20 @@ function CreateExam() {
                 <strong>Marks per question:</strong> {marksPerQuestion} marks
               </p>
               <p className="text-xs text-blue-600 text-left mt-1">
-                (Total marks ÷ Questions per student = {examData.totalMarks} ÷ {examData.questionsPerStudent})
+                (Total marks ÷ Questions per student = {examData.totalMarks} ÷{" "}
+                {examData.questionsPerStudent})
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 text-left">Instructions</label>
+              <label className="block text-sm font-medium text-gray-700 text-left">
+                Instructions
+              </label>
               <textarea
                 value={examData.instructions}
-                onChange={(e) => handleInputChange('instructions', e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("instructions", e.target.value)
+                }
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-left"
                 rows="3"
                 placeholder="Enter exam instructions..."
@@ -391,7 +449,7 @@ function CreateExam() {
               disabled={loading}
               className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
             >
-              {loading ? 'Creating Exam...' : 'Create Exam'}
+              {loading ? "Creating Exam..." : "Create Exam"}
             </button>
           </form>
         </div>
@@ -399,20 +457,24 @@ function CreateExam() {
         {/* Question Selection */}
         <div className="lg:col-span-2 bg-white rounded-lg shadow">
           <div className="p-4 border-b">
-            <h2 className="text-xl font-semibold text-left">Select Questions</h2>
+            <h2 className="text-xl font-semibold text-left">
+              Select Questions
+            </h2>
             <p className="text-sm text-gray-600 mt-1 text-left">
-              Selected {selectedQuestions.length} questions | Total marks: {examData.totalMarks} | Marks per question: {marksPerQuestion}
+              Selected {selectedQuestions.length} questions | Total marks:{" "}
+              {examData.totalMarks} | Marks per question: {marksPerQuestion}
             </p>
             <p className="text-xs text-gray-500 mt-1 text-left">
-              Note: Individual question marks shown below are for reference only. Actual marks per question will be {marksPerQuestion}.
+              Note: Individual question marks shown below are for reference
+              only. Actual marks per question will be {marksPerQuestion}.
             </p>
             <div className="mt-2 flex flex-wrap gap-2">
-              {selectedTerm !== 'all' && (
+              {selectedTerm !== "all" && (
                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                   Term: {selectedTerm}
                 </span>
               )}
-              {selectedClass !== 'all' && (
+              {selectedClass !== "all" && (
                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                   Class: {selectedClass}
                 </span>
@@ -451,8 +513,10 @@ function CreateExam() {
                   className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-left"
                 >
                   <option value="all">All Terms</option>
-                  {uniqueTerms.map(term => (
-                    <option key={term} value={term}>{term}</option>
+                  {uniqueTerms.map((term) => (
+                    <option key={term} value={term}>
+                      {term}
+                    </option>
                   ))}
                 </select>
                 <select
@@ -461,16 +525,20 @@ function CreateExam() {
                   className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-left"
                 >
                   <option value="all">All Classes</option>
-                  {uniqueClasses.map(classItem => (
-                    <option key={classItem} value={classItem}>{classItem}</option>
+                  {uniqueClasses.map((classItem) => (
+                    <option key={classItem} value={classItem}>
+                      {classItem}
+                    </option>
                   ))}
                 </select>
-                {(selectedTerm !== 'all' || selectedClass !== 'all' || searchTerm) && (
+                {(selectedTerm !== "all" ||
+                  selectedClass !== "all" ||
+                  searchTerm) && (
                   <button
                     onClick={() => {
-                      setSelectedTerm('all');
-                      setSelectedClass('all');
-                      setSearchTerm('');
+                      setSelectedTerm("all");
+                      setSelectedClass("all");
+                      setSearchTerm("");
                     }}
                     className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50"
                   >
@@ -488,8 +556,8 @@ function CreateExam() {
                   key={question._id}
                   className={`p-4 border rounded-lg ${
                     selectedQuestions.includes(question._id)
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200'
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-200"
                   }`}
                 >
                   <div className="flex items-start">
@@ -500,7 +568,9 @@ function CreateExam() {
                       className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
                     <div className="ml-3 flex-1">
-                      <p className="text-sm text-gray-900 text-left">{question.question}</p>
+                      <p className="text-sm text-gray-900 text-left">
+                        {question.question}
+                      </p>
                       <div className="mt-2 flex items-center space-x-4">
                         <span className="text-xs text-gray-500 text-left">
                           {question.subject}
@@ -512,7 +582,8 @@ function CreateExam() {
                           {question.class}
                         </span>
                         <span className="text-xs text-gray-500 text-left">
-                          Original: {question.marks} marks | Will be: {marksPerQuestion} marks
+                          Original: {question.marks} marks | Will be:{" "}
+                          {marksPerQuestion} marks
                         </span>
                       </div>
                     </div>
@@ -527,4 +598,4 @@ function CreateExam() {
   );
 }
 
-export default CreateExam; 
+export default CreateExam;

@@ -13,12 +13,6 @@ const TeacherResults = () => {
   const [approving, setApproving] = useState(false);
   const [comments, setComments] = useState({});
 
-  useEffect(() => {
-    if (currentUser && currentUser.role === "teacher") {
-      fetchTeacherExams();
-    }
-  }, [currentUser, fetchTeacherExams]);
-
   const fetchTeacherExams = useCallback(async () => {
     try {
       setLoading(true);
@@ -117,6 +111,12 @@ const TeacherResults = () => {
       setLoading(false);
     }
   }, [currentUser]);
+
+  useEffect(() => {
+    if (currentUser && currentUser.role === "teacher") {
+      fetchTeacherExams();
+    }
+  }, [currentUser, fetchTeacherExams]);
 
   const fetchPendingSubmissions = async (examId) => {
     try {
