@@ -3,16 +3,16 @@
 A full-stack web application for managing online exams, supporting multiple user roles (Admin, Teacher, Student), exam creation, participation, and results management.
 
 ## Features
-- User authentication & authorization (Admin, Teacher, Student)
-- Exam creation and scheduling
-- Question bank management (add, edit, delete questions)
-- Student registration and profile management
-- Online exam participation for students
-- Automatic grading and result calculation
-- Result viewing and analytics for students and teachers
-- Role-based dashboards with customized views
-- Secure exam environment (anti-cheating measures, time limits)
-- Password recovery and account management
+- **User authentication & authorization (Admin, Teacher, Student)**
+- **Exam creation and scheduling**
+- **Question bank management (add, edit, delete questions)**
+- **Student registration and profile management**
+- **Online exam participation for students**
+- **Automatic grading and result calculation**
+- **Result viewing and analytics for students and teachers**
+- **Role-based dashboards with customized views**
+- **Secure exam environment (anti-cheating measures, time limits)**
+- **Password recovery and account management**
 - **Distinct dashboards for Admin, Teacher, and Student roles**
 - **Exam submission and result export (JSON/HTML reports)**
 - **Teacher-student management (teachers can view/manage their students)**

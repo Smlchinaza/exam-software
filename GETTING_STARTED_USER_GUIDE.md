@@ -89,4 +89,4 @@ This guide explains how new users can use the Exam Software from the frontend, c
 
 ---
 
-For further assistance, refer to the main README or contact your system administrator. 
+For further assistance, refer to the main README or contact system administrator. 
