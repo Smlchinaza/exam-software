@@ -1,16 +1,15 @@
 import React, { useState } from "react";
 import { useNavigate, Link, Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Mail, Lock, AlertCircle, Eye, EyeOff, Info } from "lucide-react";
-import logo from '../assets/images/SpectraLogo.jpg';
-import { authApi } from '../services/api';
-import { FaChalkboardTeacher } from 'react-icons/fa';
+import { Mail, Lock, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { authApi } from "../services/api";
+import { FaChalkboardTeacher } from "react-icons/fa";
 
 const TeacherLogin = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    rememberMe: false
+    rememberMe: false,
   });
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -21,11 +20,11 @@ const TeacherLogin = () => {
   // Redirect authenticated users to their appropriate dashboard
   if (isAuthenticated && user) {
     switch (user.role) {
-      case 'student':
+      case "student":
         return <Navigate to="/student/dashboard" replace />;
-      case 'teacher':
+      case "teacher":
         return <Navigate to="/teacher/dashboard" replace />;
-      case 'admin':
+      case "admin":
         return <Navigate to="/admin/dashboard" replace />;
       default:
         return <Navigate to="/teacher/dashboard" replace />;
@@ -34,47 +33,53 @@ const TeacherLogin = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
-      console.log('Attempting teacher login with:', { 
-        email: formData.email, 
-        rememberMe: formData.rememberMe 
+      console.log("Attempting teacher login with:", {
+        email: formData.email,
+        rememberMe: formData.rememberMe,
       });
 
       // First check if the user exists
       const checkResponse = await authApi.checkUser(formData.email);
       if (!checkResponse.exists) {
-        setError('No account found with this email. Please register first.');
+        setError("No account found with this email. Please register first.");
         return;
       }
 
-      const response = await login(formData.email, formData.password, formData.rememberMe);
-      console.log('Login response:', response);
+      const response = await login(
+        formData.email,
+        formData.password,
+        formData.rememberMe,
+      );
+      console.log("Login response:", response);
 
       // Check if the logged-in user's role is teacher
-      if (response.user.role !== 'teacher') {
-        setError('Please use the student login form');
+      if (response.user.role !== "teacher") {
+        setError("Please use the student login form");
         return;
       }
 
       // Redirect to teacher dashboard
-      navigate('/teacher/dashboard');
+      navigate("/teacher/dashboard");
     } catch (err) {
-      console.error('Login error:', err);
-      if (err.message === 'Your registration is pending admin approval.') {
-        setError('Your registration is pending admin approval. Please wait for an admin to approve your account.');
+      console.error("Login error:", err);
+      if (err.message === "Your registration is pending admin approval.") {
+        setError(
+          "Your registration is pending admin approval. Please wait for an admin to approve your account.",
+        );
       } else {
-        setError(err.message || 'Failed to login. Please try again.');
+        setError(err.message || "Failed to login. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -100,7 +105,10 @@ const TeacherLogin = () => {
           </p>
         </div>
 
-        <form className="mt-6 xs:mt-8 space-y-4 xs:space-y-6" onSubmit={handleSubmit}>
+        <form
+          className="mt-6 xs:mt-8 space-y-4 xs:space-y-6"
+          onSubmit={handleSubmit}
+        >
           {error && (
             <div className="rounded-md bg-red-50 p-3 xs:p-4">
               <div className="flex">
@@ -108,7 +116,9 @@ const TeacherLogin = () => {
                   <AlertCircle className="h-5 w-5 text-red-400" />
                 </div>
                 <div className="ml-3">
-                  <h3 className="text-xs xs:text-sm font-medium text-red-800">{error}</h3>
+                  <h3 className="text-xs xs:text-sm font-medium text-red-800">
+                    {error}
+                  </h3>
                 </div>
               </div>
             </div>
@@ -180,13 +190,19 @@ const TeacherLogin = () => {
                 onChange={handleChange}
                 className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
               />
-              <label htmlFor="remember-me" className="ml-2 block text-xs xs:text-sm text-gray-900">
+              <label
+                htmlFor="remember-me"
+                className="ml-2 block text-xs xs:text-sm text-gray-900"
+              >
                 Remember me
               </label>
             </div>
 
             <div className="text-xs xs:text-sm">
-              <Link to="/forgot-password" className="font-medium text-green-600 hover:text-green-500">
+              <Link
+                to="/forgot-password"
+                className="font-medium text-green-600 hover:text-green-500"
+              >
                 Forgot your password?
               </Link>
             </div>
@@ -206,13 +222,19 @@ const TeacherLogin = () => {
         <div className="text-center">
           <p className="text-xs xs:text-sm text-gray-600">
             Don't have an account?{" "}
-            <Link to="/register" className="font-medium text-green-600 hover:text-green-500">
+            <Link
+              to="/register"
+              className="font-medium text-green-600 hover:text-green-500"
+            >
               Register here
             </Link>
           </p>
           <p className="mt-2 text-xs xs:text-sm text-gray-600">
             Are you a student?{" "}
-            <Link to="/student/login" className="font-medium text-green-600 hover:text-green-500">
+            <Link
+              to="/student/login"
+              className="font-medium text-green-600 hover:text-green-500"
+            >
               Login as student
             </Link>
           </p>
@@ -222,4 +244,4 @@ const TeacherLogin = () => {
   );
 };
 
-export default TeacherLogin; 
+export default TeacherLogin;

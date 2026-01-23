@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { authApi } from '../services/api';
+import { authApi } from "../services/api";
 
 const AuthContext = createContext(null);
 
@@ -19,15 +19,16 @@ export const AuthProvider = ({ children }) => {
     // Check for stored auth data on mount
     const checkAuth = async () => {
       try {
-        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-        const storedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
-        const rememberMe = localStorage.getItem('rememberMe') === 'true';
+        const token =
+          localStorage.getItem("token") || sessionStorage.getItem("token");
+        const storedUser =
+          localStorage.getItem("user") || sessionStorage.getItem("user");
 
         if (token && storedUser) {
           setUser(JSON.parse(storedUser));
         }
       } catch (error) {
-        console.error('Error checking auth:', error);
+        console.error("Error checking auth:", error);
       } finally {
         setLoading(false);
       }
@@ -56,10 +57,10 @@ export const AuthProvider = ({ children }) => {
       "mousedown",
       "keydown",
       "touchstart",
-      "scroll"
+      "scroll",
     ];
 
-    activityEvents.forEach(event => {
+    activityEvents.forEach((event) => {
       window.addEventListener(event, resetTimer);
     });
 
@@ -68,7 +69,7 @@ export const AuthProvider = ({ children }) => {
 
     return () => {
       if (timer) clearTimeout(timer);
-      activityEvents.forEach(event => {
+      activityEvents.forEach((event) => {
         window.removeEventListener(event, resetTimer);
       });
     };
@@ -76,7 +77,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (emailOrObj, password, rememberMe) => {
     let email, role;
-    if (typeof emailOrObj === 'object') {
+    if (typeof emailOrObj === "object") {
       email = emailOrObj.email;
       password = emailOrObj.password;
       role = emailOrObj.role;
@@ -85,47 +86,57 @@ export const AuthProvider = ({ children }) => {
       email = emailOrObj;
     }
     try {
-      console.log('AuthContext: Attempting login with:', { email, role, rememberMe });
+      console.log("AuthContext: Attempting login with:", {
+        email,
+        role,
+        rememberMe,
+      });
       const response = await authApi.login(email, password, rememberMe, role);
-      console.log('AuthContext: Login response:', response);
+      console.log("AuthContext: Login response:", response);
       if (!response || !response.token || !response.user) {
-        throw new Error('Invalid response from server');
+        throw new Error("Invalid response from server");
       }
       // Store auth data based on rememberMe preference
       const storage = rememberMe ? localStorage : sessionStorage;
-      storage.setItem('token', response.token);
-      storage.setItem('user', JSON.stringify(response.user));
-      storage.setItem('rememberMe', rememberMe);
+      storage.setItem("token", response.token);
+      storage.setItem("user", JSON.stringify(response.user));
+      storage.setItem("rememberMe", rememberMe);
       setUser(response.user);
       return response;
     } catch (error) {
-      console.error('AuthContext: Login error:', error);
-      throw new Error(error.message || 'Failed to login. Please check your credentials and try again.');
+      console.error("AuthContext: Login error:", error);
+      throw new Error(
+        error.message ||
+          "Failed to login. Please check your credentials and try again.",
+      );
     }
   };
 
   const register = async (userData) => {
     try {
-      console.log('AuthContext: Attempting registration with:', { email: userData.email, role: userData.role });
-      
+      console.log("AuthContext: Attempting registration with:", {
+        email: userData.email,
+        role: userData.role,
+      });
+
       const response = await authApi.register(userData);
-      console.log('AuthContext: Registration response:', response);
+      console.log("AuthContext: Registration response:", response);
 
       if (!response || !response.token || !response.user) {
-        throw new Error('Invalid response from server');
+        throw new Error("Invalid response from server");
       }
 
       // Store auth data based on rememberMe preference
       const storage = userData.rememberMe ? localStorage : sessionStorage;
-      storage.setItem('token', response.token);
-      storage.setItem('user', JSON.stringify(response.user));
-      storage.setItem('rememberMe', userData.rememberMe);
+      storage.setItem("token", response.token);
+      storage.setItem("user", JSON.stringify(response.user));
+      storage.setItem("rememberMe", userData.rememberMe);
 
       setUser(response.user);
       return response;
     } catch (error) {
-      console.error('AuthContext: Registration error:', error);
-      throw new Error(error.message || 'Failed to register. Please try again.');
+      console.error("AuthContext: Registration error:", error);
+      throw new Error(error.message || "Failed to register. Please try again.");
     }
   };
 
@@ -140,13 +151,13 @@ export const AuthProvider = ({ children }) => {
     address,
     parentName,
     parentPhone,
-    emergencyContact
+    emergencyContact,
   ) => {
     try {
       const response = await authApi.register({
         email,
         password,
-        role: 'student',
+        role: "student",
         displayName,
         currentClass,
         dateOfBirth,
@@ -155,7 +166,7 @@ export const AuthProvider = ({ children }) => {
         address,
         parentName,
         parentPhone,
-        emergencyContact
+        emergencyContact,
       });
       return response.user;
     } catch (error) {
@@ -165,13 +176,13 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     // Clear all storage
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
-    localStorage.removeItem('rememberMe');
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('refreshToken');
-    sessionStorage.removeItem('user');
+    localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+    localStorage.removeItem("rememberMe");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("refreshToken");
+    sessionStorage.removeItem("user");
     setUser(null);
   };
 
@@ -182,7 +193,7 @@ export const AuthProvider = ({ children }) => {
     register,
     signupStudent,
     logout,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
   };
 
   return (
