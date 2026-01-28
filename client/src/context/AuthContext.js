@@ -102,10 +102,13 @@ export const AuthProvider = ({ children }) => {
   }, [user]);
 
   const login = async (emailOrObj, password, rememberMe) => {
-    let email, role;
+    let email;
+    // eslint-disable-next-line no-unused-vars
+    let role;
     if (typeof emailOrObj === "object") {
       email = emailOrObj.email;
       password = emailOrObj.password;
+      // eslint-disable-next-line no-unused-vars
       role = emailOrObj.role;
       rememberMe = emailOrObj.rememberMe;
     } else {

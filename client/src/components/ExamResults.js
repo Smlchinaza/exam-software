@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 function ExamResults() {
   const { submissionId } = useParams();
   const navigate = useNavigate();
+  // eslint-disable-next-line no-unused-vars
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

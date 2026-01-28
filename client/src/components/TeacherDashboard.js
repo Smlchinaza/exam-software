@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { examApi, submissionApi, userApi } from "../services/api";
+import { examApi, userApi } from "../services/api";
 import {
   FaChalkboardTeacher,
   FaBook,
@@ -34,6 +34,7 @@ function TeacherDashboard() {
 
   const [recentExams, setRecentExams] = useState([]);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [mySubjects, setMySubjects] = useState([]);
   const [studentsBySubject, setStudentsBySubject] = useState({});
   const [activeNav, setActiveNav] = useState("dashboard");
@@ -72,6 +73,7 @@ function TeacherDashboard() {
       setLoading(true);
       // Fetch teacher's exams and students using new API
       const exams = await examApi.getAllExams();
+      // eslint-disable-next-line no-unused-vars
       const students = await userApi.getAllUsers();
 
       setStats((prev) => ({
@@ -105,6 +107,7 @@ function TeacherDashboard() {
 
   const fetchMySubjectsAndStudents = async () => {
     try {
+      // eslint-disable-next-line no-unused-vars
       // Fetch all students in school (teacher can see all)
       const students = await userApi.getAllUsers();
       setStudentsBySubject({

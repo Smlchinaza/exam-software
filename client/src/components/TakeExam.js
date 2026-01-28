@@ -17,6 +17,7 @@ function TakeExam() {
   const [submitting, setSubmitting] = useState(false);
   const [examStarted, setExamStarted] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [timerInitialized, setTimerInitialized] = useState(false);
   const [submission, setSubmission] = useState(null);
   const [assignedQuestions, setAssignedQuestions] = useState([]);

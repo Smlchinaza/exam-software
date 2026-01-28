@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
 import { examApi, submissionApi } from "../services/api";
-import { CheckCircle, Clock, Check, X } from "lucide-react";
+import { CheckCircle, Clock, Check } from "lucide-react";
 
 const TeacherResults = () => {
   const { user: currentUser } = useAuth();
@@ -94,6 +94,7 @@ const TeacherResults = () => {
     return new Date(dateString).toLocaleString();
   };
 
+  // eslint-disable-next-line no-unused-vars
   const calculatePercentage = (score, totalMarks) => {
     return ((score / totalMarks) * 100).toFixed(1);
   };
