@@ -210,6 +210,27 @@ const Home = () => {
                 </Link>
               </div>
             </div>
+
+            {/* School Registration */}
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-300 hover:shadow-2xl">
+              <div className="bg-gradient-to-br from-purple-500 to-purple-700 p-6 text-center">
+                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FaSchool className="text-purple-600 text-2xl" />
+                </div>
+                <h3 className="text-xl font-bold text-white">Register School</h3>
+              </div>
+              <div className="p-6">
+                <p className="text-gray-600 mb-6">
+                  Register your school to manage exams and students.
+                </p>
+                <Link
+                  to="/school-registration"
+                  className="block w-full bg-purple-600 text-white text-center py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors duration-300"
+                >
+                  Register School
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </div>

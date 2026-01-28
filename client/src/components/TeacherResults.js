@@ -36,10 +36,10 @@ const TeacherResults = () => {
   const fetchPendingSubmissions = async (examId) => {
     try {
       setLoading(true);
-      // Fetch all submissions for this exam
-      const submissions = await submissionApi.getExamSubmissions(examId);
-      // Filter for pending submissions (not graded)
-      const pending = submissions.filter(sub => !sub.score);
+      // Fetch all submissions (auto school-scoped via JWT)
+      const submissions = await submissionApi.getAllSubmissions();
+      // Filter for this exam and pending submissions (not graded)
+      const pending = submissions.filter(sub => sub.exam_id === examId && !sub.total_score);
       setPendingSubmissions(pending);
     } catch (err) {
       setError("Failed to fetch pending submissions");
@@ -51,7 +51,7 @@ const TeacherResults = () => {
 
   const handleExamSelect = (exam) => {
     setSelectedExam(exam);
-    fetchPendingSubmissions(exam._id);
+    fetchPendingSubmissions(exam.id);
   };
 
   const handleApprove = async (submissionId) => {

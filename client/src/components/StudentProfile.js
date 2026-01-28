@@ -11,9 +11,9 @@ const StudentProfile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [profile, setProfile] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
-    phone: "",
   });
 
   useEffect(() => {
@@ -27,9 +27,9 @@ const StudentProfile = () => {
 
         const userProfile = await userApi.getProfile();
         setProfile({
-          name: userProfile.name || "",
+          firstName: userProfile.first_name || "",
+          lastName: userProfile.last_name || "",
           email: userProfile.email || "",
-          phone: userProfile.phone || "",
         });
       } catch (err) {
         setError(err.message || "Failed to fetch profile");
@@ -59,9 +59,9 @@ const StudentProfile = () => {
       }
 
       await userApi.updateProfile({
-        name: profile.name,
+        first_name: profile.firstName,
+        last_name: profile.lastName,
         email: profile.email,
-        phone: profile.phone,
       });
 
       setIsEditing(false);
@@ -117,12 +117,26 @@ const StudentProfile = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Full Name
+                First Name
               </label>
               <input
                 type="text"
-                name="name"
-                value={profile.name}
+                name="firstName"
+                value={profile.firstName}
+                onChange={handleInputChange}
+                disabled={!isEditing}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Last Name
+              </label>
+              <input
+                type="text"
+                name="lastName"
+                value={profile.lastName}
                 onChange={handleInputChange}
                 disabled={!isEditing}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"

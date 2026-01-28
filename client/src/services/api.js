@@ -404,6 +404,61 @@ export const studentApi = {
 };
 
 // ============================================
+// SCHOOL API (Multi-tenant management)
+// ============================================
+export const schoolApi = {
+  // Register a new school and create admin account
+  registerSchool: async (schoolData) => {
+    try {
+      const response = await api.post("/schools/register", schoolData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // List all schools (admin only)
+  getAllSchools: async () => {
+    try {
+      const response = await api.get("/schools");
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // Get school details
+  getSchool: async (schoolId) => {
+    try {
+      const response = await api.get(`/schools/${schoolId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // Update school details
+  updateSchool: async (schoolId, schoolData) => {
+    try {
+      const response = await api.put(`/schools/${schoolId}`, schoolData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // Get school statistics
+  getSchoolStats: async (schoolId) => {
+    try {
+      const response = await api.get(`/schools/${schoolId}/stats`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+};
+
+// ============================================
 // TEACHER API (legacy - for backward compatibility)
 // ============================================
 export const teacherApi = {

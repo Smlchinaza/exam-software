@@ -7,9 +7,9 @@ function TeacherProfile() {
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
-    name: '',
-    email: '',
-    phone: ''
+    firstName: '',
+    lastName: '',
+    email: ''
   });
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
@@ -25,9 +25,9 @@ function TeacherProfile() {
 
         const profile = await userApi.getProfile();
         setForm({
-          name: profile.name || '',
-          email: profile.email || '',
-          phone: profile.phone || ''
+          firstName: profile.first_name || '',
+          lastName: profile.last_name || '',
+          email: profile.email || ''
         });
       } catch (err) {
         setError('Failed to load profile');
@@ -68,9 +68,9 @@ function TeacherProfile() {
     e.preventDefault();
     try {
       await userApi.updateProfile({
-        name: form.name,
-        email: form.email,
-        phone: form.phone
+        first_name: form.firstName,
+        last_name: form.lastName,
+        email: form.email
       });
       setEditMode(false);
       setSuccess('Profile updated successfully!');
@@ -89,12 +89,24 @@ function TeacherProfile() {
         {error && <div className="mb-4 text-red-600 text-center">{error}</div>}
         <form onSubmit={handleSave}>
           <div className="mb-4">
-            <label className="font-semibold block mb-1" htmlFor="name">Name:</label>
+            <label className="font-semibold block mb-1" htmlFor="firstName">First Name:</label>
             <input
               type="text"
-              id="name"
-              name="name"
-              value={form.name}
+              id="firstName"
+              name="firstName"
+              value={form.firstName}
+              onChange={handleChange}
+              className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"
+              disabled={!editMode}
+            />
+          </div>
+          <div className="mb-4">
+            <label className="font-semibold block mb-1" htmlFor="lastName">Last Name:</label>
+            <input
+              type="text"
+              id="lastName"
+              name="lastName"
+              value={form.lastName}
               onChange={handleChange}
               className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"
               disabled={!editMode}
@@ -107,18 +119,6 @@ function TeacherProfile() {
               id="email"
               name="email"
               value={form.email}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"
-              disabled={!editMode}
-            />
-          </div>
-          <div className="mb-4">
-            <label className="font-semibold block mb-1" htmlFor="phone">Phone:</label>
-            <input
-              type="tel"
-              id="phone"
-              name="phone"
-              value={form.phone}
               onChange={handleChange}
               className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"
               disabled={!editMode}
