@@ -49,18 +49,14 @@ const StudentResults = () => {
         "Score",
         "Total Marks",
         "Percentage",
-        "Term",
-        "Session",
         "Submitted At",
       ];
-      const rows = results.map((result) => [
-        result.exam.title,
-        result.exam.subject,
+      const rows = submissions.map((result) => [
+        result.exam?.title || "N/A",
+        result.exam?.subject || "N/A",
         result.score,
-        result.exam.totalMarks,
-        `${calculatePercentage(result.score, result.exam.totalMarks)}%`,
-        result.term,
-        result.session,
+        result.exam?.totalMarks || 0,
+        `${calculatePercentage(result.score, result.exam?.totalMarks || 100)}%`,
         formatDate(result.submittedAt),
       ]);
 
@@ -79,7 +75,7 @@ const StudentResults = () => {
       link.href = url;
       link.setAttribute(
         "download",
-        `my_results_${selectedTerm}_${selectedSession}.csv`,
+        `my_results_${new Date().toISOString().split('T')[0]}.csv`,
       );
       document.body.appendChild(link);
       link.click();
@@ -135,7 +131,7 @@ const StudentResults = () => {
     );
   }
 
-  if (results.length === 0) {
+  if (submissions.length === 0) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
@@ -168,7 +164,7 @@ const StudentResults = () => {
             <div className="flex space-x-4">
               <button
                 onClick={handleDownload}
-                disabled={results.length === 0}
+                disabled={submissions.length === 0}
                 className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
               >
                 <FaDownload />
@@ -184,57 +180,21 @@ const StudentResults = () => {
             </div>
           </div>
 
-          {/* Term and Session Selection */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-2">
-                Select Term
-              </label>
-              <select
-                value={selectedTerm}
-                onChange={(e) => handleTermChange(e.target.value)}
-                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              >
-                {terms.map((term) => (
-                  <option key={term} value={term}>
-                    {term} Term
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-2">
-                Select Session
-              </label>
-              <select
-                value={selectedSession}
-                onChange={(e) => handleSessionChange(e.target.value)}
-                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              >
-                {sessions.map((session) => (
-                  <option key={session} value={session}>
-                    {session}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
           {/* Results Summary */}
           <div className="bg-blue-50 rounded-lg p-6 mb-6">
             <h3 className="text-lg font-semibold mb-4">Results Summary</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-white p-4 rounded-lg shadow">
                 <p className="text-sm text-gray-600">Total Exams</p>
-                <p className="text-2xl font-bold">{results.length}</p>
+                <p className="text-2xl font-bold">{submissions.length}</p>
               </div>
               <div className="bg-white p-4 rounded-lg shadow">
                 <p className="text-sm text-gray-600">Average Score</p>
                 <p className="text-2xl font-bold">
-                  {results.length > 0
+                  {submissions.length > 0
                     ? (
-                        results.reduce((sum, result) => sum + result.score, 0) /
-                        results.length
+                        submissions.reduce((sum, result) => sum + result.score, 0) /
+                        submissions.length
                       ).toFixed(1)
                     : "0"}
                 </p>
@@ -242,17 +202,17 @@ const StudentResults = () => {
               <div className="bg-white p-4 rounded-lg shadow">
                 <p className="text-sm text-gray-600">Average Percentage</p>
                 <p className="text-2xl font-bold">
-                  {results.length > 0
+                  {submissions.length > 0
                     ? (
-                        results.reduce(
+                        submissions.reduce(
                           (sum, result) =>
                             sum +
                             calculatePercentage(
                               result.score,
-                              result.exam.totalMarks,
+                              result.exam?.totalMarks || 100,
                             ),
                           0,
-                        ) / results.length
+                        ) / submissions.length
                       ).toFixed(1) + "%"
                     : "0%"}
                 </p>
@@ -260,18 +220,18 @@ const StudentResults = () => {
               <div className="bg-white p-4 rounded-lg shadow">
                 <p className="text-sm text-gray-600">Best Subject</p>
                 <p className="text-2xl font-bold">
-                  {results.length > 0
-                    ? results.reduce((best, result) => {
+                  {submissions.length > 0
+                    ? submissions.reduce((best, result) => {
                         const percentage = calculatePercentage(
                           result.score,
-                          result.exam.totalMarks,
+                          result.exam?.totalMarks || 100,
                         );
                         const bestPercentage = calculatePercentage(
                           best.score,
-                          best.exam.totalMarks,
+                          best.exam?.totalMarks || 100,
                         );
                         return percentage > bestPercentage ? result : best;
-                      }).exam.subject
+                      }).exam?.subject || "N/A"
                     : "N/A"}
                 </p>
               </div>
@@ -301,26 +261,26 @@ const StudentResults = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {results.map((result) => {
+                {submissions.map((result) => {
                   const percentage = calculatePercentage(
                     result.score,
-                    result.exam.totalMarks,
+                    result.exam?.totalMarks || 100,
                   );
                   return (
                     <tr key={result._id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
-                          {result.exam.title}
+                          {result.exam?.title || "N/A"}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
-                          {result.exam.subject}
+                          {result.exam?.subject || "N/A"}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
-                          {result.score}/{result.exam.totalMarks}
+                          {result.score}/{result.exam?.totalMarks || 100}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

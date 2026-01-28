@@ -218,7 +218,7 @@ const StudentDashboard = () => {
                     Name:
                   </label>
                   <p className="text-gray-900 text-sm font-semibold">
-                    {studentData?.fullName || user?.displayName || "N/A"}
+                    {user?.displayName || "N/A"}
                   </p>
                 </div>
                 <div>
@@ -234,7 +234,7 @@ const StudentDashboard = () => {
                     Current Class:
                   </label>
                   <p className="text-gray-900 text-sm">
-                    {studentData?.currentClass || selectedClass}
+                    {user?.role || "Student"}
                   </p>
                 </div>
               </div>
@@ -251,12 +251,12 @@ const StudentDashboard = () => {
                 </h2>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
-                {availableSubjects.length === 0 ? (
+                {availableExams.length === 0 ? (
                   <p className="text-gray-500 text-sm col-span-2">
                     No subjects available for your class at this time.
                   </p>
                 ) : (
-                  availableSubjects.map((subject) => (
+                  [...new Set(availableExams.map((exam) => exam.subject))].map((subject) => (
                     <div
                       key={subject}
                       className="flex items-center gap-2 p-3 border rounded-lg bg-gray-50 animate-fade-in"
@@ -317,7 +317,7 @@ const StudentDashboard = () => {
         </div>
 
         {/* Completed Exams Section */}
-        {completedExams.length > 0 && (
+        {studentSubmissions.length > 0 && (
           <div className="mt-8 animate-fade-in">
             <div className="bg-white rounded-2xl shadow-lg p-6 border-t-4 border-yellow-500">
               <div className="flex items-center gap-2 mb-2">
@@ -331,21 +331,21 @@ const StudentDashboard = () => {
                 the Results section once approved and released.
               </p>
               <ul className="divide-y divide-gray-200">
-                {completedExams.map((submission) => (
+                {studentSubmissions.map((submission) => (
                   <li
                     key={submission._id}
                     className="py-3 flex items-center justify-between animate-fade-in"
                   >
                     <div>
                       <span className="font-medium text-gray-900 text-sm">
-                        {submission.exam.title}
+                        {submission.exam?.title || "Unknown Exam"}
                       </span>
                       <span className="ml-2 text-gray-500 text-xs">
-                        ({submission.exam.subject})
+                        ({submission.exam?.subject || "N/A"})
                       </span>
                       {submission.adminReleased ? (
                         <div className="text-xs text-gray-400 mt-1">
-                          Score: {submission.score}/{submission.exam.totalMarks}
+                          Score: {submission.score}/{submission.exam?.totalMarks || 0}
                           (
                           {(
                             (submission.score / submission.exam.totalMarks) *

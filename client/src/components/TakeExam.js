@@ -19,6 +19,16 @@ function TakeExam() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [timerInitialized, setTimerInitialized] = useState(false);
   const [submission, setSubmission] = useState(null);
+  const [assignedQuestions, setAssignedQuestions] = useState([]);
+
+  // Helper functions and variables
+  const studentEmail = user?.email || "";
+  const studentName = user?.displayName || "Student";
+  const isAuthenticated = !!user && user.role === "student";
+  
+  const getExamInProgressKey = (examId, email) => {
+    return `exam_in_progress_${examId}_${email}`;
+  };
 
   // Check for student email on mount and fetch display name
   useEffect(() => {
@@ -49,6 +59,11 @@ function TakeExam() {
         const examData = await examApi.getExam(examId);
         setExam(examData);
         
+        // Set assigned questions from exam data
+        if (examData.questions) {
+          setAssignedQuestions(examData.questions);
+        }
+        
         // Start exam (create submission)
         const submission = await submissionApi.startExam(examId);
         setSubmission(submission);
@@ -64,82 +79,6 @@ function TakeExam() {
 
     fetchExamAndStart();
   }, [user, examId, navigate]);
-        console.log("[TakeExam] Fetching assigned questions from backend");
-        const { assignedQuestions } = await examApi.startExam(examId);
-        setAssignedQuestions(assignedQuestions);
-        console.log("[TakeExam] Assigned questions:", assignedQuestions);
-        // Try to restore from localStorage
-        const examInProgress = localStorage.getItem(
-          getExamInProgressKey(examId, studentEmail),
-        );
-        let initialAnswers = {};
-        let initialTimeLeft;
-        let localAssignedQuestions = [];
-        if (examInProgress) {
-          const examState = JSON.parse(examInProgress);
-          if (examState.examId === examId && examState.answers) {
-            initialAnswers = examState.answers;
-          }
-          if (examState.examId === examId && examState.timeLeft) {
-            initialTimeLeft = examState.timeLeft;
-          }
-          if (examState.examId === examId && examState.assignedQuestions) {
-            localAssignedQuestions = examState.assignedQuestions;
-          }
-        }
-        // If localStorage assignedQuestions is missing or doesn't match backend, use backend
-        let questionsToUse = assignedQuestions;
-        if (
-          localAssignedQuestions.length === assignedQuestions.length &&
-          localAssignedQuestions.every(
-            (q, i) => q._id === assignedQuestions[i]._id,
-          )
-        ) {
-          questionsToUse = localAssignedQuestions;
-        }
-        setAssignedQuestions(questionsToUse);
-        // Initialize answers object if no saved answers
-        if (Object.keys(initialAnswers).length === 0) {
-          questionsToUse.forEach((q) => {
-            initialAnswers[q._id] = "";
-          });
-        }
-        setAnswers(initialAnswers);
-        // Set timer based on exam duration or saved time, but never allow 0 on initial load
-        let timeToSet = examData.duration * 60;
-        if (typeof initialTimeLeft === "number" && initialTimeLeft > 0) {
-          timeToSet = initialTimeLeft;
-        }
-        setTimeLeft(timeToSet);
-        setTimerInitialized(true);
-        // Mark exam as started
-        setExamStarted(true);
-        // Store exam state in localStorage (including assignedQuestions)
-        localStorage.setItem(
-          getExamInProgressKey(examId, studentEmail),
-          JSON.stringify({
-            examId,
-            answers: initialAnswers,
-            timeLeft: timeToSet,
-            assignedQuestions: questionsToUse,
-            startedAt: Date.now(),
-          }),
-        );
-        console.log("[TakeExam] State initialized:", {
-          examId,
-          answers: initialAnswers,
-          timeLeft: timeToSet,
-          assignedQuestions: questionsToUse,
-        });
-      } catch (err) {
-        setError("Failed to fetch exam data");
-        console.error("[TakeExam] Error fetching exam:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchExamAndQuestions();
-  }, [examId, navigate, studentEmail, studentEmailLoaded]);
 
   // Add beforeunload event listener to warn when leaving the page
   useEffect(() => {

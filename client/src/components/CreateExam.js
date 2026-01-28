@@ -71,9 +71,6 @@ function CreateExam() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
     // Validate required fields
     if (!examData.title.trim()) {
       setError("Please enter an exam title");

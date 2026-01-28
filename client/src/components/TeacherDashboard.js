@@ -114,29 +114,6 @@ function TeacherDashboard() {
       console.error("Error fetching subjects and students:", error);
     }
   };
-            totalStudentsOfferingMySubjects += (students || []).length;
-          } catch (studentError) {
-            console.error(
-              `Error fetching students for ${subj.name}:`,
-              studentError,
-            );
-            studentsMap[`${subj.name}|${subj.class}`] = [];
-          }
-        }
-      }
-      setStudentsBySubject(studentsMap);
-      setStats((prev) => ({
-        ...prev,
-        totalStudents: totalStudentsOfferingMySubjects,
-      }));
-    } catch (err) {
-      console.error("Error fetching subjects:", err);
-      setError("Failed to fetch assigned subjects or students");
-      setMySubjects([]);
-      setStudentsBySubject({});
-      setStats((prev) => ({ ...prev, totalStudents: 0 }));
-    }
-  };
 
   if (loading) {
     return (
