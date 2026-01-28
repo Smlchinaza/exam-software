@@ -5,7 +5,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "migrate:mongo2pg": "node scripts/migrate-mongo-to-postgres.js --mongo \"$MONGO_URI\" --pg \"$DATABASE_URL\""
   },
   "keywords": [],
   "author": "",
@@ -24,10 +25,14 @@
     "express-validator": "^7.2.1",
     "jsonwebtoken": "^9.0.2",
     "mammoth": "^1.9.1",
+    "mongodb": "^5.9.2",
     "mongoose": "^8.15.1",
     "multer": "^2.0.1",
     "nodemailer": "^7.0.3",
-    "pdf-parse": "^1.1.1"
+    "pdf-parse": "^1.1.1",
+    "pg": "^8.17.2",
+    "uuid": "^9.0.1",
+    "yargs": "^17.7.2"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"

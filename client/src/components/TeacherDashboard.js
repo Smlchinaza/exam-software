@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import api, { subjectApi, studentApi } from "../services/api";
+import { examApi, submissionApi, userApi } from "../services/api";
 import {
   FaChalkboardTeacher,
   FaBook,
@@ -51,24 +51,11 @@ function TeacherDashboard() {
     if (activeNav === "exam-history" && user) {
       setExamHistoryLoading(true);
       setExamHistoryError("");
-      api
-        .get("/exams/history-with-counts")
-        .then((res) => {
-          const userId = String(user?._id || user?.id || user?.userId);
-          console.log("TeacherDashboard: userId for filtering:", userId);
-          const teacherExams = (res.data || []).filter((exam) => {
-            // Log each exam's createdBy for debugging
-            console.log("Exam:", exam.title, "createdBy:", exam.createdBy);
-            if (!exam.createdBy) return false; // Exclude exams without createdBy
-            if (typeof exam.createdBy === "string") {
-              return exam.createdBy === userId;
-            }
-            if (typeof exam.createdBy === "object" && exam.createdBy._id) {
-              return String(exam.createdBy._id) === userId;
-            }
-            return false;
-          });
-          setExamHistory(teacherExams);
+      examApi
+        .getAllExams()
+        .then((exams) => {
+          // Teacher can see all exams in school
+          setExamHistory(exams || []);
         })
         .catch((err) => setExamHistoryError("Failed to fetch exam history."))
         .finally(() => setExamHistoryLoading(false));
@@ -83,46 +70,29 @@ function TeacherDashboard() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [questionsResponse, examsResponse] = await Promise.all([
-        api.get("/questions"),
-        api.get("/exams"),
-      ]);
-
-      const questions = questionsResponse.data;
-      const exams = examsResponse.data;
-
-      // Calculate stats
-      const activeExams = exams.filter((exam) => {
-        const now = new Date();
-        const startTime = new Date(exam.startTime);
-        const endTime = new Date(exam.endTime);
-        return now >= startTime && now <= endTime;
-      });
+      // Fetch teacher's exams and students using new API
+      const exams = await examApi.getAllExams();
+      const students = await userApi.getAllUsers();
 
       setStats((prev) => ({
         ...prev,
-        totalQuestions: questions.length,
-        activeExams: activeExams.length,
-        // Do not touch totalStudents or averageScore here
+        totalQuestions: exams.reduce(
+          (sum, exam) => sum + (exam.questions?.length || 0),
+          0,
+        ),
+        activeExams: exams.filter((e) => e.is_published).length,
       }));
 
       // Sort exams by creation date and take the 5 most recent
-      const sortedExams = exams
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-        .slice(0, 5);
+      const sortedExams = exams.slice(0, 5);
 
       setRecentExams(
         sortedExams.map((exam) => ({
-          id: exam._id,
+          id: exam.id,
           name: exam.title,
-          subject: exam.subject,
-          students: 0, // TODO: Implement student count
-          status:
-            new Date() < new Date(exam.startTime)
-              ? "Scheduled"
-              : new Date() > new Date(exam.endTime)
-                ? "Completed"
-                : "Active",
+          subject: exam.subject || "General",
+          students: 0,
+          status: exam.is_published ? "Published" : "Draft",
         })),
       );
     } catch (error) {
@@ -135,19 +105,15 @@ function TeacherDashboard() {
 
   const fetchMySubjectsAndStudents = async () => {
     try {
-      const subjects = await subjectApi.getMySubjects();
-      setMySubjects(subjects || []);
-      // For each subject, fetch students for that subject and class
-      const studentsMap = {};
-      let totalStudentsOfferingMySubjects = 0;
-      if (subjects && Array.isArray(subjects)) {
-        for (const subj of subjects) {
-          try {
-            const students = await studentApi.getStudentsBySubjectAndClass(
-              subj.name,
-              subj.class,
-            );
-            studentsMap[`${subj.name}|${subj.class}`] = students || [];
+      // Fetch all students in school (teacher can see all)
+      const students = await userApi.getAllUsers();
+      setStudentsBySubject({
+        all: students.filter((s) => s.role === "student"),
+      });
+    } catch (error) {
+      console.error("Error fetching subjects and students:", error);
+    }
+  };
             totalStudentsOfferingMySubjects += (students || []).length;
           } catch (studentError) {
             console.error(

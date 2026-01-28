@@ -62,10 +62,20 @@ const Register = () => {
       if (formData.password !== formData.confirmPassword) {
         throw new Error('Passwords do not match');
       }
-      if (!formData.displayName || !formData.firstName || !formData.lastName) {
-        throw new Error('All name fields are required');
-      }
-      await register(formData);
+      
+      // New Postgres backend - simplified registration payload
+      const registrationData = {
+        email: formData.email,
+        password: formData.password,
+        role: formData.role || 'student',
+        firstName: formData.firstName || formData.displayName,
+        lastName: formData.lastName,
+        rememberMe: formData.rememberMe,
+        // Note: Optional fields like dateOfBirth, gender, phone, address are not used in new backend
+        // They can be added to user profile after registration if needed
+      };
+
+      await register(registrationData);
       setSuccess('Account created successfully! Redirecting to login...');
       // Clear any previous session
       if (typeof logout === 'function') logout();

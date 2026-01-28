@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../services/api";
+import { examApi } from "../services/api";
 import { Search } from "lucide-react";
 
 function CreateExam() {
@@ -15,16 +15,9 @@ function CreateExam() {
   const [examData, setExamData] = useState({
     title: "",
     description: "",
-    duration: 60, // in minutes
-    totalMarks: 100, // Default total marks
-    startTime: "",
-    endTime: "",
-    subject: "",
-    class: "", // <-- add class field
-    instructions: "",
-    questionsPerStudent: 1,
-    session: "", // <-- add session field
-    term: "", // <-- add term field
+    duration_minutes: 60,
+    is_published: false,
+    questions: [],
   });
 
   useEffect(() => {
@@ -35,16 +28,9 @@ function CreateExam() {
     try {
       setLoading(true);
       setError("");
-
-      const response = await api.get("/questions");
-
-      console.log("Fetched questions:", response.data);
-
-      if (Array.isArray(response.data)) {
-        setQuestions(response.data);
-      } else {
-        throw new Error("Invalid response format");
-      }
+      // Note: Questions are part of exams in new API
+      // For now, just set empty array - questions will be managed during exam creation
+      setQuestions([]);
     } catch (error) {
       console.error("Error fetching questions:", error);
       setError(
@@ -85,10 +71,8 @@ function CreateExam() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (selectedQuestions.length === 0) {
-      setError("Please select at least one question");
-      return;
-    }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
     // Validate required fields
     if (!examData.title.trim()) {
@@ -96,42 +80,8 @@ function CreateExam() {
       return;
     }
 
-    if (!examData.subject) {
-      setError("Please select a subject");
-      return;
-    }
-
-    if (!examData.class) {
-      setError("Please select a class");
-      return;
-    }
-
-    if (!examData.startTime || !examData.endTime) {
-      setError("Please set both start and end times");
-      return;
-    }
-
-    if (
-      examData.questionsPerStudent < 1 ||
-      examData.questionsPerStudent > selectedQuestions.length
-    ) {
-      setError(
-        "Questions per student must be at least 1 and not more than the number of selected questions",
-      );
-      return;
-    }
-
-    if (examData.totalMarks <= 0) {
-      setError("Total marks must be greater than 0");
-      return;
-    }
-
-    if (!examData.session.trim()) {
-      setError("Please enter a session (e.g. 2023/2024)");
-      return;
-    }
-    if (!examData.term) {
-      setError("Please select a term");
+    if (examData.duration_minutes <= 0) {
+      setError("Duration must be greater than 0 minutes");
       return;
     }
 
@@ -139,33 +89,24 @@ function CreateExam() {
       setLoading(true);
       setError("");
 
-      // Get the subject from the first selected question
-      const firstQuestion = questions.find(
-        (q) => q._id === selectedQuestions[0],
-      );
-      const subject = firstQuestion?.subject || examData.subject;
-
       const examDataToSubmit = {
-        ...examData,
-        subject, // Ensure subject is set
-        class: examData.class, // Ensure class is set
-        questions: selectedQuestions,
-        totalMarks: examData.totalMarks, // Use manually set total marks
-        questionsPerStudent: examData.questionsPerStudent,
-        marksPerQuestion: calculateMarksPerQuestion(), // Add marks per question
-        session: examData.session,
-        term: examData.term,
+        title: examData.title,
+        description: examData.description,
+        is_published: examData.is_published,
+        duration_minutes: examData.duration_minutes,
+        questions: examData.questions || [],
       };
 
       console.log("Submitting exam data:", examDataToSubmit);
 
-      const response = await api.post("/exams", examDataToSubmit);
+      const response = await examApi.createExam(examDataToSubmit);
 
-      console.log("Exam created:", response.data);
-      navigate("/dashboard");
+      console.log("Exam created:", response);
+      alert("Exam created successfully!");
+      navigate("/teacher/dashboard");
     } catch (error) {
       console.error("Error creating exam:", error);
-      setError(error.response?.data?.message || "Failed to create exam");
+      setError(error.message || "Failed to create exam");
     } finally {
       setLoading(false);
     }

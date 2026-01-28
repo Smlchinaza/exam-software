@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
-import { examApi } from "../services/api";
+import { examApi, submissionApi } from "../services/api";
 import { CheckCircle, Clock, Check, X } from "lucide-react";
 
 const TeacherResults = () => {
@@ -17,112 +17,30 @@ const TeacherResults = () => {
     try {
       setLoading(true);
       setError("");
-      console.log("TeacherResults - Current user:", currentUser);
-      console.log("TeacherResults - User role:", currentUser?.role);
-      console.log(
-        "TeacherResults - User keys:",
-        currentUser ? Object.keys(currentUser) : "No user",
-      );
-      console.log("TeacherResults - User _id:", currentUser?._id);
-      console.log("TeacherResults - User id:", currentUser?.id);
-
-      if (!currentUser || (!currentUser.id && !currentUser._id)) {
-        setError("User not authenticated");
-        return;
-      }
-
-      const response = await examApi.getAllExams();
-      console.log("TeacherResults - All exams:", response);
-      const userId = currentUser.id || currentUser._id;
-      console.log("TeacherResults - Current user ID:", userId);
-      console.log("TeacherResults - Current user ID type:", typeof userId);
-
-      // Log some exam examples to understand the structure
-      if (response.length > 0) {
-        console.log(
-          "TeacherResults - First exam createdBy:",
-          response[0].createdBy,
-        );
-        console.log(
-          "TeacherResults - Exam createdBy type:",
-          typeof response[0].createdBy,
-        );
-        if (response[0].createdBy && response[0].createdBy._id) {
-          console.log(
-            "TeacherResults - First exam createdBy._id:",
-            response[0].createdBy._id,
-          );
-          console.log(
-            "TeacherResults - First exam createdBy._id type:",
-            typeof response[0].createdBy._id,
-          );
-          console.log(
-            "TeacherResults - ID comparison:",
-            response[0].createdBy._id === currentUser.id,
-          );
-          console.log(
-            "TeacherResults - String comparison:",
-            response[0].createdBy._id.toString() === currentUser.id,
-          );
-        }
-      }
-
-      // Filter exams created by the current teacher with proper null checks
-      const teacherExams = response.filter((exam) => {
-        // Skip exams without createdBy field
-        if (!exam.createdBy) {
-          console.log("Skipping exam without createdBy:", exam.title);
-          return false;
-        }
-
-        // Handle both string IDs and object IDs
-        if (typeof exam.createdBy === "string") {
-          const userId = currentUser.id || currentUser._id;
-          const isMatch = exam.createdBy === userId;
-          console.log(
-            `Exam ${exam.title}: createdBy string "${exam.createdBy}" vs user "${userId}" = ${isMatch}`,
-          );
-          return isMatch;
-        } else if (exam.createdBy._id) {
-          // Try multiple comparison methods
-          const userId = currentUser.id || currentUser._id;
-          const directMatch = exam.createdBy._id === userId;
-          const stringMatch = exam.createdBy._id.toString() === userId;
-          const isMatch = directMatch || stringMatch;
-          console.log(
-            `Exam ${exam.title}: createdBy._id "${exam.createdBy._id}" vs user "${userId}" = ${isMatch} (direct: ${directMatch}, string: ${stringMatch})`,
-          );
-          return isMatch;
-        }
-
-        console.log(
-          "Skipping exam with unknown createdBy format:",
-          exam.title,
-          exam.createdBy,
-        );
-        return false;
-      });
-      console.log("TeacherResults - Teacher exams:", teacherExams);
-      setExams(teacherExams);
+      
+      // Fetch all exams (automatically scoped to teacher's school via JWT)
+      const exams = await examApi.getAllExams();
+      setExams(exams);
     } catch (err) {
       setError("Failed to fetch exams");
       console.error("Error fetching exams:", err);
     } finally {
       setLoading(false);
     }
-  }, [currentUser]);
+  }, []);
 
   useEffect(() => {
-    if (currentUser && currentUser.role === "teacher") {
-      fetchTeacherExams();
-    }
-  }, [currentUser, fetchTeacherExams]);
+    fetchTeacherExams();
+  }, [fetchTeacherExams]);
 
   const fetchPendingSubmissions = async (examId) => {
     try {
       setLoading(true);
-      const submissions = await examApi.getPendingSubmissions(examId);
-      setPendingSubmissions(submissions);
+      // Fetch all submissions for this exam
+      const submissions = await submissionApi.getExamSubmissions(examId);
+      // Filter for pending submissions (not graded)
+      const pending = submissions.filter(sub => !sub.score);
+      setPendingSubmissions(pending);
     } catch (err) {
       setError("Failed to fetch pending submissions");
       console.error("Error fetching submissions:", err);
@@ -139,12 +57,23 @@ const TeacherResults = () => {
   const handleApprove = async (submissionId) => {
     try {
       setApproving(true);
-      const comment = comments[submissionId] || "";
-      await examApi.approveSubmission(selectedExam._id, submissionId, comment);
+      const score = prompt("Enter the score for this submission:");
+      if (score === null) return; // User cancelled
+      
+      const numScore = parseFloat(score);
+      if (isNaN(numScore)) {
+        alert("Please enter a valid number");
+        return;
+      }
+      
+      await submissionApi.gradeSubmission(submissionId, {
+        score: numScore,
+        feedback: comments[submissionId] || ""
+      });
 
-      // Remove the approved submission from the list
+      // Remove the graded submission from the list
       setPendingSubmissions((prev) =>
-        prev.filter((sub) => sub._id !== submissionId),
+        prev.filter((sub) => sub.id !== submissionId),
       );
       setComments((prev) => {
         const newComments = { ...prev };
@@ -152,35 +81,10 @@ const TeacherResults = () => {
         return newComments;
       });
 
-      alert("Submission approved successfully!");
+      alert("Submission graded successfully!");
     } catch (err) {
-      alert("Failed to approve submission");
-      console.error("Error approving submission:", err);
-    } finally {
-      setApproving(false);
-    }
-  };
-
-  const handleReject = async (submissionId) => {
-    try {
-      setApproving(true);
-      const comment = comments[submissionId] || "";
-      await examApi.rejectSubmission(selectedExam._id, submissionId, comment);
-
-      // Remove the rejected submission from the list
-      setPendingSubmissions((prev) =>
-        prev.filter((sub) => sub._id !== submissionId),
-      );
-      setComments((prev) => {
-        const newComments = { ...prev };
-        delete newComments[submissionId];
-        return newComments;
-      });
-
-      alert("Submission rejected successfully!");
-    } catch (err) {
-      alert("Failed to reject submission");
-      console.error("Error rejecting submission:", err);
+      alert("Failed to grade submission");
+      console.error("Error grading submission:", err);
     } finally {
       setApproving(false);
     }
@@ -243,10 +147,10 @@ const TeacherResults = () => {
                 <div className="space-y-3">
                   {exams.map((exam) => (
                     <button
-                      key={exam._id}
+                      key={exam.id}
                       onClick={() => handleExamSelect(exam)}
                       className={`w-full text-left p-3 rounded-lg border transition-colors ${
-                        selectedExam?._id === exam._id
+                        selectedExam?.id === exam.id
                           ? "border-green-500 bg-green-50"
                           : "border-gray-200 hover:border-gray-300"
                       }`}
@@ -254,9 +158,11 @@ const TeacherResults = () => {
                       <h3 className="font-medium text-gray-900">
                         {exam.title}
                       </h3>
-                      <p className="text-sm text-gray-600">{exam.subject}</p>
+                      <p className="text-sm text-gray-600">
+                        {exam.description || "No description"}
+                      </p>
                       <p className="text-xs text-gray-500">
-                        {formatDate(exam.createdAt)}
+                        {formatDate(exam.created_at)}
                       </p>
                     </button>
                   ))}
@@ -274,14 +180,16 @@ const TeacherResults = () => {
                     <h2 className="text-lg font-semibold">
                       {selectedExam.title}
                     </h2>
-                    <p className="text-gray-600">{selectedExam.subject}</p>
+                    <p className="text-gray-600">
+                      {selectedExam.description || "No description"}
+                    </p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm text-gray-500">
-                      Total Marks: {selectedExam.totalMarks}
+                      Duration: {selectedExam.duration_minutes} minutes
                     </p>
                     <p className="text-sm text-gray-500">
-                      Duration: {selectedExam.duration} minutes
+                      {selectedExam.is_published ? "Published" : "Draft"}
                     </p>
                   </div>
                 </div>
@@ -305,47 +213,37 @@ const TeacherResults = () => {
                     </h3>
                     {pendingSubmissions.map((submission) => (
                       <div
-                        key={submission._id}
+                        key={submission.id}
                         className="border rounded-lg p-4"
                       >
                         <div className="flex justify-between items-start mb-3">
                           <div>
                             <h4 className="font-medium text-gray-900">
-                              {submission.student.displayName}
+                              {submission.student?.name || "Unknown Student"}
                             </h4>
                             <p className="text-sm text-gray-600">
-                              {submission.student.email}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              Class: {submission.student.currentClass}
+                              {submission.student?.email || "No email"}
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="text-lg font-semibold text-blue-600">
-                              {submission.score}/{selectedExam.totalMarks}
-                            </p>
                             <p className="text-sm text-gray-500">
-                              {calculatePercentage(
-                                submission.score,
-                                selectedExam.totalMarks,
-                              )}
-                              %
-                            </p>
-                            <p className="text-xs text-gray-400">
-                              {formatDate(submission.submittedAt)}
+                              Submitted: {formatDate(submission.submitted_at)}
                             </p>
                           </div>
                         </div>
 
-                        {/* Comments Input */}
+                        {/* Score Input */}
                         <div className="mb-3">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Comments (optional)
+                          </label>
                           <textarea
-                            placeholder="Add comments (optional)"
-                            value={comments[submission._id] || ""}
+                            placeholder="Add feedback for the student"
+                            value={comments[submission.id] || ""}
                             onChange={(e) =>
                               setComments((prev) => ({
                                 ...prev,
-                                [submission._id]: e.target.value,
+                                [submission.id]: e.target.value,
                               }))
                             }
                             className="w-full p-2 border border-gray-300 rounded text-sm"
@@ -356,20 +254,12 @@ const TeacherResults = () => {
                         {/* Action Buttons */}
                         <div className="flex gap-2">
                           <button
-                            onClick={() => handleApprove(submission._id)}
+                            onClick={() => handleApprove(submission.id)}
                             disabled={approving}
                             className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-green-300"
                           >
                             <Check className="w-4 h-4" />
-                            Approve
-                          </button>
-                          <button
-                            onClick={() => handleReject(submission._id)}
-                            disabled={approving}
-                            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:bg-red-300"
-                          >
-                            <X className="w-4 h-4" />
-                            Reject
+                            Grade & Submit
                           </button>
                         </div>
                       </div>

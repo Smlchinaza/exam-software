@@ -1,75 +1,50 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { examApi } from '../services/api';
-import { Clock, BookOpen, Calendar, LogOut } from 'lucide-react';
+import { Clock, BookOpen, LogOut } from 'lucide-react';
 
 function ExamSelection() {
   const navigate = useNavigate();
-  const [studentName, setStudentName] = useState("");
+  const { user, logout } = useAuth();
   const [availableExams, setAvailableExams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const email = localStorage.getItem("studentEmail");
-    if (!email) {
-      navigate("/auth-email");
+    if (!user) {
+      navigate("/login");
       return;
     }
 
-    // Fetch student name and available exams
     const fetchData = async () => {
       try {
         setLoading(true);
         setError("");
-
-        // Fetch student name
-        const users = await import("../services/api").then(module => 
-          module.userApi.getAllStudentUsers()
-        );
-        const user = users.find((u) => u.email === email);
-        if (!user) {
-          localStorage.removeItem("studentEmail");
-          navigate("/auth-email");
-          return;
-        }
-        setStudentName(user?.displayName || email);
-
-        // Fetch available exams (excluding already taken ones)
-        const availableExams = await examApi.getAvailableExamsForStudent();
-        setAvailableExams(availableExams);
+        
+        // Fetch available exams (auto school-scoped via JWT)
+        const exams = await examApi.getAvailableExams();
+        // Filter for published exams only
+        const published = exams.filter(exam => exam.is_published);
+        setAvailableExams(published);
       } catch (err) {
         setError("Failed to fetch available exams");
-        console.error("Error fetching data:", err);
+        console.error("Error fetching exams:", err);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [navigate]);
+  }, [user, navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem("studentEmail");
-    navigate("/auth-email");
+    logout();
+    navigate("/login");
   };
 
   const handleExamSelect = (examId) => {
-    navigate(`/take-exam/${examId}`);
-  };
-
-  const formatDateTime = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleString();
-  };
-
-  const formatDuration = (minutes) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    if (hours > 0) {
-      return `${hours}h ${mins}m`;
-    }
-    return `${mins} minutes`;
+    navigate(`/student/take-exam/${examId}`);
   };
 
   if (loading) {
@@ -90,7 +65,7 @@ function ExamSelection() {
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-2xl font-bold text-gray-900">Available Exams</h1>
             <div className="flex items-center gap-4">
-              <span className="text-blue-700 font-semibold">{studentName}</span>
+              <span className="text-blue-700 font-semibold">{user?.name || user?.email}</span>
               <button
                 onClick={handleLogout}
                 className="flex items-center gap-2 text-red-600 hover:text-red-800 text-sm"
@@ -123,41 +98,34 @@ function ExamSelection() {
         ) : (
           <div className="grid gap-6">
             {availableExams.map((exam) => (
-              <div key={exam._id} className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+              <div key={exam.id} className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                   <div className="flex-1">
                     <h3 className="text-xl font-semibold text-gray-900 mb-2">
                       {exam.title}
                     </h3>
-                    <p className="text-gray-600 mb-3">{exam.description}</p>
+                    <p className="text-gray-600 mb-3">
+                      {exam.description || "No description"}
+                    </p>
                     
                     <div className="flex flex-wrap gap-4 text-sm text-gray-500">
                       <div className="flex items-center gap-1">
-                        <BookOpen className="w-4 h-4" />
-                        <span>{exam.subject}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
                         <Clock className="w-4 h-4" />
-                        <span>{formatDuration(exam.duration)}</span>
+                        <span>{exam.duration_minutes} minutes</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        <span>Ends: {formatDateTime(exam.endTime)}</span>
+                        <BookOpen className="w-4 h-4" />
+                        <span>{exam.questions?.length || 0} questions</span>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="flex flex-col gap-2">
-                    <button
-                      onClick={() => handleExamSelect(exam._id)}
-                      className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                    >
-                      Start Exam
-                    </button>
-                    <span className="text-xs text-gray-500 text-center">
-                      {exam.questions?.length || 0} questions
-                    </span>
-                  </div>
+                  <button
+                    onClick={() => handleExamSelect(exam.id)}
+                    className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium whitespace-nowrap"
+                  >
+                    Start Exam
+                  </button>
                 </div>
               </div>
             ))}

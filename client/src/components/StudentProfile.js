@@ -1,60 +1,46 @@
 import React, { useState, useEffect } from "react";
 import { FaEdit } from "react-icons/fa";
-import { studentApi } from "../services/api";
+import { useAuth } from "../context/AuthContext";
+import { userApi } from "../services/api";
 import { useNavigate } from "react-router-dom";
 
 const StudentProfile = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [profile, setProfile] = useState({
-    fullName: "",
-    admissionNumber: "",
-    dateOfBirth: "",
-    gender: "",
-    class: "",
+    name: "",
     email: "",
     phone: "",
-    address: "",
-    parentName: "",
-    parentPhone: "",
-    emergencyContact: "",
   });
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         setLoading(true);
-        const studentId = localStorage.getItem("studentId");
-        if (!studentId) {
+        if (!user) {
           navigate("/login");
           return;
         }
 
-        const response = await studentApi.getStudent(studentId);
+        const userProfile = await userApi.getProfile();
         setProfile({
-          fullName: response.data.fullName,
-          admissionNumber: response.data.admissionNumber,
-          dateOfBirth: response.data.dateOfBirth.split("T")[0],
-          gender: response.data.gender,
-          class: response.data.currentClass,
-          email: response.data.email,
-          phone: response.data.phone,
-          address: response.data.address,
-          parentName: response.data.parentName,
-          parentPhone: response.data.parentPhone,
-          emergencyContact: response.data.emergencyContact,
+          name: userProfile.name || "",
+          email: userProfile.email || "",
+          phone: userProfile.phone || "",
         });
       } catch (err) {
-        setError(err.response?.data?.message || "Failed to fetch profile");
+        setError(err.message || "Failed to fetch profile");
+        console.error("Error fetching profile:", err);
       } finally {
         setLoading(false);
       }
     };
 
     fetchProfile();
-  }, [navigate]);
+  }, [user, navigate]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -67,29 +53,23 @@ const StudentProfile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const studentId = localStorage.getItem("studentId");
-      if (!studentId) {
+      if (!user) {
         navigate("/login");
         return;
       }
 
-      await studentApi.updateStudent(studentId, {
-        fullName: profile.fullName,
-        dateOfBirth: profile.dateOfBirth,
-        gender: profile.gender,
-        currentClass: profile.class,
+      await userApi.updateProfile({
+        name: profile.name,
         email: profile.email,
         phone: profile.phone,
-        address: profile.address,
-        parentName: profile.parentName,
-        parentPhone: profile.parentPhone,
-        emergencyContact: profile.emergencyContact,
       });
 
       setIsEditing(false);
       setError(null);
+      alert("Profile updated successfully!");
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to update profile");
+      setError(err.message || "Failed to update profile");
+      console.error("Error updating profile:", err);
     }
   };
 
@@ -141,55 +121,12 @@ const StudentProfile = () => {
               </label>
               <input
                 type="text"
-                name="fullName"
-                value={profile.fullName}
+                name="name"
+                value={profile.name}
                 onChange={handleInputChange}
                 disabled={!isEditing}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Admission Number
-              </label>
-              <input
-                type="text"
-                name="admissionNumber"
-                value={profile.admissionNumber}
-                disabled
-                className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Date of Birth
-              </label>
-              <input
-                type="date"
-                name="dateOfBirth"
-                value={profile.dateOfBirth}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Gender
-              </label>
-              <select
-                name="gender"
-                value={profile.gender}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              >
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-              </select>
             </div>
           </div>
 
@@ -226,72 +163,8 @@ const StudentProfile = () => {
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Address
-              </label>
-              <textarea
-                name="address"
-                value={profile.address}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                rows="3"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-
-          {/* Parent/Guardian Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-700">
-              Parent/Guardian Information
-            </h3>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Parent/Guardian Name
-              </label>
-              <input
-                type="text"
-                name="parentName"
-                value={profile.parentName}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Parent/Guardian Phone
-              </label>
-              <input
-                type="tel"
-                name="parentPhone"
-                value={profile.parentPhone}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Emergency Contact
-              </label>
-              <input
-                type="tel"
-                name="emergencyContact"
-                value={profile.emergencyContact}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              />
-            </div>
           </div>
         </div>
-
         {isEditing && (
           <div className="mt-6 flex justify-end">
             <button

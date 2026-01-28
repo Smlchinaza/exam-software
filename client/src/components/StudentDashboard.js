@@ -11,30 +11,18 @@ import {
   FaCheckCircle,
   FaListAlt,
 } from "react-icons/fa";
-import { studentApi, subjectApi, examApi } from "../services/api";
+import { examApi, submissionApi } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const [selectedClass, setSelectedClass] = useState("");
-  // const [showProfile, setShowProfile] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [studentData, setStudentData] = useState(null);
-  const [availableSubjects, setAvailableSubjects] = useState([]);
   const [availableExams, setAvailableExams] = useState([]);
-  const [completedExams, setCompletedExams] = useState([]);
+  const [studentSubmissions, setStudentSubmissions] = useState([]);
   const [navOpen, setNavOpen] = useState(false);
-
-  // const classes = ['JSS1', 'JSS2', 'JSS3', 'SS1', 'SS2', 'SS3'];
-  // const availableSubjects = [
-  //   'Mathematics', 'English', 'Physics', 'Chemistry', 'Biology',
-  //   'Economics', 'Government', 'Literature', 'History', 'Geography',
-  //   'Agricultural Science', 'Computer Science', 'French', 'Yoruba',
-  //   'Christian Religious Studies', 'Islamic Religious Studies'
-  // ];
 
   useEffect(() => {
     const fetchStudentData = async () => {
@@ -47,66 +35,13 @@ const StudentDashboard = () => {
           return;
         }
 
-        let studentInfo;
-        // Try to get student data using the user's email
-        try {
-          const response = await studentApi.getStudent(user.email);
-          setStudentData(response);
-          setSelectedClass(response.currentClass || "JSS1");
-          studentInfo = response;
-        } catch (err) {
-          // If student data doesn't exist, try to create one
-          console.log(
-            "Student data not found, attempting to create student record...",
-          );
-          try {
-            const newStudent = await studentApi.createStudentFromUser({
-              fullName:
-                user.displayName || `${user.firstName} ${user.lastName}`,
-              currentClass: "JSS1",
-            });
-            setStudentData(newStudent);
-            setSelectedClass(newStudent.currentClass || "JSS1");
-            studentInfo = newStudent;
-            console.log("Student record created successfully");
-          } catch (createErr) {
-            // If creation fails, use basic profile
-            console.log(
-              "Failed to create student record, using basic profile...",
-            );
-            setStudentData({
-              _id: user._id || user.id,
-              fullName:
-                user.displayName || `${user.firstName} ${user.lastName}`,
-              email: user.email,
-              currentClass: "JSS1",
-            });
-            setSelectedClass("JSS1");
-            studentInfo = { currentClass: "JSS1" };
-          }
-        }
-        // Fetch subjects for the student's class
-        const classSubjects = await subjectApi.getSubjectsByClass(
-          studentInfo.currentClass || "JSS1",
-        );
-        setAvailableSubjects(classSubjects.map((s) => s.name));
-        // Fetch available exams for the student (excluding already taken ones)
-        const availableExams = await examApi.getAvailableExamsForStudent();
-        const filteredExams = availableExams.filter(
-          (exam) =>
-            exam.subject && exam.class === (studentInfo.currentClass || "JSS1"),
-        );
-        setAvailableExams(filteredExams);
+        // Fetch published exams available for the student
+        const exams = await examApi.getAvailableExams();
+        setAvailableExams(exams);
 
-        // Fetch completed exams for the student (only show if they want to see their own submissions)
-        // Note: This shows all submissions, not just released results
-        const completedExams = await examApi.getCompletedExamsForStudent();
-        const filteredCompletedExams = completedExams.filter(
-          (submission) =>
-            submission.exam &&
-            submission.exam.class === (studentInfo.currentClass || "JSS1"),
-        );
-        setCompletedExams(filteredCompletedExams);
+        // Fetch student's submissions (completed exams)
+        const submissions = await submissionApi.getAllSubmissions();
+        setStudentSubmissions(submissions);
       } catch (err) {
         console.error("Error fetching student data:", err);
         setError(err.message || "Failed to fetch student data");

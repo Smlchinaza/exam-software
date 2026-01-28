@@ -11,12 +11,23 @@ const {
   examSubmissionLimiter, 
   uploadLimiter 
 } = require('./middleware/rateLimit');
+
+// PostgreSQL connection pool (multi-tenant support)
+const pool = require('./db/postgres');
+
+// MongoDB routes (legacy - for gradual migration)
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const questionRoutes = require('./routes/questions');
 const examRoutes = require('./routes/exams');
 const studentRoutes = require('./routes/students');
 const subjectRoutes = require('./routes/subjects');
+
+// PostgreSQL routes (multi-tenant enabled)
+const authPostgres = require('./routes/auth-postgres');
+const examsPostgres = require('./routes/exams-postgres');
+const submissionsPostgres = require('./routes/submissions-postgres');
+const usersPostgres = require('./routes/users-postgres');
 
 // Load environment variables
 dotenv.config();
@@ -46,17 +57,42 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Health check endpoints
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    mongodb: mongoose.connection.readyState,
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.get('/health/postgres', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT NOW()');
+    res.json({ status: 'ok', database: 'postgres', time: result.rows[0].now });
+  } catch (error) {
+    res.status(500).json({ status: 'error', error: error.message });
+  }
+});
+
 // Apply dynamic rate limiting to all routes (adjusts based on user role)
 // app.use(dynamicLimiter);
 
 // Routes with specific rate limiting
+// POSTGRES ROUTES (Multi-tenant enabled - use these)
+app.use("/api/auth", authPostgres);
+app.use("/api/exams", examSubmissionLimiter, examsPostgres);
+app.use("/api/submissions", examSubmissionLimiter, submissionsPostgres);
+app.use("/api/users", usersPostgres);
+
+// LEGACY MONGODB ROUTES (kept for backward compatibility during migration)
+// Uncomment to use old routes; comment out Postgres routes above to switch
 // app.use("/api/auth", authLimiter, authRoutes);
-app.use("/api/auth", authRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/questions", uploadLimiter, questionRoutes);
-app.use("/api/exams", examSubmissionLimiter, examRoutes);
-app.use("/api/students", studentRoutes);
-app.use("/api/subjects", adminLimiter, subjectRoutes);
+// app.use("/api/users", userRoutes);
+// app.use("/api/questions", uploadLimiter, questionRoutes);
+// app.use("/api/exams", examSubmissionLimiter, examRoutes);
+// app.use("/api/students", studentRoutes);
+// app.use("/api/subjects", adminLimiter, subjectRoutes);
 
 // Error handler
 app.use(errorHandler);

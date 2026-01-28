@@ -11,8 +11,23 @@ export const useAuth = () => {
   return context;
 };
 
+// Helper function to extract school_id from JWT
+const extractSchoolIdFromToken = (token) => {
+  try {
+    if (!token) return null;
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    const payload = JSON.parse(atob(parts[1]));
+    return payload.school_id || null;
+  } catch (error) {
+    console.error("Error extracting school_id from token:", error);
+    return null;
+  }
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [schoolId, setSchoolId] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,9 +38,20 @@ export const AuthProvider = ({ children }) => {
           localStorage.getItem("token") || sessionStorage.getItem("token");
         const storedUser =
           localStorage.getItem("user") || sessionStorage.getItem("user");
+        const storedSchoolId =
+          localStorage.getItem("schoolId") || sessionStorage.getItem("schoolId");
 
         if (token && storedUser) {
           setUser(JSON.parse(storedUser));
+          // Use stored schoolId or extract from token
+          if (storedSchoolId) {
+            setSchoolId(storedSchoolId);
+          } else {
+            const extractedSchoolId = extractSchoolIdFromToken(token);
+            if (extractedSchoolId) {
+              setSchoolId(extractedSchoolId);
+            }
+          }
         }
       } catch (error) {
         console.error("Error checking auth:", error);
@@ -88,18 +114,24 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log("AuthContext: Attempting login with:", {
         email,
-        role,
         rememberMe,
       });
-      const response = await authApi.login(email, password, rememberMe, role);
+      // New Postgres backend login - simpler, returns JWT with school_id
+      const response = await authApi.login(email, password);
       console.log("AuthContext: Login response:", response);
       if (!response || !response.token || !response.user) {
         throw new Error("Invalid response from server");
       }
+      // Extract school_id from JWT payload
+      const extractedSchoolId = extractSchoolIdFromToken(response.token);
       // Store auth data based on rememberMe preference
       const storage = rememberMe ? localStorage : sessionStorage;
       storage.setItem("token", response.token);
       storage.setItem("user", JSON.stringify(response.user));
+      if (extractedSchoolId) {
+        storage.setItem("schoolId", extractedSchoolId);
+        setSchoolId(extractedSchoolId);
+      }
       storage.setItem("rememberMe", rememberMe);
       setUser(response.user);
       return response;
@@ -119,17 +151,31 @@ export const AuthProvider = ({ children }) => {
         role: userData.role,
       });
 
-      const response = await authApi.register(userData);
+      // New Postgres backend register - simplified payload
+      const response = await authApi.register({
+        email: userData.email,
+        password: userData.password,
+        role: userData.role || 'student',
+        firstName: userData.firstName || userData.displayName || '',
+        lastName: userData.lastName || '',
+      });
       console.log("AuthContext: Registration response:", response);
 
       if (!response || !response.token || !response.user) {
         throw new Error("Invalid response from server");
       }
 
+      // Extract school_id from JWT payload
+      const extractedSchoolId = extractSchoolIdFromToken(response.token);
+
       // Store auth data based on rememberMe preference
       const storage = userData.rememberMe ? localStorage : sessionStorage;
       storage.setItem("token", response.token);
       storage.setItem("user", JSON.stringify(response.user));
+      if (extractedSchoolId) {
+        storage.setItem("schoolId", extractedSchoolId);
+        setSchoolId(extractedSchoolId);
+      }
       storage.setItem("rememberMe", userData.rememberMe);
 
       setUser(response.user);
@@ -179,15 +225,19 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("token");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
+    localStorage.removeItem("schoolId");
     localStorage.removeItem("rememberMe");
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("refreshToken");
     sessionStorage.removeItem("user");
+    sessionStorage.removeItem("schoolId");
     setUser(null);
+    setSchoolId(null);
   };
 
   const value = {
     user,
+    schoolId,
     loading,
     login,
     register,

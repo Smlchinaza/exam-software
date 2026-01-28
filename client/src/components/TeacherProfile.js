@@ -1,17 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { userApi } from '../services/api';
 
 function TeacherProfile() {
-  const { currentUser } = useAuth();
+  const { user } = useAuth();
   const [editMode, setEditMode] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
-    displayName: currentUser?.displayName || '',
-    email: currentUser?.email || ''
+    name: '',
+    email: '',
+    phone: ''
   });
   const [success, setSuccess] = useState('');
+  const [error, setError] = useState('');
 
-  if (!currentUser) {
-    return <div className="p-8">Loading profile...</div>;
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setLoading(true);
+        if (!user) {
+          setError('No user logged in');
+          return;
+        }
+
+        const profile = await userApi.getProfile();
+        setForm({
+          name: profile.name || '',
+          email: profile.email || '',
+          phone: profile.phone || ''
+        });
+      } catch (err) {
+        setError('Failed to load profile');
+        console.error('Error fetching profile:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [user]);
+
+  if (loading) {
+    return <div className="p-8 text-center">Loading profile...</div>;
+  }
+
+  if (!user) {
+    return <div className="p-8 text-center">Not authenticated</div>;
   }
 
   const handleChange = (e) => {
@@ -21,22 +55,30 @@ function TeacherProfile() {
   const handleEdit = () => {
     setEditMode(true);
     setSuccess('');
+    setError('');
   };
 
   const handleCancel = () => {
     setEditMode(false);
-    setForm({
-      displayName: currentUser.displayName || '',
-      email: currentUser.email || ''
-    });
     setSuccess('');
+    setError('');
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
-    // Simulate save
-    setEditMode(false);
-    setSuccess('Profile updated successfully!');
+    try {
+      await userApi.updateProfile({
+        name: form.name,
+        email: form.email,
+        phone: form.phone
+      });
+      setEditMode(false);
+      setSuccess('Profile updated successfully!');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      setError('Failed to update profile');
+      console.error('Error updating profile:', err);
+    }
   };
 
   return (
@@ -44,14 +86,15 @@ function TeacherProfile() {
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <h2 className="text-2xl font-bold mb-4 text-center">Teacher Profile</h2>
         {success && <div className="mb-4 text-green-600 text-center">{success}</div>}
+        {error && <div className="mb-4 text-red-600 text-center">{error}</div>}
         <form onSubmit={handleSave}>
           <div className="mb-4">
-            <label className="font-semibold block mb-1" htmlFor="displayName">Name:</label>
+            <label className="font-semibold block mb-1" htmlFor="name">Name:</label>
             <input
               type="text"
-              id="displayName"
-              name="displayName"
-              value={form.displayName}
+              id="name"
+              name="name"
+              value={form.name}
               onChange={handleChange}
               className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"
               disabled={!editMode}
@@ -70,7 +113,19 @@ function TeacherProfile() {
             />
           </div>
           <div className="mb-4">
-            <span className="font-semibold">Role:</span> {currentUser.role}
+            <label className="font-semibold block mb-1" htmlFor="phone">Phone:</label>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              value={form.phone}
+              onChange={handleChange}
+              className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"
+              disabled={!editMode}
+            />
+          </div>
+          <div className="mb-4">
+            <span className="font-semibold">Role:</span> {user?.role || 'Teacher'}
           </div>
           <div className="mt-6 text-center">
             {editMode ? (

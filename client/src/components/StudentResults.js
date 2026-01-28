@@ -1,25 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { FaDownload, FaPrint, FaClock } from "react-icons/fa";
-import { examApi } from "../services/api";
+import { submissionApi } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 const StudentResults = () => {
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
-  const [selectedTerm, setSelectedTerm] = useState("1st");
-  const [selectedSession, setSelectedSession] = useState("2023/2024");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [results, setResults] = useState([]);
-
-  const terms = ["1st", "2nd", "3rd"];
-  const currentYear = new Date().getFullYear();
-  const sessions = [
-    `${currentYear - 1}/${currentYear}`,
-    `${currentYear}/${currentYear + 1}`,
-    `${currentYear + 1}/${currentYear + 2}`,
-  ];
+  const [submissions, setSubmissions] = useState([]);
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -27,35 +17,21 @@ const StudentResults = () => {
         setLoading(true);
         setError(null);
 
-        console.log("StudentResults - Current user:", currentUser);
-        console.log("StudentResults - User role:", currentUser?.role);
-
         if (!currentUser || !currentUser.id) {
-          console.log("StudentResults - User not authenticated");
           navigate("/student/login");
           return;
         }
 
         if (currentUser.role !== "student") {
-          console.log("StudentResults - Redirecting to login - wrong role");
           navigate("/student/login");
           return;
         }
 
-        console.log(
-          "StudentResults - Fetching results for term:",
-          selectedTerm,
-          "session:",
-          selectedSession,
-        );
-        const response = await examApi.getReleasedResults(
-          selectedTerm,
-          selectedSession,
-        );
-        console.log("StudentResults - Response:", response);
-        setResults(response);
+        // Fetch all student's submissions (their exam results)
+        const response = await submissionApi.getAllSubmissions();
+        setSubmissions(response || []);
       } catch (err) {
-        console.error("StudentResults - Error:", err);
+        console.error("Error fetching results:", err);
         setError(err.message || "Failed to fetch results");
       } finally {
         setLoading(false);
@@ -63,15 +39,7 @@ const StudentResults = () => {
     };
 
     fetchResults();
-  }, [currentUser, navigate, selectedTerm, selectedSession]);
-
-  const handleTermChange = (term) => {
-    setSelectedTerm(term);
-  };
-
-  const handleSessionChange = (session) => {
-    setSelectedSession(session);
-  };
+  }, [currentUser, navigate]);
 
   const handleDownload = async () => {
     try {

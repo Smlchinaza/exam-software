@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Clock, AlertCircle, LogOut, ArrowLeft } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { userApi, examApi } from "../services/api";
+import { examApi, submissionApi } from "../services/api";
+import { useAuth } from "../context/AuthContext";
 
 function TakeExam() {
   const navigate = useNavigate();
   const { examId } = useParams();
-  const [studentName, setStudentName] = useState("");
-  const [studentEmail, setStudentEmail] = useState("");
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { user } = useAuth();
   const [exam, setExam] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -16,88 +15,55 @@ function TakeExam() {
   const [timeLeft, setTimeLeft] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [assignedQuestions, setAssignedQuestions] = useState([]);
   const [examStarted, setExamStarted] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  // Add a flag to track if timer is initialized
   const [timerInitialized, setTimerInitialized] = useState(false);
-  const [studentEmailLoaded, setStudentEmailLoaded] = useState(false);
-
-  // Helper to get unique localStorage key
-  const getExamInProgressKey = (examId, email) =>
-    `examInProgress_${examId}_${email}`;
+  const [submission, setSubmission] = useState(null);
 
   // Check for student email on mount and fetch display name
   useEffect(() => {
-    const email = localStorage.getItem("studentEmail");
-    if (!email) {
-      setStudentEmailLoaded(true);
+    if (!user) {
+      navigate("/student/login");
       return;
     }
-    setStudentEmail(email);
-    setStudentEmailLoaded(true);
-    // Fetch all student users and verify the email exists
-    userApi
-      .getAllStudentUsers()
-      .then((users) => {
-        const user = users.find((u) => u.email === email);
-        if (!user) {
-          // Email not found in student users, redirect to auth
-          localStorage.removeItem("studentEmail");
-          navigate("/auth-email");
-          return;
-        }
-        setStudentName(user?.displayName || email);
-        setIsAuthenticated(true);
-      })
-      .catch(() => {
-        // Error fetching users, redirect to auth
-        localStorage.removeItem("studentEmail");
-        navigate("/auth-email");
-      });
-  }, [navigate]);
+  }, [user, navigate]);
 
   // Check for existing exam in progress
   useEffect(() => {
-    if (!studentEmail) return;
-    const examInProgress = localStorage.getItem(
-      getExamInProgressKey(examId, studentEmail),
-    );
-    if (examInProgress) {
-      const examState = JSON.parse(examInProgress);
-      if (examState.examId === examId) {
-        // Restore exam state
-        setAnswers(examState.answers || {});
-        setTimeLeft(examState.timeLeft || 0);
-        setExamStarted(true);
-      } else {
-        // Different exam, clear the old state
-        localStorage.removeItem(getExamInProgressKey(examId, studentEmail));
-      }
-    }
-  }, [examId, studentEmail]);
+    if (!user || !examId) return;
+    // Restored state would be handled by submission API
+  }, [examId, user]);
 
-  // Fetch exam data and assigned questions
+  // Fetch exam data
   useEffect(() => {
-    if (!studentEmailLoaded) return;
-    if (!examId || !studentEmail) {
-      console.log(
-        "[TakeExam] Missing examId or studentEmail, navigating to /exam-selection",
-      );
+    if (!user || !examId) {
       navigate("/exam-selection");
       return;
     }
 
-    const fetchExamAndQuestions = async () => {
+    const fetchExamAndStart = async () => {
       try {
         setLoading(true);
         setError("");
-        console.log("[TakeExam] Fetching exam meta for", examId);
-        // Fetch exam meta
+        // Fetch exam details
         const examData = await examApi.getExam(examId);
         setExam(examData);
-        console.log("[TakeExam] Exam meta:", examData);
-        // Always fetch assigned questions from backend
+        
+        // Start exam (create submission)
+        const submission = await submissionApi.startExam(examId);
+        setSubmission(submission);
+        setTimeLeft(examData.duration_minutes * 60); // Convert to seconds
+        setExamStarted(true);
+      } catch (err) {
+        console.error("Error loading exam:", err);
+        setError(err.message || "Failed to load exam. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchExamAndStart();
+  }, [user, examId, navigate]);
         console.log("[TakeExam] Fetching assigned questions from backend");
         const { assignedQuestions } = await examApi.startExam(examId);
         setAssignedQuestions(assignedQuestions);
@@ -212,18 +178,21 @@ function TakeExam() {
   }, [examStarted, submitted, loading]);
 
   const handleSubmit = React.useCallback(async () => {
-    if (submitted || submitting) return;
+    if (submitted || submitting || !submission) return;
 
     setSubmitting(true);
 
     try {
-      await examApi.submitExam(examId, answers);
+      const submissionAnswers = Object.entries(answers).map(([questionId, answer]) => ({
+        question_id: questionId,
+        answer: answer,
+      }));
+      
+      await submissionApi.submitExam(submission.id, submissionAnswers);
       setSubmitted(true);
-      // Clear exam state from localStorage
-      localStorage.removeItem(getExamInProgressKey(examId, studentEmail));
       alert("Exam submitted successfully! Thank you for participating.");
       setTimeout(() => {
-        navigate("/exam-selection");
+        navigate("/student/results");
       }, 2000);
     } catch (error) {
       alert("Failed to submit exam. Please try again.");
@@ -231,7 +200,7 @@ function TakeExam() {
     } finally {
       setSubmitting(false);
     }
-  }, [submitted, submitting, examId, answers, studentEmail, navigate]);
+  }, [submitted, submitting, submission, answers, navigate]);
 
   // Timer effect: only run if timerInitialized and not loading
   useEffect(() => {

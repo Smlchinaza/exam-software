@@ -1,30 +1,31 @@
-import axios from 'axios';
+import axios from "axios";
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
 
 // Create axios instance with better error handling
 const api = axios.create({
   baseURL: API_URL,
   headers: {
-    'Content-Type': 'application/json'
+    "Content-Type": "application/json",
   },
-  timeout: 10000, // 10 second timeout
-  withCredentials: true // Enable credentials
+  timeout: 30000, // 30 second timeout
+  withCredentials: true, // Enable credentials
 });
 
 // Add request interceptor
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    if (token && token !== 'null' && token !== 'undefined') {
+    const token =
+      localStorage.getItem("token") || sessionStorage.getItem("token");
+    if (token && token !== "null" && token !== "undefined") {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
   (error) => {
-    console.error('Request error:', error);
+    console.error("Request error:", error);
     return Promise.reject(error);
-  }
+  },
 );
 
 // Add response interceptor with better error handling
@@ -33,199 +34,109 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Clear auth data on unauthorized
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      localStorage.removeItem('rememberMe');
-      sessionStorage.removeItem('token');
-      sessionStorage.removeItem('user');
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      localStorage.removeItem("schoolId");
+      localStorage.removeItem("rememberMe");
+      sessionStorage.removeItem("token");
+      sessionStorage.removeItem("user");
+      sessionStorage.removeItem("schoolId");
     }
-    
+
     // Handle network errors
-    if (error.code === 'ERR_NETWORK') {
-      console.error('Network error:', error);
-      return Promise.reject(new Error('Unable to connect to the server. Please check your internet connection.'));
+    if (error.code === "ERR_NETWORK") {
+      console.error("Network error:", error);
+      return Promise.reject(
+        new Error(
+          "Unable to connect to the server. Please check your internet connection.",
+        ),
+      );
     }
-    
+
     // Handle timeout errors
-    if (error.code === 'ECONNABORTED') {
-      console.error('Request timeout:', error);
-      return Promise.reject(new Error('Request timed out. Please try again.'));
+    if (error.code === "ECONNABORTED") {
+      console.error("Request timeout:", error);
+      return Promise.reject(new Error("Request timed out. Please try again."));
     }
-    
+
     return Promise.reject(error);
-  }
+  },
 );
 
-// Student API calls
-export const studentApi = {
-  getAllStudents: async () => {
-    try {
-      const response = await api.get('/students');
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
-
-  getStudent: async (id) => {
-    try {
-      const response = await api.get(`/students/${id}`);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
-
-  createStudent: async (studentData) => {
-    try {
-      const response = await api.post('/students', studentData);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
-
-  createStudentFromUser: async (studentData) => {
-    try {
-      const response = await api.post('/students/create-from-user', studentData);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
-
-  updateStudent: async (id, studentData) => {
-    try {
-      const response = await api.put(`/students/${id}`, studentData);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
-
-  deleteStudent: async (id) => {
-    try {
-      const response = await api.delete(`/students/${id}`);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
-
-  registerSubjects: async (id, subjects) => {
-    try {
-      const response = await api.post(`/students/${id}/subjects`, { subjects });
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
-
-  addResults: async (id, results) => {
-    try {
-      const response = await api.post(`/students/${id}/results`, results);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
-
-  getResults: async (id, term, session) => {
-    try {
-      const response = await api.get(`/students/${id}/results/${term}/${session}`);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
-
-  getAllResults: async (id) => {
-    try {
-      const response = await api.get(`/students/${id}/results`);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
-
-  getStudentsBySubjectAndClass: async (subject, className) => {
-    try {
-      const response = await api.get('/students/by-subject', { params: { subject, class: className } });
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  }
-};
-
-// Auth API calls
+// ============================================
+// AUTH API (Postgres multi-tenant backend)
+// ============================================
 export const authApi = {
-  checkUser: async (email) => {
-    try {
-      const response = await api.post('/auth/check-user', { email });
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
-
-  login: async (email, password, rememberMe, role) => {
-    try {
-      const payload = { email, password, rememberMe };
-      if (role) payload.role = role;
-      const response = await api.post('/auth/login', payload);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
-
+  // Register new user (returns JWT with school_id)
   register: async (userData) => {
     try {
       const payload = {
         email: userData.email,
         password: userData.password,
-        role: userData.role,
-        displayName: userData.displayName,
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        rememberMe: userData.rememberMe
+        role: userData.role || 'student',
+        first_name: userData.firstName || userData.displayName || '',
+        last_name: userData.lastName || '',
+        // Note: school_id is assigned by backend (default school)
       };
-      if (userData.currentClass) payload.currentClass = userData.currentClass;
-      if (userData.dateOfBirth) payload.dateOfBirth = userData.dateOfBirth;
-      if (userData.gender) payload.gender = userData.gender;
-      if (userData.phone) payload.phone = userData.phone;
-      if (userData.address) payload.address = userData.address;
-      if (userData.parentName) payload.parentName = userData.parentName;
-      if (userData.parentPhone) payload.parentPhone = userData.parentPhone;
-      if (userData.emergencyContact) payload.emergencyContact = userData.emergencyContact;
-      const response = await api.post('/auth/register', payload);
-      return response.data;
+      const response = await api.post("/auth/register", payload);
+      return response.data; // Returns: { token, user: {id, email, role, school_id} }
     } catch (error) {
       throw error.response?.data || error;
     }
   },
 
+  // Login (returns JWT with school_id in payload)
+  login: async (email, password) => {
+    try {
+      const payload = { email, password };
+      const response = await api.post("/auth/login", payload);
+      return response.data; // Returns: { token, user: {id, email, role, school_id} }
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // Verify JWT token (validates school_id)
+  verify: async () => {
+    try {
+      const response = await api.get("/auth/verify");
+      return response.data; // Returns: { user: {id, email, role, school_id, is_active} }
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // Logout (client-side cleanup)
   logout: () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('rememberMe');
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('user');
-  }
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("schoolId");
+    localStorage.removeItem("rememberMe");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("user");
+    sessionStorage.removeItem("schoolId");
+  },
 };
 
-// Exam API calls
+// ============================================
+// EXAM API (multi-tenant, scoped by school_id)
+// ============================================
 export const examApi = {
-  getAllExams: async () => {
+  // List all exams for authenticated user's school
+  getAllExams: async (published = null) => {
     try {
-      const response = await api.get('/exams');
+      const params = {};
+      if (published !== null) {
+        params.published = published;
+      }
+      const response = await api.get("/exams", { params });
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
     }
   },
 
+  // Get specific exam with questions and options (school-scoped)
   getExam: async (id) => {
     try {
       const response = await api.get(`/exams/${id}`);
@@ -235,33 +146,41 @@ export const examApi = {
     }
   },
 
-  getExamQuestions: async (id) => {
-    try {
-      const response = await api.get(`/exams/${id}/questions`);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
-
+  // Create new exam (teacher/admin only)
   createExam: async (examData) => {
     try {
-      const response = await api.post('/exams', examData);
+      const payload = {
+        title: examData.title,
+        description: examData.description,
+        is_published: examData.is_published || false,
+        duration_minutes: examData.duration_minutes,
+        questions: examData.questions || [],
+        subject_id: examData.subject_id || null,
+      };
+      const response = await api.post("/exams", payload);
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
     }
   },
 
+  // Update exam (owner or admin only)
   updateExam: async (id, examData) => {
     try {
-      const response = await api.put(`/exams/${id}`, examData);
+      const payload = {
+        title: examData.title,
+        description: examData.description,
+        is_published: examData.is_published,
+        duration_minutes: examData.duration_minutes,
+      };
+      const response = await api.put(`/exams/${id}`, payload);
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
     }
   },
 
+  // Delete exam (owner or admin only, cascades to submissions)
   deleteExam: async (id) => {
     try {
       const response = await api.delete(`/exams/${id}`);
@@ -271,261 +190,245 @@ export const examApi = {
     }
   },
 
-  submitExam: async (id, answers) => {
+  // Get published exams available for students
+  getAvailableExams: async () => {
     try {
-      const response = await api.post(`/exams/${id}/submit`, { answers });
+      const response = await api.get("/exams", { params: { published: true } });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+};
+
+// ============================================
+// SUBMISSION API (multi-tenant, scoped by school_id)
+// ============================================
+export const submissionApi = {
+  // List all submissions (role-scoped: students see own, teachers see all)
+  getAllSubmissions: async () => {
+    try {
+      const response = await api.get("/submissions");
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
     }
   },
 
-  getUpcomingExams: async () => {
+  // Get specific submission with answers (school-scoped)
+  getSubmission: async (id) => {
     try {
-      const response = await api.get('/exams/upcoming');
+      const response = await api.get(`/submissions/${id}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
     }
   },
 
-  getActiveExams: async () => {
-    try {
-      const response = await api.get('/exams/active');
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
-
-  getAvailableExamsForStudent: async () => {
-    try {
-      const response = await api.get('/exams/available-for-student');
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
-
-  getCompletedExamsForStudent: async () => {
-    try {
-      const response = await api.get('/exams/completed-for-student');
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
-
+  // Start exam (creates submission record)
   startExam: async (examId) => {
-    const response = await api.post(`/exams/${examId}/start`);
-    return response.data;
+    try {
+      const response = await api.post(`/submissions/${examId}/start`);
+      return response.data; // Returns: { id, exam_id, started_at, ... }
+    } catch (error) {
+      throw error.response?.data || error;
+    }
   },
 
-  getUnapprovedExams: async () => {
+  // Submit answers (marks submission as submitted)
+  submitExam: async (submissionId, answers) => {
     try {
-      const response = await api.get('/exams/unapproved');
+      const payload = {
+        answers: answers || [], // Array of {question_id, answer}
+      };
+      const response = await api.post(
+        `/submissions/${submissionId}/submit`,
+        payload
+      );
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
     }
   },
 
-  approveExam: async (examId) => {
+  // Grade submission (teacher/admin only)
+  gradeSubmission: async (submissionId, answers) => {
     try {
-      const response = await api.post(`/exams/${examId}/approve`);
+      const payload = {
+        answers: answers || [], // Array of {answer_id, score}
+      };
+      const response = await api.post(
+        `/submissions/${submissionId}/grade`,
+        payload
+      );
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
     }
   },
-
-  submitForApproval: async (examId) => {
-    try {
-      const response = await api.post(`/exams/${examId}/submit-for-approval`);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
-
-  getPendingApprovalExams: async () => {
-    try {
-      const response = await api.get('/exams/pending-approval');
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
-
-  rejectExam: async (examId, reason) => {
-    try {
-      const response = await api.post(`/exams/${examId}/reject`, { reason });
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
-
-  disapproveExam: async (examId) => {
-    try {
-      const response = await api.post(`/exams/${examId}/disapprove`);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
-
-  // Teacher approval functions
-  getPendingSubmissions: async (examId) => {
-    try {
-      const response = await api.get(`/exams/${examId}/pending-submissions`);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
-
-  approveSubmission: async (examId, submissionId, comments) => {
-    try {
-      const response = await api.post(`/exams/${examId}/submissions/${submissionId}/approve`, { comments });
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
-
-  rejectSubmission: async (examId, submissionId, comments) => {
-    try {
-      const response = await api.post(`/exams/${examId}/submissions/${submissionId}/reject`, { comments });
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
-
-  // Admin functions
-  getApprovedSubmissions: async (term, session) => {
-    try {
-      const params = {};
-      if (term) params.term = term;
-      if (session) params.session = session;
-      const response = await api.get('/exams/approved-submissions', { params });
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
-
-  releaseResults: async (term, session) => {
-    try {
-      const response = await api.post('/exams/release-results', { term, session });
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
-
-  // Student functions
-  getReleasedResults: async (term, session) => {
-    try {
-      const params = {};
-      if (term) params.term = term;
-      if (session) params.session = session;
-      const response = await api.get('/exams/released-results', { params });
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  }
 };
 
+// ============================================
+// USER API (multi-tenant, scoped by school_id)
+// ============================================
 export const userApi = {
-  getAllStudentUsers: async () => {
+  // Get authenticated user's profile
+  getProfile: async () => {
     try {
-      const response = await api.get('/users/students-emails');
+      const response = await api.get("/users/profile");
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
     }
-  }
+  },
+
+  // Update authenticated user's profile
+  updateProfile: async (profileData) => {
+    try {
+      const payload = {
+        first_name: profileData.first_name || profileData.firstName,
+        last_name: profileData.last_name || profileData.lastName,
+        // Add other optional fields as needed
+      };
+      const response = await api.put("/users/profile", payload);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // List all users in school (admin/teacher only)
+  getAllUsers: async () => {
+    try {
+      const response = await api.get("/users");
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // Create new user (admin only)
+  createUser: async (userData) => {
+    try {
+      const payload = {
+        email: userData.email,
+        password: userData.password,
+        role: userData.role || 'student',
+        first_name: userData.first_name || userData.firstName || '',
+        last_name: userData.last_name || userData.lastName || '',
+      };
+      const response = await api.post("/users", payload);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // Update user (admin or self only)
+  updateUser: async (id, userData) => {
+    try {
+      const payload = {
+        first_name: userData.first_name || userData.firstName,
+        last_name: userData.last_name || userData.lastName,
+        role: userData.role,
+      };
+      const response = await api.put(`/users/${id}`, payload);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
+  // Delete user (admin only)
+  deleteUser: async (id) => {
+    try {
+      const response = await api.delete(`/users/${id}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
 };
 
-export const subjectApi = {
-  getAllSubjects: async () => {
+// ============================================
+// STUDENT API (legacy - for backward compatibility)
+// ============================================
+export const studentApi = {
+  getAllStudents: async () => {
     try {
-      const response = await api.get('/subjects');
+      const response = await api.get("/users", { params: { role: 'student' } });
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
     }
   },
-  getSubjectStats: async () => {
+
+  getStudent: async (id) => {
     try {
-      const response = await api.get('/subjects/stats');
+      const response = await api.get(`/users/${id}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
     }
   },
-  createSubject: async (name, subjectClass) => {
+
+  createStudent: async (studentData) => {
     try {
-      const response = await api.post('/subjects', { name, class: subjectClass });
+      const response = await api.post("/users", {
+        ...studentData,
+        role: 'student',
+      });
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
     }
   },
-  assignTeachers: async (subjectId, teacherIds) => {
+
+  updateStudent: async (id, studentData) => {
     try {
-      const response = await api.post(`/subjects/${subjectId}/assign`, { teacherIds });
+      const response = await api.put(`/users/${id}`, studentData);
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
     }
   },
-  unassignTeachers: async (subjectId, teacherIds = []) => {
+
+  deleteStudent: async (id) => {
     try {
-      const response = await api.post(`/subjects/${subjectId}/unassign`, { teacherIds });
+      const response = await api.delete(`/users/${id}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
     }
   },
-  deleteSubject: async (subjectId) => {
-    try {
-      const response = await api.delete(`/subjects/${subjectId}`);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
-  getSubjectsByClass: async (subjectClass) => {
-    try {
-      const response = await api.get('/subjects/by-class', { params: { class: subjectClass } });
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  },
-  getMySubjects: async () => {
-    try {
-      const response = await api.get('/subjects/my-subjects');
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error;
-    }
-  }
 };
 
+// ============================================
+// TEACHER API (legacy - for backward compatibility)
+// ============================================
 export const teacherApi = {
   getAllTeachers: async () => {
     try {
-      const response = await api.get('/users?role=teacher');
+      const response = await api.get("/users", { params: { role: 'teacher' } });
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
     }
-  }
+  },
+};
+
+// ============================================
+// SUBJECT API (legacy - for backward compatibility)
+// ============================================
+export const subjectApi = {
+  getAllSubjects: async () => {
+    try {
+      const response = await api.get("/subjects");
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
 };
 
 export default api;

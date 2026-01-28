@@ -41,29 +41,30 @@ const Login = () => {
         rememberMe: formData.rememberMe 
       });
 
-      // First check if the user exists
-      const checkResponse = await authApi.checkUser(formData.email);
-      if (!checkResponse.exists) {
-        setError('No account found with this email. Please register first.');
-        return;
-      }
-
+      // New Postgres backend login - simplified
+      // Note: backend determines role based on user record, no need to pass role
       const response = await login(formData.email, formData.password, formData.rememberMe);
       console.log('Login response:', response);
 
       // Check if the logged-in user's role matches the selected role
+      // This is just a UX hint - backend controls actual role
       if (response.user.role !== formData.role) {
-        setError(`Please use the ${response.user.role} login form`);
-        return;
+        console.warn(
+          `User role (${response.user.role}) doesn't match selected role (${formData.role}). ` +
+          `Redirecting to ${response.user.role} dashboard.`
+        );
       }
 
-      // Redirect based on role
+      // Redirect based on actual user role from backend
       switch (response.user.role) {
         case 'student':
           navigate('/student/dashboard');
           break;
         case 'teacher':
           navigate('/teacher/dashboard');
+          break;
+        case 'admin':
+          navigate('/admin/dashboard');
           break;
         default:
           navigate('/');
