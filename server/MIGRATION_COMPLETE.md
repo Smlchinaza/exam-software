@@ -26,8 +26,7 @@ Default School: 2c048ff5-bd7f-4c47-89eb-9ca54cc2b360
 
 #### 1. Update `.env` to use Postgres
 ```env
-DATABASE_URL=postgresql://neondb_owner:npg_zAbpX95ZlhwE@ep-billowing-base-ahgpum3n-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
-```
+DATABASE_URL=
 
 #### 2. Install Postgres driver
 ```bash
