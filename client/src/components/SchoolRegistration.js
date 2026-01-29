@@ -101,15 +101,6 @@ const SchoolRegistration = () => {
     }
   };
 
-  const handleNavigateToLogin = () => {
-    navigate('/login', {
-      state: {
-        email: registrationData.admin.email,
-        message: 'School registered successfully! You can now log in with your admin credentials.'
-      }
-    });
-  };
-
   const handleNavigateToDashboard = () => {
     navigate('/teacher/dashboard');
   };
