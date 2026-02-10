@@ -167,6 +167,37 @@ router.get('/', authenticateJWT, async (req, res) => {
 });
 
 /**
+ * GET /api/schools/current
+ * Get current school details for authenticated user
+ */
+router.get('/current', authenticateJWT, enforceMultiTenant, async (req, res) => {
+  try {
+    const { schoolId, role } = req.tenant;
+
+    // Any authenticated user can view their school details
+    if (!schoolId) {
+      return res.status(400).json({ error: 'No school associated with user' });
+    }
+
+    const result = await pool.query(
+      `SELECT id, name, domain, created_at, updated_at 
+       FROM schools 
+       WHERE id = $1`,
+      [schoolId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'School not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error fetching current school:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
  * GET /api/schools/:schoolId
  * Get school details (authenticated users from that school)
  */

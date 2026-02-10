@@ -447,6 +447,16 @@ export const schoolApi = {
     }
   },
 
+  // Get current school details for authenticated user
+  getCurrentSchool: async () => {
+    try {
+      const response = await api.get("/schools/current");
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
   // Get school statistics
   getSchoolStats: async (schoolId) => {
     try {

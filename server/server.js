@@ -11,6 +11,9 @@ const {
   uploadLimiter 
 } = require('./middleware/rateLimit');
 
+// Load environment variables
+dotenv.config();
+
 // PostgreSQL connection pool (multi-tenant support)
 const pool = require('./db/postgres');
 
@@ -21,14 +24,14 @@ const submissionsPostgres = require('./routes/submissions-postgres');
 const usersPostgres = require('./routes/users-postgres');
 const schoolsPostgres = require('./routes/schools-postgres');
 
-// Load environment variables
-dotenv.config();
+// (dotenv already loaded above)
 
 const app = express();
 app.set('trust proxy', 1);
 
 const allowedOrigins = [
   'http://localhost:3000',
+  'https://exam-software.vercel.app',
   'https://exam-software-45ex.vercel.app',
   'https://exam-software-45ex-git-main-samuel-chinazas-projects.vercel.app',
   'https://exam-software-45ex-btw34co5j-samuel-chinazas-projects.vercel.app/'
@@ -73,6 +76,10 @@ app.use("/api/schools", schoolsPostgres);
 app.use("/api/exams", examSubmissionLimiter, examsPostgres);
 app.use("/api/submissions", examSubmissionLimiter, submissionsPostgres);
 app.use("/api/users", usersPostgres);
+
+// Legacy MongoDB routes (for backward compatibility)
+const subjects = require('./routes/subjects');
+app.use("/api/subjects", subjects);
 
 // Error handler
 app.use(errorHandler);

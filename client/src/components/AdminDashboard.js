@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { subjectApi, teacherApi, examApi } from "../services/api";
+import { subjectApi, teacherApi, examApi, schoolApi } from "../services/api";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -56,13 +56,28 @@ const AdminDashboard = () => {
   const [approvedExams, setApprovedExams] = useState([]);
   const [approvedExamsLoading, setApprovedExamsLoading] = useState(false);
   const [approvedExamsError, setApprovedExamsError] = useState("");
-  const { user, logout } = useAuth();
+  const [school, setSchool] = useState(null);
+  const [schoolLoading, setSchoolLoading] = useState(false);
+  const { user, logout, schoolId } = useAuth();
   const navigate = useNavigate();
   const [navOpen, setNavOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate("/");
+  };
+
+  const fetchSchool = async () => {
+    if (!schoolId) return;
+    setSchoolLoading(true);
+    try {
+      const schoolData = await schoolApi.getCurrentSchool();
+      setSchool(schoolData);
+    } catch (err) {
+      console.error("Failed to fetch school data:", err);
+    } finally {
+      setSchoolLoading(false);
+    }
   };
 
   const fetchData = async () => {
@@ -158,6 +173,13 @@ const AdminDashboard = () => {
   useEffect(() => {
     console.log("AdminDashboard - Current user:", user);
     console.log("AdminDashboard - User role:", user?.role);
+    console.log("AdminDashboard - School ID:", schoolId);
+    
+    // Fetch school data when component mounts
+    if (user && schoolId) {
+      fetchSchool();
+    }
+    
     if ((activeTab === "assign" || activeTab === "subjects") && user) {
       fetchData();
     }
@@ -176,7 +198,7 @@ const AdminDashboard = () => {
         .catch((err) => setExamHistoryError("Failed to fetch exam history."))
         .finally(() => setExamHistoryLoading(false));
     }
-  }, [activeTab, user]);
+  }, [activeTab, user, schoolId]);
 
   // Add effect to fetch subjects by class when selectedClass changes in 'subjects' tab
   useEffect(() => {
@@ -417,9 +439,18 @@ const AdminDashboard = () => {
               alt="Logo"
               className="w-10 h-10 rounded-full shadow animate-fade-in"
             />
-            <h1 className="text-2xl font-extrabold text-white tracking-wide drop-shadow animate-slide-in">
-              Admin Dashboard
-            </h1>
+            <div className="flex flex-col">
+              <h1 className="text-2xl font-extrabold text-white tracking-wide drop-shadow animate-slide-in">
+                Admin Dashboard
+              </h1>
+              {schoolLoading ? (
+                <div className="text-xs text-red-100">Loading school...</div>
+              ) : school ? (
+                <div className="text-xs text-red-100">{school.name}</div>
+              ) : (
+                <div className="text-xs text-red-200">School not found</div>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-2">
             {/* Hamburger for mobile */}

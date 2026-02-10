@@ -50,13 +50,6 @@ const StudentLogin = () => {
         rememberMe: formData.rememberMe,
       });
 
-      // First check if the user exists
-      const checkResponse = await authApi.checkUser(formData.email);
-      if (!checkResponse.exists) {
-        setError("No account found with this email. Please register first.");
-        return;
-      }
-
       const response = await login(
         formData.email,
         formData.password,
