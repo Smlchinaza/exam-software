@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { User, Mail, Lock, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import TeacherRegistrationWizard from './TeacherRegistrationWizard';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -88,6 +89,11 @@ const Register = () => {
       setLoading(false);
     }
   };
+
+  // Redirect teachers to the new wizard
+  if (formData.role === 'teacher') {
+    return <TeacherRegistrationWizard />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">

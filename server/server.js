@@ -23,6 +23,7 @@ const examsPostgres = require('./routes/exams-postgres');
 const submissionsPostgres = require('./routes/submissions-postgres');
 const usersPostgres = require('./routes/users-postgres');
 const schoolsPostgres = require('./routes/schools-postgres');
+const statesPostgres = require('./routes/states-postgres');
 const studentResults = require('./routes/student-results');
 
 // (dotenv already loaded above)
@@ -73,6 +74,7 @@ app.get('/health', async (req, res) => {
 
 // PostgreSQL Routes (Multi-tenant enabled)
 app.use("/api/auth", authPostgres);
+app.use("/api/states", statesPostgres);
 app.use("/api/schools", schoolsPostgres);
 app.use("/api/exams", examSubmissionLimiter, examsPostgres);
 app.use("/api/submissions", examSubmissionLimiter, submissionsPostgres);

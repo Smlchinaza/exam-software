@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { schoolApi } from '../services/api';
-import { Building2, Mail, Lock, User, Globe } from 'lucide-react';
+import { Building2, Mail, Lock, User, Globe, MapPin } from 'lucide-react';
+import StateSelector from './StateSelector';
 
 const SchoolRegistration = () => {
   const navigate = useNavigate();
@@ -13,26 +14,48 @@ const SchoolRegistration = () => {
   const [formData, setFormData] = useState({
     name: '',
     domain: '',
+    stateId: '',
+    address: '',
+    city: '',
+    postalCode: '',
+    phone: '',
+    type: 'secondary',
+    isPublic: true,
     adminEmail: '',
     adminPassword: '',
     adminConfirmPassword: '',
     adminFirstName: '',
     adminLastName: ''
   });
+  const [selectedState, setSelectedState] = useState(null);
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? checked : value
     }));
     // Clear error when user starts typing
+    if (error) setError('');
+  };
+
+  const handleStateChange = (state) => {
+    setSelectedState(state);
+    setFormData(prev => ({
+      ...prev,
+      stateId: state ? state.id : ''
+    }));
     if (error) setError('');
   };
 
   const validateForm = () => {
     if (!formData.name.trim()) {
       setError('School name is required');
+      return false;
+    }
+
+    if (!formData.stateId) {
+      setError('Please select a state');
       return false;
     }
 
@@ -80,6 +103,13 @@ const SchoolRegistration = () => {
       const response = await schoolApi.registerSchool({
         name: formData.name,
         domain: formData.domain || null,
+        stateId: formData.stateId,
+        address: formData.address || null,
+        city: formData.city || null,
+        postalCode: formData.postalCode || null,
+        phone: formData.phone || null,
+        type: formData.type,
+        isPublic: formData.isPublic,
         adminEmail: formData.adminEmail,
         adminPassword: formData.adminPassword,
         adminFirstName: formData.adminFirstName,
@@ -131,6 +161,24 @@ const SchoolRegistration = () => {
                   <p className="text-lg font-medium text-gray-900">{registrationData.school.name}</p>
                 </div>
               </div>
+              {selectedState && (
+                <div className="flex items-start">
+                  <MapPin className="w-5 h-5 text-blue-600 mr-3 mt-1 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm text-gray-600">State</p>
+                    <p className="text-lg font-medium text-gray-900">{selectedState.name}</p>
+                  </div>
+                </div>
+              )}
+              {registrationData.school.city && (
+                <div className="flex items-start">
+                  <MapPin className="w-5 h-5 text-blue-600 mr-3 mt-1 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm text-gray-600">City</p>
+                    <p className="text-lg font-medium text-gray-900">{registrationData.school.city}</p>
+                  </div>
+                </div>
+              )}
               {registrationData.school.domain && (
                 <div className="flex items-start">
                   <Globe className="w-5 h-5 text-blue-600 mr-3 mt-1 flex-shrink-0" />
@@ -253,6 +301,143 @@ const SchoolRegistration = () => {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
               disabled={loading}
             />
+          </div>
+
+          {/* State Selection */}
+          <div>
+            <StateSelector
+              selectedState={selectedState}
+              onStateChange={handleStateChange}
+              error={!selectedState && error ? 'Please select a state' : ''}
+              disabled={loading}
+            />
+          </div>
+
+          {/* School Details */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* City */}
+            <div>
+              <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
+                City <span className="text-gray-500 text-xs">(optional)</span>
+              </label>
+              <input
+                type="text"
+                id="city"
+                name="city"
+                value={formData.city}
+                onChange={handleInputChange}
+                placeholder="e.g., Lagos"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                disabled={loading}
+              />
+            </div>
+
+            {/* School Type */}
+            <div>
+              <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">
+                School Type
+              </label>
+              <select
+                id="type"
+                name="type"
+                value={formData.type}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                disabled={loading}
+              >
+                <option value="primary">Primary School</option>
+                <option value="secondary">Secondary School</option>
+                <option value="tertiary">Tertiary Institution</option>
+                <option value="vocational">Vocational/Technical</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Address */}
+          <div>
+            <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
+              Address <span className="text-gray-500 text-xs">(optional)</span>
+            </label>
+            <textarea
+              id="address"
+              name="address"
+              value={formData.address}
+              onChange={handleInputChange}
+              placeholder="School address"
+              rows={3}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition resize-none"
+              disabled={loading}
+            />
+          </div>
+
+          {/* Contact Details */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Phone */}
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+                Phone <span className="text-gray-500 text-xs">(optional)</span>
+              </label>
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                placeholder="e.g., +2348012345678"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                disabled={loading}
+              />
+            </div>
+
+            {/* Postal Code */}
+            <div>
+              <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700 mb-1">
+                Postal Code <span className="text-gray-500 text-xs">(optional)</span>
+              </label>
+              <input
+                type="text"
+                id="postalCode"
+                name="postalCode"
+                value={formData.postalCode}
+                onChange={handleInputChange}
+                placeholder="e.g., 100001"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                disabled={loading}
+              />
+            </div>
+          </div>
+
+          {/* School Type (Public/Private) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              School Type
+            </label>
+            <div className="flex items-center space-x-4">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="isPublic"
+                  value={true}
+                  checked={formData.isPublic === true}
+                  onChange={(e) => setFormData(prev => ({ ...prev, isPublic: true }))}
+                  className="mr-2 text-blue-600 focus:ring-blue-500"
+                  disabled={loading}
+                />
+                <span className="text-sm text-gray-700">Public School</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="isPublic"
+                  value={false}
+                  checked={formData.isPublic === false}
+                  onChange={(e) => setFormData(prev => ({ ...prev, isPublic: false }))}
+                  className="mr-2 text-blue-600 focus:ring-blue-500"
+                  disabled={loading}
+                />
+                <span className="text-sm text-gray-700">Private School</span>
+              </label>
+            </div>
           </div>
 
           {/* Domain */}
@@ -383,7 +568,7 @@ const SchoolRegistration = () => {
         {/* Info Box */}
         <div className="mt-6 p-4 bg-blue-50 rounded-lg">
           <p className="text-xs text-blue-800">
-            <strong>Info:</strong> Registration creates both your school account and an admin account with your provided email and password.
+            <strong>Info:</strong> Registration creates both your school account and an admin account with your provided email and password. State selection is required for proper multi-tenant organization.
           </p>
         </div>
       </div>

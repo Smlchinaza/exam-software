@@ -33,13 +33,20 @@ router.post('/register', async (req, res) => {
       adminEmail,
       adminPassword,
       adminFirstName,
-      adminLastName
+      adminLastName,
+      stateId,
+      address,
+      city,
+      postalCode,
+      phone,
+      type,
+      isPublic
     } = req.body;
 
     // Validate required fields
-    if (!name || !adminEmail || !adminPassword) {
+    if (!name || !adminEmail || !adminPassword || !stateId) {
       return res.status(400).json({
-        error: 'School name, admin email, and password are required'
+        error: 'School name, state, admin email, and password are required'
       });
     }
 
@@ -52,7 +59,18 @@ router.post('/register', async (req, res) => {
     // Start transaction
     await client.query('BEGIN');
 
-    // 1. Check if school with this name already exists
+    // 1. Check if state exists and is active
+    const stateExistsRes = await client.query(
+      `SELECT id, name FROM states WHERE id = $1 AND is_active = true`,
+      [stateId]
+    );
+
+    if (stateExistsRes.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'Invalid or inactive state selected' });
+    }
+
+    // 2. Check if school with this name already exists
     const schoolExistsRes = await client.query(
       `SELECT id FROM schools WHERE name = $1`,
       [name]
@@ -63,18 +81,18 @@ router.post('/register', async (req, res) => {
       return res.status(409).json({ error: 'School name already exists' });
     }
 
-    // 2. Create school
+    // 3. Create school
     const schoolRes = await client.query(
-      `INSERT INTO schools (name, domain, created_at, updated_at)
-       VALUES ($1, $2, NOW(), NOW())
-       RETURNING id, name, domain, created_at`,
-      [name, domain || null]
+      `INSERT INTO schools (name, domain, state_id, address, city, postal_code, phone, type, is_public, status, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'active', NOW(), NOW())
+       RETURNING id, name, domain, state_id, address, city, postal_code, phone, type, is_public, status, created_at`,
+      [name, domain || null, stateId, address || null, city || null, postalCode || null, phone || null, type || 'secondary', isPublic !== undefined ? isPublic : true]
     );
 
     const school = schoolRes.rows[0];
     const schoolId = school.id;
 
-    // 3. Check if admin email already exists
+    // 4. Check if admin email already exists
     const emailExistsRes = await client.query(
       `SELECT id FROM users WHERE email = $1`,
       [adminEmail]
@@ -85,10 +103,10 @@ router.post('/register', async (req, res) => {
       return res.status(409).json({ error: 'Email already registered' });
     }
 
-    // 4. Hash password
+    // 5. Hash password
     const password_hash = await bcryptjs.hash(adminPassword, 10);
 
-    // 5. Create admin user for this school
+    // 6. Create admin user for this school
     const adminRes = await client.query(
       `INSERT INTO users (
         school_id, email, password_hash, first_name, last_name, 
@@ -100,7 +118,7 @@ router.post('/register', async (req, res) => {
 
     const admin = adminRes.rows[0];
 
-    // 6. Create JWT token for admin
+    // 7. Create JWT token for admin
     const payload = {
       id: admin.id,
       email: admin.email,
@@ -120,6 +138,14 @@ router.post('/register', async (req, res) => {
         id: school.id,
         name: school.name,
         domain: school.domain,
+        state_id: school.state_id,
+        address: school.address,
+        city: school.city,
+        postal_code: school.postal_code,
+        phone: school.phone,
+        type: school.type,
+        is_public: school.is_public,
+        status: school.status,
         created_at: school.created_at
       },
       admin: {
@@ -305,3 +331,190 @@ router.get('/:schoolId/stats', authenticateJWT, enforceMultiTenant, async (req, 
 });
 
 module.exports = router;
+
+/**
+ * GET /api/schools/by-state/:stateId
+ * Public endpoint - Get schools by state
+ */
+router.get('/by-state/:stateId', async (req, res) => {
+  try {
+    const { stateId } = req.params;
+
+    // Verify state exists and is active
+    const stateRes = await pool.query(
+      `SELECT id, name FROM states WHERE id = $1 AND is_active = true`,
+      [stateId]
+    );
+
+    if (stateRes.rows.length === 0) {
+      return res.status(404).json({ error: 'State not found or inactive' });
+    }
+
+    // Get schools in this state
+    const schoolsRes = await pool.query(
+      `SELECT id, name, domain, city, type, is_public, status, created_at
+       FROM schools 
+       WHERE state_id = $1 AND status = 'active'
+       ORDER BY name ASC`,
+      [stateId]
+    );
+
+    res.json({
+      state: stateRes.rows[0],
+      schools: schoolsRes.rows
+    });
+  } catch (err) {
+    console.error('Error fetching schools by state:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * GET /api/schools/search
+ * Public endpoint - Search schools with optional state filter
+ * Query parameters:
+ * - q: search query (school name)
+ * - stateId: optional state ID to filter by
+ */
+router.get('/search', async (req, res) => {
+  try {
+    // Explicitly make this route public - bypass any auth middleware
+    const { q, stateId } = req.query;
+
+    if (!q || q.trim().length < 2) {
+      return res.status(400).json({ error: 'Search query must be at least 2 characters' });
+    }
+
+    let query = `
+      SELECT s.id, s.name, s.domain, s.city, s.type, s.is_public, s.status, s.created_at,
+             st.id as state_id, st.name as state_name
+      FROM schools s
+      LEFT JOIN states st ON s.state_id = st.id
+      WHERE s.status = 'active' AND s.name ILIKE $1
+    `;
+    
+    const params = [`%${q.trim()}%`];
+
+    if (stateId) {
+      query += ` AND s.state_id = $2`;
+      params.push(stateId);
+    }
+
+    query += ` ORDER BY s.name ASC LIMIT 50`;
+
+    const result = await pool.query(query, params);
+
+    res.json({
+      query: q.trim(),
+      stateId: stateId || null,
+      schools: result.rows
+    });
+  } catch (err) {
+    console.error('Error searching schools:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * POST /api/schools/request-registration
+ * Public endpoint - Request new school registration
+ */
+router.post('/request-registration', async (req, res) => {
+  const client = await pool.connect();
+  
+  try {
+    const {
+      schoolName,
+      stateId,
+      requesterName,
+      requesterEmail,
+      requesterPhone,
+      schoolAddress,
+      schoolCity,
+      schoolType,
+      message
+    } = req.body;
+
+    // Validate required fields
+    if (!schoolName || !stateId || !requesterName || !requesterEmail) {
+      return res.status(400).json({
+        error: 'School name, state, requester name, and email are required'
+      });
+    }
+
+    // Start transaction
+    await client.query('BEGIN');
+
+    // 1. Check if state exists and is active
+    const stateExistsRes = await client.query(
+      `SELECT id, name FROM states WHERE id = $1 AND is_active = true`,
+      [stateId]
+    );
+
+    if (stateExistsRes.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'Invalid or inactive state selected' });
+    }
+
+    // 2. Check if school already exists
+    const schoolExistsRes = await client.query(
+      `SELECT id FROM schools WHERE name = $1`,
+      [schoolName]
+    );
+
+    if (schoolExistsRes.rows.length > 0) {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ error: 'School already exists' });
+    }
+
+    // 3. Create school registration request (could be a separate table in future)
+    // For now, we'll store in a temporary table or handle via notifications
+    const requestRes = await client.query(
+      `INSERT INTO schools (name, state_id, address, city, type, status, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, 'pending', NOW(), NOW())
+       RETURNING id, name, state_id, status, created_at`,
+      [schoolName, stateId, schoolAddress || null, schoolCity || null, schoolType || 'secondary']
+    );
+
+    const school = requestRes.rows[0];
+
+    // 4. Log the request (in a real implementation, this would send notifications to admins)
+    console.log('School registration request:', {
+      schoolId: school.id,
+      schoolName,
+      stateId,
+      stateName: stateExistsRes.rows[0].name,
+      requester: {
+        name: requesterName,
+        email: requesterEmail,
+        phone: requesterPhone
+      },
+      message,
+      requestedAt: new Date().toISOString()
+    });
+
+    // Commit transaction
+    await client.query('COMMIT');
+
+    res.status(201).json({
+      message: 'School registration request submitted successfully',
+      request: {
+        id: school.id,
+        schoolName,
+        state: stateExistsRes.rows[0].name,
+        status: 'pending',
+        submittedAt: school.created_at
+      },
+      requester: {
+        name: requesterName,
+        email: requesterEmail
+      }
+    });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('School registration request error:', err);
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
+  }
+});

@@ -28,6 +28,7 @@ const extractSchoolIdFromToken = (token) => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [schoolId, setSchoolId] = useState(null);
+  const [school, setSchool] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -40,6 +41,8 @@ export const AuthProvider = ({ children }) => {
           localStorage.getItem("user") || sessionStorage.getItem("user");
         const storedSchoolId =
           localStorage.getItem("schoolId") || sessionStorage.getItem("schoolId");
+        const storedSchool =
+          localStorage.getItem("school") || sessionStorage.getItem("school");
 
         if (token && storedUser) {
           setUser(JSON.parse(storedUser));
@@ -50,6 +53,28 @@ export const AuthProvider = ({ children }) => {
             const extractedSchoolId = extractSchoolIdFromToken(token);
             if (extractedSchoolId) {
               setSchoolId(extractedSchoolId);
+            }
+          }
+          // Restore school data if available
+          if (storedSchool) {
+            setSchool(JSON.parse(storedSchool));
+          } else if (storedSchoolId) {
+            // Fetch school data if we have schoolId but no school data
+            try {
+              const schoolResponse = await fetch('/api/schools/current', {
+                headers: {
+                  'Authorization': `Bearer ${token}`
+                }
+              });
+              if (schoolResponse.ok) {
+                const schoolData = await schoolResponse.json();
+                setSchool(schoolData);
+                // Store school data
+                const storage = localStorage.getItem("token") ? localStorage : sessionStorage;
+                storage.setItem("school", JSON.stringify(schoolData));
+              }
+            } catch (error) {
+              console.error("Error fetching school data:", error);
             }
           }
         }
@@ -137,6 +162,25 @@ export const AuthProvider = ({ children }) => {
       }
       storage.setItem("rememberMe", rememberMe);
       setUser(response.user);
+      
+      // Fetch and store school data if school_id is available
+      if (extractedSchoolId) {
+        try {
+          const schoolResponse = await fetch('/api/schools/current', {
+            headers: {
+              'Authorization': `Bearer ${response.token}`
+            }
+          });
+          if (schoolResponse.ok) {
+            const schoolData = await schoolResponse.json();
+            setSchool(schoolData);
+            storage.setItem("school", JSON.stringify(schoolData));
+          }
+        } catch (error) {
+          console.error("Error fetching school data during login:", error);
+        }
+      }
+      
       return response;
     } catch (error) {
       console.error("AuthContext: Login error:", error);
@@ -229,18 +273,22 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
     localStorage.removeItem("schoolId");
+    localStorage.removeItem("school");
     localStorage.removeItem("rememberMe");
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("refreshToken");
     sessionStorage.removeItem("user");
     sessionStorage.removeItem("schoolId");
+    sessionStorage.removeItem("school");
     setUser(null);
     setSchoolId(null);
+    setSchool(null);
   };
 
   const value = {
     user,
     schoolId,
+    school,
     loading,
     login,
     register,

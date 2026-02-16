@@ -17,7 +17,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showDemoAccounts, setShowDemoAccounts] = useState(false);
   const [demoAccounts, setDemoAccounts] = useState(null);
-  const { login } = useAuth();
+  const { login, school } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
@@ -125,6 +125,16 @@ const Login = () => {
               ? 'Access your student dashboard and view your results'
               : 'Access your teacher dashboard and manage student records'}
           </p>
+          
+          {/* School Branding */}
+          {school && (
+            <div className="mt-3 p-2 bg-blue-50 rounded-lg border border-blue-200">
+              <p className="text-xs text-blue-700 text-center">
+                <span className="font-medium">{school.name}</span>
+                {school.city && <span> • {school.city}</span>}
+              </p>
+            </div>
+          )}
         </div>
 
         <button

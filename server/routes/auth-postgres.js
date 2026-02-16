@@ -10,6 +10,135 @@ const jwt = require('jsonwebtoken');
 const { authenticateJWT } = require('../middleware/auth');
 
 /**
+ * POST /api/auth/register/teacher
+ * Multi-tenant teacher registration with school assignment
+ */
+router.post('/register/teacher', async (req, res) => {
+  const client = await pool.connect();
+  
+  try {
+    const {
+      firstName,
+      lastName,
+      email,
+      phone,
+      password,
+      schoolId,
+      subjects,
+      employmentType,
+      experience,
+      rememberMe
+    } = req.body;
+
+    // Validate required fields
+    if (!firstName || !lastName || !email || !password || !schoolId) {
+      return res.status(400).json({
+        error: 'First name, last name, email, password, and school are required'
+      });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({
+        error: 'Password must be at least 8 characters long'
+      });
+    }
+
+    // Start transaction
+    await client.query('BEGIN');
+
+    // 1. Check if school exists and is active
+    const schoolRes = await client.query(
+      `SELECT id, name FROM schools WHERE id = $1 AND status = 'active'`,
+      [schoolId]
+    );
+
+    if (schoolRes.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'Invalid or inactive school selected' });
+    }
+
+    // 2. Check if email already exists
+    const emailRes = await client.query(
+      `SELECT id FROM users WHERE email = $1`,
+      [email]
+    );
+
+    if (emailRes.rows.length > 0) {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ error: 'Email already registered' });
+    }
+
+    // 3. Hash password
+    const password_hash = await bcryptjs.hash(password, 10);
+
+    // 4. Create teacher user
+    const userRes = await client.query(
+      `INSERT INTO users (
+        school_id, email, password_hash, first_name, last_name, 
+        role, is_active, profile, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, true, $7, NOW(), NOW())
+       RETURNING id, email, first_name, last_name, role, school_id, created_at`,
+      [
+        schoolId, 
+        email, 
+        password_hash, 
+        firstName, 
+        lastName, 
+        'teacher',
+        JSON.stringify({
+          phone,
+          subjects,
+          employmentType,
+          experience,
+          registeredAt: new Date().toISOString()
+        })
+      ]
+    );
+
+    const user = userRes.rows[0];
+
+    // 5. Create JWT token
+    const payload = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      school_id: user.school_id
+    };
+
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '24h' });
+
+    // Commit transaction
+    await client.query('COMMIT');
+
+    res.status(201).json({
+      message: 'Teacher registration successful',
+      user: {
+        id: user.id,
+        email: user.email,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        role: user.role,
+        school_id: user.school_id,
+        created_at: user.created_at
+      },
+      school: {
+        id: schoolRes.rows[0].id,
+        name: schoolRes.rows[0].name
+      },
+      token,
+      expiresIn: '24h'
+    });
+
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Teacher registration error:', err);
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
+  }
+});
+
+/**
  * POST /api/auth/register
  * Register a new user in a school (uses default school for now)
  */
