@@ -100,7 +100,7 @@ const ResultTable = ({ subjects }) => {
         </tbody>
         <tfoot>
           <tr className="bg-[#006600] text-white">
-            <td colSpan={10} className="border border-white p-2 text-center font-semibold" scope="row">
+            <td colSpan={10} className="border border-white p-2 text-center font-semibold">
               Summary statistics will be calculated here
             </td>
           </tr>

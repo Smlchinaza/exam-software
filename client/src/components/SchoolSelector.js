@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Search, Building, MapPin, AlertCircle, Plus, Loader } from 'lucide-react';
 import { statesApi } from '../services/statesApi';
 
@@ -15,15 +15,7 @@ const SchoolSelector = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [showRequestForm, setShowRequestForm] = useState(false);
 
-  useEffect(() => {
-    if (selectedState) {
-      fetchSchools();
-    } else {
-      setSchools([]);
-    }
-  }, [selectedState]);
-
-  const fetchSchools = async (query = '') => {
+  const fetchSchools = useCallback(async (query = '') => {
     if (!selectedState) return;
     
     try {
@@ -43,7 +35,15 @@ const SchoolSelector = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedState]);
+
+  useEffect(() => {
+    if (selectedState) {
+      fetchSchools();
+    } else {
+      setSchools([]);
+    }
+  }, [selectedState, fetchSchools]);
 
   const handleSearch = (e) => {
     const query = e.target.value;
@@ -66,7 +66,6 @@ const SchoolSelector = ({
     setShowRequestForm(true);
   };
 
-  const selectedSchoolName = selectedSchool ? selectedSchool.name : '';
 
   if (showRequestForm) {
     return (

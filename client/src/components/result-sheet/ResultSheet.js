@@ -8,7 +8,6 @@ import AffectiveDomain from './AffectiveDomain';
 import RemarksSection from './RemarksSection';
 import ResultFooter from './ResultFooter';
 import PrintButton from './PrintButton';
-import styles from './ResultSheet.module.css';
 
 const ResultSheet = ({ data }) => {
   return (

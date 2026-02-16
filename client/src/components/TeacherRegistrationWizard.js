@@ -5,8 +5,6 @@ import {
   Mail, 
   Lock, 
   Phone, 
-  BookOpen, 
-  MapPin, 
   Building, 
   AlertCircle,
   CheckCircle,
@@ -26,7 +24,6 @@ const TeacherRegistrationWizard = () => {
   const [success, setSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [showRequestForm, setShowRequestForm] = useState(false);
 
   const [formData, setFormData] = useState({
     // Step 1: Personal Information
@@ -328,7 +325,6 @@ const TeacherRegistrationWizard = () => {
               onSchoolChange={handleSchoolChange}
               error={errors.school}
               disabled={loading}
-              onRequestNewSchool={() => setShowRequestForm(true)}
             />
           </div>
         );

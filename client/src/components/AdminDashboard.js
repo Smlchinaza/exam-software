@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { subjectApi, teacherApi, examApi, schoolApi } from "../services/api";
 import api from "../services/api";
@@ -67,7 +67,7 @@ const AdminDashboard = () => {
     navigate("/");
   };
 
-  const fetchSchool = async () => {
+  const fetchSchool = useCallback(async () => {
     if (!schoolId) return;
     setSchoolLoading(true);
     try {
@@ -78,7 +78,7 @@ const AdminDashboard = () => {
     } finally {
       setSchoolLoading(false);
     }
-  };
+  }, [schoolId]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -198,7 +198,7 @@ const AdminDashboard = () => {
         .catch((err) => setExamHistoryError("Failed to fetch exam history."))
         .finally(() => setExamHistoryLoading(false));
     }
-  }, [activeTab, user, schoolId]);
+  }, [activeTab, user, schoolId, fetchSchool]);
 
   // Add effect to fetch subjects by class when selectedClass changes in 'subjects' tab
   useEffect(() => {

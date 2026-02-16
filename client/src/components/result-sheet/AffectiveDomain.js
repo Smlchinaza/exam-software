@@ -15,8 +15,8 @@ const AffectiveDomain = ({ affectiveDomain, psychomotorDomain }) => {
         </thead>
         <tbody>
           {traits.map((trait, index) => (
-            <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-[#faf7f0]'} scope="row" aria-label={`${trait.label}: Score ${trait.score} out of ${trait.maxScore}`}>
-              <td className="border border-[#006600] p-1 text-xs" scope="row">{trait.label}</td>
+            <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-[#faf7f0]'} aria-label={`${trait.label}: Score ${trait.score} out of ${trait.maxScore}`}>
+              <td className="border border-[#006600] p-1 text-xs">{trait.label}</td>
               <td className="border border-[#006600] p-1 text-center text-xs font-semibold" aria-label={`Score: ${trait.score} out of ${trait.maxScore}`}>{trait.score}</td>
               <td className="border border-[#006600] p-1 text-center text-xs" aria-label={`Maximum possible score: ${trait.maxScore}`}>{trait.maxScore}</td>
               <td className="border border-[#006600] p-1 text-center text-xs" aria-label={`Performance level: ${trait.score >= trait.maxScore * 0.7 ? 'Excellent' : trait.score >= trait.maxScore * 0.5 ? 'Good' : trait.score >= trait.maxScore * 0.3 ? 'Fair' : 'Poor'}`}>

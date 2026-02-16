@@ -11,7 +11,7 @@ const RemarksSection = ({ remarks }) => {
           <div className="text-xs text-gray-700 mb-1">
             <span className="font-semibold">Name:</span> {remarks.formTeacherName}
           </div>
-          <div className="text-xs italic text-gray-600 p-2 bg-[#f5e9c3] rounded" role="comment" aria-label={`Form teacher's remark: ${remarks.formTeacherRemark}`}>
+          <div className="text-xs italic text-gray-600 p-2 bg-[#f5e9c3] rounded" aria-label={`Form teacher's remark: ${remarks.formTeacherRemark}`}>
             {remarks.formTeacherRemark}
           </div>
         </div>
@@ -21,7 +21,7 @@ const RemarksSection = ({ remarks }) => {
           <div className="text-xs text-gray-700 mb-1">
             <span className="font-semibold">Name:</span> {remarks.principalName}
           </div>
-          <div className="text-xs italic text-gray-600 p-2 bg-[#f5e9c3] rounded" role="comment" aria-label={`Principal's remark: ${remarks.principalRemark}`}>
+          <div className="text-xs italic text-gray-600 p-2 bg-[#f5e9c3] rounded" aria-label={`Principal's remark: ${remarks.principalRemark}`}>
             {remarks.principalRemark}
           </div>
         </div>
