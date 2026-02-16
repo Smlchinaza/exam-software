@@ -1,0 +1,130 @@
+/* Print styles for Result Sheet */
+@media print {
+  /* Hide print button only */
+  .print\:hidden {
+    display: none !important;
+  }
+  
+  /* Page setup */
+  @page {
+    size: A4;
+    margin: 0.5cm;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 9pt;
+    line-height: 1.1;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Container styling */
+  .result-sheet-container {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 6pt !important;
+    background: white !important;
+  }
+  
+  /* Table styling for print */
+  table {
+    page-break-inside: avoid;
+    border-collapse: collapse;
+    width: 100%;
+  }
+  
+  th, td {
+    border: 1px solid black !important;
+    padding: 2pt !important;
+    font-size: 7pt;
+  }
+  
+  /* Avoid breaking rows */
+  tr {
+    page-break-inside: avoid;
+  }
+  
+  /* Header styling */
+  h1, h2, h3, h4 {
+    page-break-after: avoid;
+    color: black !important;
+  }
+  
+  /* Watermark */
+  .watermark {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    font-size: 48pt;
+    opacity: 0.05;
+    z-index: -1;
+    pointer-events: none;
+  }
+  
+  /* Print-specific colors */
+  .text-\[\#006600\],
+  .text-\[\#c8960c\] {
+    color: black !important;
+  }
+  
+  .bg-\[\#006600\] {
+    background: #f0f0f0 !important;
+    color: black !important;
+  }
+  
+  .bg-\[\#e8f5e8\],
+  .bg-\[\#faf7f0\] {
+    background: white !important;
+  }
+  
+  /* Border styling */
+  .border-\[\#006600\] {
+    border-color: black !important;
+  }
+  
+  .border-2 {
+    border-width: 1px !important;
+  }
+  
+  /* Font sizes for print */
+  .text-lg {
+    font-size: 11pt !important;
+  }
+  
+  .text-sm,
+  .text-xs {
+    font-size: 7pt !important;
+  }
+  
+  .text-2xl {
+    font-size: 13pt !important;
+  }
+  
+  .text-xl {
+    font-size: 12pt !important;
+  }
+  
+  .text-base {
+    font-size: 9pt !important;
+  }
+  
+  /* Spacing adjustments */
+  .mb-3,
+  .mb-4,
+  .mb-6 {
+    margin-bottom: 4pt !important;
+  }
+  
+  .p-3,
+  .p-4 {
+    padding: 3pt !important;
+  }
+  
+  .p-1,
+  .p-2 {
+    padding: 1pt !important;
+  }
+}

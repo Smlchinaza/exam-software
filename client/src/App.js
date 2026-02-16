@@ -26,6 +26,7 @@ import TeacherStudents from './components/TeacherStudents';
 import TeacherResults from './components/TeacherResults';
 import AdminResults from './components/AdminResults';
 import SchoolRegistration from './components/SchoolRegistration';
+import ResultPreviewPage from './pages/ResultPreviewPage';
 // Placeholder components for scaffolding
 const TeacherSettings = () => <div className="p-8">Settings Page (Coming Soon)</div>;
 
@@ -50,6 +51,7 @@ function AppLayout() {
         <Route path="/take-exam" element={<TakeExam />} />
         <Route path="/take-exam/:examId" element={<TakeExam />} />
         <Route path="/exam-selection" element={<ExamSelection />} />
+        <Route path="/result-preview" element={<ResultPreviewPage />} />
         {/* Protected Student Routes */}
         <Route path="/student/dashboard" element={<ProtectedRoute role="student"><StudentDashboard /></ProtectedRoute>} />
         <Route path="/student/profile" element={<ProtectedRoute role="student"><StudentProfile /></ProtectedRoute>} />
