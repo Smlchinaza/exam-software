@@ -15,12 +15,12 @@ const GradeKey = () => {
 
   return (
     <div className="mb-3 p-3 border-2 border-[#006600] rounded">
-      <h3 className="text-base font-bold text-[#006600] mb-2">WAEC Grading System</h3>
+      <h3 className="text-base font-bold text-[#006600] mb-2 font-serif">WAEC Grading System</h3>
       <div className="grid grid-cols-9 gap-1 text-xs">
         {grades.map((item) => (
           <div key={item.grade} className="text-center">
             <div 
-              className={`px-1 py-0.5 rounded font-semibold ${item.color}`}
+              className={`px-1 py-0.5 rounded font-semibold ${item.color} font-condensed`}
               aria-label={`Grade ${item.grade}: ${item.description}, Score range ${item.range}`}
             >
               {item.grade}

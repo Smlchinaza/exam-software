@@ -3,11 +3,11 @@ import React from 'react';
 const RemarksSection = ({ remarks }) => {
   return (
     <div className="mb-3 p-3 border-2 border-[#006600] rounded">
-      <h3 className="text-base font-bold text-[#006600] mb-3">Remarks & Comments</h3>
+      <h3 className="text-base font-bold text-[#006600] mb-3 font-serif">Remarks & Comments</h3>
       
       <div className="grid grid-cols-2 gap-4 mb-3">
         <div>
-          <h4 className="font-semibold text-[#c8960c] mb-1 text-sm">Form Teacher's Remarks</h4>
+          <h4 className="font-semibold text-[#c8960c] mb-1 text-sm font-serif">Form Teacher's Remarks</h4>
           <div className="text-xs text-gray-700 mb-1">
             <span className="font-semibold">Name:</span> {remarks.formTeacherName}
           </div>
@@ -17,7 +17,7 @@ const RemarksSection = ({ remarks }) => {
         </div>
         
         <div>
-          <h4 className="font-semibold text-[#c8960c] mb-1 text-sm">Principal's Remarks</h4>
+          <h4 className="font-semibold text-[#c8960c] mb-1 text-sm font-serif">Principal's Remarks</h4>
           <div className="text-xs text-gray-700 mb-1">
             <span className="font-semibold">Name:</span> {remarks.principalName}
           </div>

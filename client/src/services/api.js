@@ -106,6 +106,16 @@ export const authApi = {
     }
   },
 
+  // Check if user exists by email
+  checkUser: async (email) => {
+    try {
+      const response = await api.post("/auth/check-user", { email });
+      return response.data; // Returns: { exists: boolean }
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+
   // Logout (client-side cleanup)
   logout: () => {
     localStorage.removeItem("token");

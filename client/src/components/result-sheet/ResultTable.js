@@ -86,7 +86,7 @@ const ResultTable = ({ subjects }) => {
               </td>
               <td className="border border-[#006600] p-1 text-center">
                 <span 
-                  className={`px-1 py-0.5 rounded text-xs font-semibold ${getGradeColor(subject.grade)}`}
+                  className={`px-1 py-0.5 rounded text-xs font-semibold ${getGradeColor(subject.grade)} font-condensed`}
                   aria-label={`Grade: ${subject.grade} — ${gradeToRemark(subject.grade)}`}
                 >
                   {subject.grade}

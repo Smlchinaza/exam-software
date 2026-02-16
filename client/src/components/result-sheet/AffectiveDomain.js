@@ -3,7 +3,7 @@ import React from 'react';
 const AffectiveDomain = ({ affectiveDomain, psychomotorDomain }) => {
   const TraitTable = ({ title, traits }) => (
     <div className="mb-3">
-      <h4 className="font-semibold text-[#006600] mb-1 text-sm">{title}</h4>
+      <h4 className="font-semibold text-[#006600] mb-1 text-sm font-serif">{title}</h4>
       <table className="w-full border-collapse border border-[#006600]" role="table" aria-label={`${title} Assessment Table`}>
         <thead>
           <tr className="bg-[#006600] text-white">
@@ -33,7 +33,7 @@ const AffectiveDomain = ({ affectiveDomain, psychomotorDomain }) => {
 
   return (
     <div className="mb-3 p-3 border-2 border-[#006600] rounded">
-      <h3 className="text-base font-bold text-[#006600] mb-3">Affective & Psychomotor Domain</h3>
+      <h3 className="text-base font-bold text-[#006600] mb-3 font-serif">Affective & Psychomotor Domain</h3>
       <div className="grid grid-cols-2 gap-4">
         <TraitTable title="Affective Domain (Character Assessment)" traits={affectiveDomain} />
         <TraitTable title="Psychomotor Domain (Skills Assessment)" traits={psychomotorDomain} />

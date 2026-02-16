@@ -8,7 +8,7 @@ const StatsPanel = ({ subjects, daysPresent, daysSchoolOpened }) => {
 
   return (
     <div className="mb-3 p-3 border-2 border-[#006600] rounded">
-      <h3 className="text-base font-bold text-[#006600] mb-2">Performance Summary</h3>
+      <h3 className="text-base font-bold text-[#006600] mb-2 font-serif">Performance Summary</h3>
       <div className="grid grid-cols-4 gap-2 text-xs" role="list" aria-label="Performance Statistics">
         <div className="text-center" role="listitem">
           <div className="font-semibold text-[#c8960c] text-xs">Aggregate Score</div>

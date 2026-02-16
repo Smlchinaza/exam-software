@@ -75,6 +75,42 @@ router.post('/register', async (req, res) => {
 });
 
 /**
+ * POST /api/auth/check-user
+ * Check if user exists by email
+ */
+router.post('/check-user', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email required' });
+    }
+
+    const result = await pool.query(
+      `SELECT id, email, role, is_active
+       FROM users
+       WHERE email = $1`,
+      [email]
+    );
+
+    const exists = result.rows.length > 0;
+    
+    res.json({ 
+      exists,
+      user: exists ? {
+        id: result.rows[0].id,
+        email: result.rows[0].email,
+        role: result.rows[0].role,
+        is_active: result.rows[0].is_active
+      } : null
+    });
+  } catch (err) {
+    console.error('Check user error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
  * POST /api/auth/login
  * Login with email and password
  */

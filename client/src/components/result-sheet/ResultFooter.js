@@ -4,13 +4,13 @@ const ResultFooter = () => {
   return (
     <footer className="mt-4 text-center text-xs text-gray-600 border-t-2 border-[#006600] pt-2">
       <div className="mb-2">
-        <p className="font-semibold text-[#006600] text-xs">IMPORTANT NOTICE</p>
+        <p className="font-semibold text-[#006600] text-xs font-serif">IMPORTANT NOTICE</p>
         <p className="text-xs">This result sheet is computer-generated and requires official school stamp to be considered valid.</p>
         <p className="text-xs">Any alteration or modification renders this document invalid.</p>
       </div>
       
       <div className="mb-2">
-        <p className="font-semibold text-xs">Print Information</p>
+        <p className="font-semibold text-xs font-serif">Print Information</p>
         <p className="text-xs">Printed on: {new Date().toLocaleDateString('en-GB', { 
           day: 'numeric', 
           month: 'long', 

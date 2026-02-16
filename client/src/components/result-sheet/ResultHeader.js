@@ -12,7 +12,7 @@ const ResultHeader = ({ school }) => {
           />
         </div>
       )}
-      <h1 className="text-xl font-bold text-[#006600] mb-1">
+      <h1 className="text-xl font-bold text-[#006600] mb-1 font-serif">
         {school.name}
       </h1>
       <p className="text-xs text-gray-600 mb-1">{school.address}</p>
@@ -22,7 +22,7 @@ const ResultHeader = ({ school }) => {
       {school.ministry && (
         <p className="text-xs text-gray-600 mb-1">{school.ministry}</p>
       )}
-      <p className="text-xs font-semibold text-[#c8960c] italic">
+      <p className="text-xs font-semibold text-[#c8960c] italic font-serif">
         "{school.motto}"
       </p>
     </header>

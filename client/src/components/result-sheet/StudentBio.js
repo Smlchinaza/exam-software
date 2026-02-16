@@ -5,7 +5,7 @@ const StudentBio = ({ student }) => {
     <div className="mb-3 p-3 border-2 border-[#006600] rounded">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <h2 className="text-base font-bold text-[#006600] mb-2">Student Information</h2>
+          <h2 className="text-base font-bold text-[#006600] mb-2 font-serif">Student Information</h2>
           <div className="grid grid-cols-2 gap-2 text-xs" role="list" aria-label="Student Personal Information">
             <div role="listitem">
               <span className="font-semibold">Name:</span> {student.fullName}

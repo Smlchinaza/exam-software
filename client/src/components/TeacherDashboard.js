@@ -18,6 +18,7 @@ import {
   FaTable,
   FaUserFriends,
   FaEye,
+  FaEdit,
 } from "react-icons/fa";
 
 function TeacherDashboard() {
@@ -167,6 +168,14 @@ function TeacherDashboard() {
                   Results
                 </button>
               </li>
+              <li className="hover:bg-gray-50 p-2 rounded">
+                <button
+                  onClick={() => navigate("/teacher/manage-results")}
+                  className="block text-left w-full bg-transparent border-none p-0 m-0 text-inherit"
+                >
+                  Manage Results
+                </button>
+              </li>
             </ul>
           </div>
         </div>
@@ -309,6 +318,20 @@ function TeacherDashboard() {
                 </button>
               </li>
               <li
+                className={`${activeNav === "manage-results" ? "bg-blue-100 text-blue-700" : "hover:bg-gray-50"} p-2 rounded flex items-center gap-2`}
+              >
+                <button
+                  onClick={() => {
+                    navigate("/teacher/manage-results");
+                    setActiveNav("manage-results");
+                    setMobileNavOpen(false);
+                  }}
+                  className="flex items-center gap-2 w-full text-left"
+                >
+                  <FaEdit /> Manage Results
+                </button>
+              </li>
+              <li
                 className={`${activeNav === "exam-history" ? "bg-blue-100 text-blue-700" : "hover:bg-gray-50"} p-2 rounded flex items-center gap-2`}
               >
                 <button
@@ -414,6 +437,19 @@ function TeacherDashboard() {
                 className="flex items-center gap-2 w-full text-left"
               >
                 <FaTasks /> Results
+              </button>
+            </li>
+            <li
+              className={`${activeNav === "manage-results" ? "bg-blue-100 text-blue-700" : "hover:bg-gray-50"} p-2 rounded flex items-center gap-2`}
+            >
+              <button
+                onClick={() => {
+                  navigate("/teacher/manage-results");
+                  setActiveNav("manage-results");
+                }}
+                className="flex items-center gap-2 w-full text-left"
+              >
+                <FaEdit /> Manage Results
               </button>
             </li>
             <li
