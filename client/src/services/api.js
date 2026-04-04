@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API_URL = process.env.NODE_ENV === 'production' 
-  ? "https://exam-software-45ex.vercel.app/api" 
+  ? "https://exam-software.vercel.app/api" 
   : "http://localhost:5000/api";
 
 // Create axios instance with better error handling
