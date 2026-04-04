@@ -2,7 +2,7 @@
 // API service for Student Results Management
 
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://exam-software.vercel.app/api' 
+  ? 'https://exam-software-65fk.onrender.com/api' 
   : 'http://localhost:5000/api';
 
 class StudentResultsApi {
