@@ -1,7 +1,9 @@
 // services/studentResultsApi.js
 // API service for Student Results Management
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://exam-software-45ex.vercel.app/api' 
+  : 'http://localhost:5000/api';
 
 class StudentResultsApi {
   // Get teacher's student results
