@@ -17,14 +17,28 @@ const SuperAdminLogin = () => {
 
     try {
       console.log('Making login request:', { email, password: '***' });
+      console.log('Request details:', {
+        method: 'POST',
+        url: '/api/auth/login',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      
       const response = await fetch('/api/auth/login', {
         method: 'POST',
+        mode: 'cors',
+        cache: 'no-cache',
+        credentials: 'same-origin',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
+        redirect: 'follow',
+        referrerPolicy: 'no-referrer',
         body: JSON.stringify({ email, password }),
       });
       console.log('Response received:', response.status, response.statusText);
+      console.log('Response headers:', response.headers);
 
       let data;
       try {

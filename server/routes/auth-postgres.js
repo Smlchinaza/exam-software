@@ -240,12 +240,27 @@ router.post('/check-user', async (req, res) => {
 });
 
 /**
+ * OPTIONS /api/auth/login
+ * Handle CORS preflight requests
+ */
+router.options('/login', (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Max-Age', '86400'); // 24 hours
+  res.sendStatus(200);
+});
+
+/**
  * POST /api/auth/login
  * Login with email and password
  */
 router.post('/login', async (req, res) => {
   try {
     console.log('Login endpoint hit');
+    console.log('Request method:', req.method);
+    console.log('Request URL:', req.url);
+    console.log('Request headers:', req.headers);
     const { email, password } = req.body;
     console.log('Request body:', { email, password: password ? '***' : undefined });
 

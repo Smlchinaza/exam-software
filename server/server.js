@@ -57,6 +57,13 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Debug middleware to log all requests
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  console.log('Headers:', req.headers);
+  next();
+});
+
 // Health check endpoint
 app.get('/health', async (req, res) => {
   try {
@@ -76,7 +83,11 @@ app.get('/health', async (req, res) => {
 // app.use(dynamicLimiter);
 
 // PostgreSQL Routes (Multi-tenant enabled)
-app.use("/api/auth", authPostgres);
+app.use("/api/auth", (req, res, next) => {
+  console.log(`Auth request: ${req.method} ${req.url}`);
+  console.log('Headers:', req.headers);
+  next();
+}, authPostgres);
 app.use("/api/states", statesPostgres);
 app.use("/api/schools", schoolsPostgres);
 app.use("/api/exams", examSubmissionLimiter, examsPostgres);
