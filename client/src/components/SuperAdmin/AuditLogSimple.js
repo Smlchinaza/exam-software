@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { superAdminApi } from '../../services/superAdminApi';
 import { 
   Eye, 
   Calendar, 
-  User, 
   Building, 
   CheckCircle, 
   XCircle, 
@@ -12,7 +11,6 @@ import {
   Filter,
   RefreshCw,
   Search,
-  Shield,
   Activity
 } from 'lucide-react';
 
@@ -36,9 +34,9 @@ const AuditLogSimple = () => {
 
   useEffect(() => {
     fetchAuditLog();
-  }, [filters, pagination.offset]);
+  }, [filters, pagination.offset, fetchAuditLog]);
 
-  const fetchAuditLog = async () => {
+  const fetchAuditLog = useCallback(async () => {
     try {
       setLoading(true);
       const data = await superAdminApi.getAuditLog({
@@ -53,7 +51,7 @@ const AuditLogSimple = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, pagination.limit, pagination.offset]);
 
   const handleExportCSV = () => {
     if (!auditLog.length) return;

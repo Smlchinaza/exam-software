@@ -1,18 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { superAdminApi } from '../../services/superAdminApi';
 import { 
-  Clock, 
   CheckCircle, 
   XCircle, 
   Eye, 
   Calendar,
   Mail,
-  Phone,
-  MapPin,
   Building,
-  User,
-  FileText,
-  AlertCircle
+  User
 } from 'lucide-react';
 
 const SchoolApprovalSimple = () => {

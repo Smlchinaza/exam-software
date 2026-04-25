@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { superAdminApi } from '../../services/superAdminApi';
 import { 
   Building2, 
@@ -6,13 +6,9 @@ import {
   CheckCircle, 
   Clock, 
   TrendingUp, 
-  TrendingDown,
   Download,
   Filter,
   RefreshCw,
-  BarChart3,
-  PieChart,
-  Activity,
   MapPin,
   Calendar
 } from 'lucide-react';
@@ -31,9 +27,9 @@ const SchoolMetricsSimple = () => {
   useEffect(() => {
     fetchMetrics();
     fetchSchools();
-  }, [filters]);
+  }, [filters, fetchMetrics, fetchSchools]);
 
-  const fetchMetrics = async () => {
+  const fetchMetrics = useCallback(async () => {
     try {
       setLoading(true);
       const data = await superAdminApi.getSystemMetrics(filters);
@@ -43,9 +39,9 @@ const SchoolMetricsSimple = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
 
-  const fetchSchools = async () => {
+  const fetchSchools = useCallback(async () => {
     try {
       const data = await superAdminApi.getAllSchools({
         status: filters.status,
@@ -56,7 +52,7 @@ const SchoolMetricsSimple = () => {
     } catch (err) {
       console.error('Failed to fetch schools:', err);
     }
-  };
+  }, [filters.status, filters.stateId]);
 
   const handleExportCSV = () => {
     if (!schools.length) return;

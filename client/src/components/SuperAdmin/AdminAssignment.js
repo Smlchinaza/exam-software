@@ -1,19 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { superAdminApi } from '../../services/superAdminApi';
 import { 
-  Settings, 
   Plus, 
   Edit, 
   Trash2, 
-  Mail, 
   Phone, 
   Calendar,
   Search,
-  Filter,
-  RefreshCw,
-  Shield,
-  AlertCircle,
-  CheckCircle,
   XCircle,
   Users
 } from 'lucide-react';
@@ -22,7 +15,6 @@ const AdminAssignment = () => {
   const [loading, setLoading] = useState(true);
   const [schools, setSchools] = useState([]);
   const [admins, setAdmins] = useState([]);
-  const [selectedSchool, setSelectedSchool] = useState(null);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState(null);
@@ -55,7 +47,7 @@ const AdminAssignment = () => {
   useEffect(() => {
     fetchSchools();
     fetchAdmins();
-  }, [filters, searchTerm]);
+  }, [filters, searchTerm, fetchAdmins]);
 
   const fetchSchools = async () => {
     try {
@@ -69,7 +61,7 @@ const AdminAssignment = () => {
     }
   };
 
-  const fetchAdmins = async () => {
+  const fetchAdmins = useCallback(async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
@@ -106,7 +98,7 @@ const AdminAssignment = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, searchTerm]);
 
   const handleAssignAdmin = async () => {
     try {
@@ -146,7 +138,7 @@ const AdminAssignment = () => {
         throw new Error(errorData.error || 'Failed to assign admin');
       }
 
-      const result = await response.json();
+      await response.json();
       setShowAssignModal(false);
       setNewAdminForm({
         schoolId: '',
