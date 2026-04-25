@@ -28,6 +28,7 @@
     "mongodb": "^5.9.2",
     "mongoose": "^8.15.1",
     "multer": "^2.0.1",
+    "node-fetch": "^3.3.2",
     "nodemailer": "^7.0.3",
     "pdf-parse": "^1.1.1",
     "pg": "^8.17.2",

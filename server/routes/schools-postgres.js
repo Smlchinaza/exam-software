@@ -417,7 +417,7 @@ router.get('/search', async (req, res) => {
 
 /**
  * POST /api/schools/request-registration
- * Public endpoint - Request new school registration
+ * Public endpoint - Request new school registration with pending approval
  */
 router.post('/request-registration', async (req, res) => {
   const client = await pool.connect();
@@ -432,13 +432,17 @@ router.post('/request-registration', async (req, res) => {
       schoolAddress,
       schoolCity,
       schoolType,
+      proposedAdminEmail,
+      proposedAdminFirstName,
+      proposedAdminLastName,
+      supportingDocuments,
       message
     } = req.body;
 
     // Validate required fields
-    if (!schoolName || !stateId || !requesterName || !requesterEmail) {
+    if (!schoolName || !stateId || !requesterName || !requesterEmail || !proposedAdminEmail) {
       return res.status(400).json({
-        error: 'School name, state, requester name, and email are required'
+        error: 'School name, state, requester name/email, and proposed admin email are required'
       });
     }
 
@@ -467,19 +471,42 @@ router.post('/request-registration', async (req, res) => {
       return res.status(409).json({ error: 'School already exists' });
     }
 
-    // 3. Create school registration request (could be a separate table in future)
-    // For now, we'll store in a temporary table or handle via notifications
-    const requestRes = await client.query(
-      `INSERT INTO schools (name, state_id, address, city, type, status, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, 'pending', NOW(), NOW())
+    // 3. Create school with 'pending' status
+    const schoolRes = await client.query(
+      `INSERT INTO schools (name, state_id, address, city, type, status, is_verified, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, 'pending', false, NOW(), NOW())
        RETURNING id, name, state_id, status, created_at`,
       [schoolName, stateId, schoolAddress || null, schoolCity || null, schoolType || 'secondary']
     );
 
-    const school = requestRes.rows[0];
+    const school = schoolRes.rows[0];
 
-    // 4. Log the request (in a real implementation, this would send notifications to admins)
-    console.log('School registration request:', {
+    // 4. Create registration request record
+    const requestRes = await client.query(
+      `INSERT INTO school_registration_requests (
+         school_id, requester_name, requester_email, requester_phone,
+         proposed_admin_email, proposed_admin_first_name, proposed_admin_last_name,
+         supporting_documents, additional_message, submitted_at, updated_at
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+       RETURNING id, school_id, status, submitted_at`,
+      [
+        school.id,
+        requesterName,
+        requesterEmail,
+        requesterPhone || null,
+        proposedAdminEmail,
+        proposedAdminFirstName || null,
+        proposedAdminLastName || null,
+        supportingDocuments || '[]',
+        message || null
+      ]
+    );
+
+    const registrationRequest = requestRes.rows[0];
+
+    // 5. Log the request for notification purposes
+    console.log('School registration request submitted:', {
+      requestId: registrationRequest.id,
       schoolId: school.id,
       schoolName,
       stateId,
@@ -489,25 +516,37 @@ router.post('/request-registration', async (req, res) => {
         email: requesterEmail,
         phone: requesterPhone
       },
+      proposedAdmin: {
+        email: proposedAdminEmail,
+        firstName: proposedAdminFirstName,
+        lastName: proposedAdminLastName
+      },
+      supportingDocuments,
       message,
-      requestedAt: new Date().toISOString()
+      submittedAt: registrationRequest.submitted_at
     });
 
     // Commit transaction
     await client.query('COMMIT');
 
     res.status(201).json({
-      message: 'School registration request submitted successfully',
+      message: 'School registration request submitted successfully. Awaiting super admin approval.',
       request: {
-        id: school.id,
+        id: registrationRequest.id,
+        schoolId: school.id,
         schoolName,
         state: stateExistsRes.rows[0].name,
         status: 'pending',
-        submittedAt: school.created_at
+        submittedAt: registrationRequest.submitted_at
       },
       requester: {
         name: requesterName,
         email: requesterEmail
+      },
+      proposedAdmin: {
+        email: proposedAdminEmail,
+        firstName: proposedAdminFirstName,
+        lastName: proposedAdminLastName
       }
     });
   } catch (err) {

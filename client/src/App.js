@@ -27,6 +27,8 @@ import TeacherResults from './components/TeacherResults';
 import AdminResults from './components/AdminResults';
 import SchoolRegistration from './components/SchoolRegistration';
 import ResultPreviewPage from './pages/ResultPreviewPage';
+import SuperAdminLogin from './components/SuperAdmin/SuperAdminLogin';
+import SuperAdminDashboard from './components/SuperAdmin/SuperAdminDashboard';
 // Placeholder components for scaffolding
 const TeacherSettings = () => <div className="p-8">Settings Page (Coming Soon)</div>;
 
@@ -70,6 +72,9 @@ function AppLayout() {
         <Route path="/admin/dashboard" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
         <Route path="/admin/results" element={<ProtectedRoute role="admin"><AdminResults /></ProtectedRoute>} />
         <Route path="/admin/login" element={<AdminLogin />} />
+        {/* Super Admin Routes */}
+        <Route path="/super-admin/login" element={<SuperAdminLogin />} />
+        <Route path="/super-admin" element={<ProtectedRoute role="super_admin"><SuperAdminDashboard /></ProtectedRoute>} />
         {/* Fallback Route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

@@ -275,12 +275,23 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    // Create JWT token (include school_id!)
+    // Check if user is a super admin
+    let isSuperAdmin = user.role === 'super_admin';
+    if (!isSuperAdmin) {
+      const superAdminCheck = await pool.query(
+        `SELECT id FROM super_admins WHERE user_id = $1 AND is_active = true`,
+        [user.id]
+      );
+      isSuperAdmin = superAdminCheck.rows.length > 0;
+    }
+
+    // Create JWT token (include school_id for non-super admins)
     const payload = {
       id: user.id,
       email: user.email,
       role: user.role,
-      school_id: user.school_id
+      school_id: user.school_id,
+      isSuperAdmin
     };
 
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '24h' });
@@ -293,7 +304,8 @@ router.post('/login', async (req, res) => {
         role: user.role,
         first_name: user.first_name,
         last_name: user.last_name,
-        school_id: user.school_id
+        school_id: user.school_id,
+        isSuperAdmin
       }
     });
   } catch (err) {
@@ -344,6 +356,94 @@ router.get('/verify', authenticateJWT, async (req, res) => {
   } catch (err) {
     console.error('Token verify error:', err);
     res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * POST /api/auth/promote-super-admin
+ * Promote a user to super admin (for initial setup - should be protected)
+ */
+router.post('/promote-super-admin', async (req, res) => {
+  const client = await pool.connect();
+  
+  try {
+    const { email, permissions = '{}' } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    await client.query('BEGIN');
+
+    // 1. Find the user
+    const userRes = await client.query(
+      `SELECT id, email, first_name, last_name, role, is_active
+       FROM users
+       WHERE email = $1`,
+      [email]
+    );
+
+    if (userRes.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = userRes.rows[0];
+
+    if (!user.is_active) {
+      await client.query('ROLLBACK');
+      return res.status(403).json({ error: 'User account is disabled' });
+    }
+
+    // 2. Check if already a super admin
+    const existingSuperAdminRes = await client.query(
+      `SELECT id FROM super_admins WHERE user_id = $1`,
+      [user.id]
+    );
+
+    if (existingSuperAdminRes.rows.length > 0) {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ error: 'User is already a super admin' });
+    }
+
+    // 3. Add to super_admins table
+    await client.query(
+      `INSERT INTO super_admins (user_id, permissions, is_active, created_at, updated_at)
+       VALUES ($1, $2, true, NOW(), NOW())`,
+      [user.id, permissions]
+    );
+
+    // 4. Optionally update user role to super_admin
+    await client.query(
+      `UPDATE users SET role = 'super_admin', updated_at = NOW() WHERE id = $1`,
+      [user.id]
+    );
+
+    await client.query('COMMIT');
+
+    console.log('User promoted to super admin:', {
+      userId: user.id,
+      email: user.email,
+      promotedAt: new Date().toISOString()
+    });
+
+    res.json({
+      message: 'User successfully promoted to super admin',
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        role: 'super_admin'
+      }
+    });
+
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Promote super admin error:', err);
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
   }
 });
 

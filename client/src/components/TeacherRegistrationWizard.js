@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import StateSelector from './StateSelector';
 import SchoolSelector from './SchoolSelector';
+import SchoolRegistrationRequest from './SchoolRegistrationRequest';
 
 const TeacherRegistrationWizard = () => {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ const TeacherRegistrationWizard = () => {
   const [success, setSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showSchoolRequestForm, setShowSchoolRequestForm] = useState(false);
 
   const [formData, setFormData] = useState({
     // Step 1: Personal Information
@@ -156,6 +158,14 @@ const TeacherRegistrationWizard = () => {
         : [...prev.subjects, subject]
     }));
     if (errors.subjects) setErrors(prev => ({ ...prev, subjects: '' }));
+  };
+
+  const handleRequestNewSchool = () => {
+    setShowSchoolRequestForm(true);
+  };
+
+  const handleCloseSchoolRequest = () => {
+    setShowSchoolRequestForm(false);
   };
 
   const handleSubmit = async (e) => {
@@ -325,6 +335,7 @@ const TeacherRegistrationWizard = () => {
               onSchoolChange={handleSchoolChange}
               error={errors.school}
               disabled={loading}
+              onRequestNewSchool={handleRequestNewSchool}
             />
           </div>
         );
@@ -482,6 +493,15 @@ const TeacherRegistrationWizard = () => {
         return null;
     }
   };
+
+  if (showSchoolRequestForm) {
+    return (
+      <SchoolRegistrationRequest
+        onClose={handleCloseSchoolRequest}
+        selectedState={formData.state}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">

@@ -25,6 +25,7 @@ const usersPostgres = require('./routes/users-postgres');
 const schoolsPostgres = require('./routes/schools-postgres');
 const statesPostgres = require('./routes/states-postgres');
 const studentResults = require('./routes/student-results');
+const superAdminPostgres = require('./routes/super-admin-postgres');
 
 // (dotenv already loaded above)
 
@@ -80,6 +81,7 @@ app.use("/api/exams", examSubmissionLimiter, examsPostgres);
 app.use("/api/submissions", examSubmissionLimiter, submissionsPostgres);
 app.use("/api/users", usersPostgres);
 app.use("/api/student-results", studentResults);
+app.use("/api/super-admin", superAdminPostgres);
 
 // Legacy MongoDB routes (for backward compatibility)
 const subjects = require('./routes/subjects');
