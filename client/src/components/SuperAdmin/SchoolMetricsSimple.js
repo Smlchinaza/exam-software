@@ -24,11 +24,6 @@ const SchoolMetricsSimple = () => {
   });
   const [showFilters, setShowFilters] = useState(false);
 
-  useEffect(() => {
-    fetchMetrics();
-    fetchSchools();
-  }, [filters, fetchMetrics, fetchSchools]);
-
   const fetchMetrics = useCallback(async () => {
     try {
       setLoading(true);
@@ -53,6 +48,11 @@ const SchoolMetricsSimple = () => {
       console.error('Failed to fetch schools:', err);
     }
   }, [filters.status, filters.stateId]);
+
+  useEffect(() => {
+    fetchMetrics();
+    fetchSchools();
+  }, [filters, fetchMetrics, fetchSchools]);
 
   const handleExportCSV = () => {
     if (!schools.length) return;

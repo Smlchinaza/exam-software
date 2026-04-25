@@ -44,11 +44,6 @@ const AdminAssignment = () => {
     permissions: {}
   });
 
-  useEffect(() => {
-    fetchSchools();
-    fetchAdmins();
-  }, [filters, searchTerm, fetchAdmins]);
-
   const fetchSchools = async () => {
     try {
       const data = await superAdminApi.getAllSchools({
@@ -99,6 +94,11 @@ const AdminAssignment = () => {
       setLoading(false);
     }
   }, [filters, searchTerm]);
+
+  useEffect(() => {
+    fetchSchools();
+    fetchAdmins();
+  }, [filters, searchTerm, fetchAdmins]);
 
   const handleAssignAdmin = async () => {
     try {

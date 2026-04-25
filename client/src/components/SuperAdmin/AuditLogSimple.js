@@ -32,10 +32,6 @@ const AuditLogSimple = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
 
-  useEffect(() => {
-    fetchAuditLog();
-  }, [filters, pagination.offset, fetchAuditLog]);
-
   const fetchAuditLog = useCallback(async () => {
     try {
       setLoading(true);
@@ -45,13 +41,17 @@ const AuditLogSimple = () => {
         offset: pagination.offset
       });
       setAuditLog(data.auditLog || []);
-      setPagination(data.pagination || pagination);
+      setPagination(prev => ({ ...prev, ...(data.pagination || {}) }));
     } catch (err) {
       console.error('Failed to fetch audit log:', err);
     } finally {
       setLoading(false);
     }
   }, [filters, pagination.limit, pagination.offset]);
+
+  useEffect(() => {
+    fetchAuditLog();
+  }, [filters, pagination.offset, fetchAuditLog]);
 
   const handleExportCSV = () => {
     if (!auditLog.length) return;
