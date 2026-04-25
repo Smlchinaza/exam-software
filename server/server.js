@@ -102,9 +102,14 @@ app.use("/api/subjects", subjects);
 
 // Error handler
 app.use(errorHandler);
-// Start server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  console.log('Database: PostgreSQL');
-});
+
+// Start server only when this file is run directly
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+    console.log('Database: PostgreSQL');
+  });
+}
+
+module.exports = app;
