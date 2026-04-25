@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useNavigate, Link, Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Mail, Lock, AlertCircle, Eye, EyeOff } from "lucide-react";
-import { authApi } from "../services/api";
 import { FaGraduationCap } from "react-icons/fa";
 
 const StudentLogin = () => {

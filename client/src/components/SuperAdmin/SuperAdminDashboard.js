@@ -6,9 +6,7 @@ import {
   TrendingUp, 
   Clock, 
   CheckCircle, 
-  XCircle,
   Eye,
-  Settings,
   LogOut
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';

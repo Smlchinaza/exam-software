@@ -17,12 +17,43 @@ import {
   Loader2,
   BarChart3,
   PieChart,
-  Activity
+  Activity,
+  Calendar,
+  ArrowUpRight,
+  ArrowDownRight
 } from 'lucide-react';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  RadialLinearScale
+} from 'chart.js';
+import { Line, Bar, Pie, Doughnut } from 'react-chartjs-2';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  RadialLinearScale
+);
 
 const SchoolMetrics = () => {
   const [schools, setSchools] = useState([]);
   const [metrics, setMetrics] = useState(null);
+  const [trendData, setTrendData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -32,11 +63,14 @@ const SchoolMetrics = () => {
   const [sortOrder, setSortOrder] = useState('desc');
   const [page, setPage] = useState(0);
   const [pageSize] = useState(20);
+  const [timeRange, setTimeRange] = useState('30');
+  const [chartView, setChartView] = useState('overview');
 
   useEffect(() => {
     fetchMetrics();
     fetchSchools();
-  }, [statusFilter, stateFilter, sortBy, sortOrder, page]);
+    fetchTrendData();
+  }, [statusFilter, stateFilter, sortBy, sortOrder, page, timeRange]);
 
   const fetchMetrics = async () => {
     try {
@@ -93,6 +127,30 @@ const SchoolMetrics = () => {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchTrendData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const endDate = new Date().toISOString().split('T')[0];
+      const startDate = new Date(Date.now() - parseInt(timeRange) * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      
+      const response = await fetch(`/api/super-admin/metrics/trends?startDate=${startDate}&endDate=${endDate}&granularity=day`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch trend data');
+      }
+
+      const data = await response.json();
+      setTrendData(data);
+    } catch (err) {
+      console.error('Error fetching trend data:', err);
+      // Don't set error for trend data to avoid breaking the main component
     }
   };
 
@@ -164,6 +222,151 @@ const SchoolMetrics = () => {
     window.URL.revokeObjectURL(url);
   };
 
+  // Chart data preparation functions
+  const getSchoolStatusChartData = () => {
+    if (!metrics) return null;
+    
+    return {
+      labels: ['Active', 'Pending', 'Rejected'],
+      datasets: [{
+        data: [
+          metrics.schools.active_schools,
+          metrics.schools.pending_schools,
+          metrics.schools.rejected_schools
+        ],
+        backgroundColor: [
+          'rgba(34, 197, 94, 0.8)',
+          'rgba(251, 191, 36, 0.8)',
+          'rgba(239, 68, 68, 0.8)'
+        ],
+        borderColor: [
+          'rgb(34, 197, 94)',
+          'rgb(251, 191, 36)',
+          'rgb(239, 68, 68)'
+        ],
+        borderWidth: 1
+      }]
+    };
+  };
+
+  const getUserDistributionChartData = () => {
+    if (!metrics) return null;
+    
+    return {
+      labels: ['Admins', 'Teachers', 'Students'],
+      datasets: [{
+        data: [
+          metrics.users.admin_users,
+          metrics.users.teacher_users,
+          metrics.users.student_users
+        ],
+        backgroundColor: [
+          'rgba(59, 130, 246, 0.8)',
+          'rgba(34, 197, 94, 0.8)',
+          'rgba(168, 85, 247, 0.8)'
+        ],
+        borderColor: [
+          'rgb(59, 130, 246)',
+          'rgb(34, 197, 94)',
+          'rgb(168, 85, 247)'
+        ],
+        borderWidth: 1
+      }]
+    };
+  };
+
+  const getTrendChartData = () => {
+    if (!trendData || !trendData.schools) return null;
+    
+    return {
+      labels: trendData.schools.map(item => {
+        const date = new Date(item.period);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      }),
+      datasets: [
+        {
+          label: 'New Schools',
+          data: trendData.schools.map(item => item.new_schools),
+          borderColor: 'rgb(59, 130, 246)',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          tension: 0.4
+        },
+        {
+          label: 'New Users',
+          data: trendData.users?.map(item => item.new_users) || [],
+          borderColor: 'rgb(34, 197, 94)',
+          backgroundColor: 'rgba(34, 197, 94, 0.1)',
+          tension: 0.4
+        }
+      ]
+    };
+  };
+
+  const getStateDistributionChartData = () => {
+    if (!metrics || !metrics.byState) return null;
+    
+    const topStates = metrics.byState.slice(0, 10);
+    
+    return {
+      labels: topStates.map(state => state.name),
+      datasets: [{
+        label: 'Schools by State',
+        data: topStates.map(state => state.school_count),
+        backgroundColor: 'rgba(168, 85, 247, 0.8)',
+        borderColor: 'rgb(168, 85, 247)',
+        borderWidth: 1
+      }]
+    };
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      tooltip: {
+        mode: 'index',
+        intersect: false,
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: 'rgba(0, 0, 0, 0.05)'
+        }
+      },
+      x: {
+        grid: {
+          display: false
+        }
+      }
+    }
+  };
+
+  const pieChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'right',
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            const label = context.label || '';
+            const value = context.parsed || 0;
+            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+            const percentage = ((value / total) * 100).toFixed(1);
+            return `${label}: ${value} (${percentage}%)`;
+          }
+        }
+      }
+    }
+  };
+
   if (loading && !metrics) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -182,10 +385,22 @@ const SchoolMetrics = () => {
             Comprehensive overview of all schools and their performance
           </p>
         </div>
-        <Button onClick={exportData} variant="outline">
-          <Download className="h-4 w-4 mr-2" />
-          Export CSV
-        </Button>
+        <div className="flex items-center space-x-3">
+          <Select value={timeRange} onValueChange={setTimeRange}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7">Last 7 days</SelectItem>
+              <SelectItem value="30">Last 30 days</SelectItem>
+              <SelectItem value="90">Last 90 days</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button onClick={exportData} variant="outline">
+            <Download className="h-4 w-4 mr-2" />
+            Export CSV
+          </Button>
+        </div>
       </div>
 
       {/* Metrics Overview */}
@@ -199,7 +414,11 @@ const SchoolMetrics = () => {
             <CardContent>
               <div className="text-2xl font-bold">{metrics.schools.total_schools}</div>
               <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                <TrendingUp className="h-3 w-3 text-green-500" />
+                {metrics.recent?.new_schools > 0 ? (
+                  <ArrowUpRight className="h-3 w-3 text-green-500" />
+                ) : (
+                  <ArrowDownRight className="h-3 w-3 text-red-500" />
+                )}
                 <span>{metrics.schools.active_schools} active</span>
               </div>
             </CardContent>
@@ -248,6 +467,85 @@ const SchoolMetrics = () => {
           </Card>
         </div>
       )}
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* School Status Distribution */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <PieChart className="h-5 w-5" />
+              <span>School Status Distribution</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64">
+              {getSchoolStatusChartData() && (
+                <Doughnut data={getSchoolStatusChartData()} options={pieChartOptions} />
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* User Distribution */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Users className="h-5 w-5" />
+              <span>User Distribution</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64">
+              {getUserDistributionChartData() && (
+                <Pie data={getUserDistributionChartData()} options={pieChartOptions} />
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Registration Trends */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <TrendingUp className="h-5 w-5" />
+              <span>Registration Trends (Last {timeRange} days)</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              {getTrendChartData() ? (
+                <Line data={getTrendChartData()} options={chartOptions} />
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-500">
+                  No trend data available
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* State Distribution */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <BarChart3 className="h-5 w-5" />
+              <span>Schools by State (Top 10)</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64">
+              {getStateDistributionChartData() ? (
+                <Bar data={getStateDistributionChartData()} options={chartOptions} />
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-500">
+                  No state data available
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Filters */}
       <Card>
