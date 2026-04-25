@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Shield, Lock, Mail, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { API_URL } from '../../services/api';
 
 const SuperAdminLogin = () => {
   const [email, setEmail] = useState('');
@@ -24,7 +25,7 @@ const SuperAdminLogin = () => {
         body: JSON.stringify({ email, password })
       });
       
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         mode: 'cors',
         cache: 'no-cache',

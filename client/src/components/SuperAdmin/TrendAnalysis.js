@@ -73,7 +73,7 @@ const TrendAnalysis = () => {
         params.append('metric', selectedMetrics.join(','));
       }
 
-      const response = await fetch(`/api/super-admin/metrics/trends?${params}`, {
+      const response = await fetch(`${API_URL}/super-admin/metrics/trends?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

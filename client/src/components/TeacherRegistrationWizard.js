@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import StateSelector from './StateSelector';
 import SchoolSelector from './SchoolSelector';
+import { API_URL } from '../services/api';
 import SchoolRegistrationRequest from './SchoolRegistrationRequest';
 
 const TeacherRegistrationWizard = () => {
@@ -191,7 +192,7 @@ const TeacherRegistrationWizard = () => {
         rememberMe: formData.rememberMe
       };
 
-      const response = await fetch('/api/auth/register/teacher', {
+      const response = await fetch(`${API_URL}/auth/register/teacher`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

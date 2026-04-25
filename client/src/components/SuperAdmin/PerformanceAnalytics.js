@@ -85,7 +85,7 @@ const PerformanceAnalytics = () => {
         params.append('stateCode', stateCode);
       }
 
-      const response = await fetch(`/api/super-admin/metrics/performance-analytics?${params}`, {
+      const response = await fetch(`${API_URL}/super-admin/metrics/performance-analytics?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

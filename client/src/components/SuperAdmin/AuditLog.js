@@ -44,7 +44,7 @@ const AuditLog = () => {
         params.append('action', actionFilter);
       }
 
-      const response = await fetch(`/api/super-admin/audit-log?${params}`, {
+      const response = await fetch(`${API_URL}/super-admin/audit-log?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

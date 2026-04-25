@@ -14,6 +14,7 @@ import SchoolApprovalSimple from './SchoolApprovalSimple';
 import SchoolMetricsSimple from './SchoolMetricsSimple';
 import AdminAssignment from './AdminAssignment';
 import AuditLogSimple from './AuditLogSimple';
+import { API_URL } from '../../services/api';
 
 const SuperAdminDashboard = () => {
   const { user, logout } = useAuth();
@@ -32,7 +33,7 @@ const SuperAdminDashboard = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/super-admin/metrics/overview', {
+      const response = await fetch(`${API_URL}/super-admin/metrics/overview`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

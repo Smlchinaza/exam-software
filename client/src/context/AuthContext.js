@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { authApi } from "../services/api";
+import { authApi, API_URL } from "../services/api";
 
 const AuthContext = createContext(null);
 
@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }) => {
           } else if (storedSchoolId) {
             // Fetch school data if we have schoolId but no school data
             try {
-              const schoolResponse = await fetch('/api/schools/current', {
+              const schoolResponse = await fetch(`${API_URL}/schools/current`, {
                 headers: {
                   'Authorization': `Bearer ${token}`
                 }
@@ -166,7 +166,7 @@ export const AuthProvider = ({ children }) => {
       // Fetch and store school data if school_id is available
       if (extractedSchoolId) {
         try {
-          const schoolResponse = await fetch('/api/schools/current', {
+          const schoolResponse = await fetch(`${API_URL}/schools/current`, {
             headers: {
               'Authorization': `Bearer ${response.token}`
             }

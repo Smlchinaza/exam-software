@@ -93,7 +93,7 @@ const AdminProfileManagement = () => {
         params.append('search', searchTerm);
       }
 
-      const response = await fetch(`/api/super-admin/admins?${params}`, {
+      const response = await fetch(`${API_URL}/super-admin/admins?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -117,7 +117,7 @@ const AdminProfileManagement = () => {
   const fetchAuditLogs = async (adminId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/super-admin/admins/${adminId}/activity?limit=20`, {
+      const response = await fetch(`${API_URL}/super-admin/admins/${adminId}/activity?limit=20`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -174,7 +174,7 @@ const AdminProfileManagement = () => {
   const handleUpdateProfile = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/super-admin/admins/${selectedAdmin.id}`, {
+      const response = await fetch(`${API_URL}/super-admin/admins/${selectedAdmin.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -200,7 +200,7 @@ const AdminProfileManagement = () => {
   const handleUpdateRole = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/super-admin/admins/${selectedAdmin.id}`, {
+      const response = await fetch(`${API_URL}/super-admin/admins/${selectedAdmin.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -229,7 +229,7 @@ const AdminProfileManagement = () => {
   const handleUpdateAccess = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/super-admin/admins/${selectedAdmin.id}`, {
+      const response = await fetch(`${API_URL}/super-admin/admins/${selectedAdmin.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

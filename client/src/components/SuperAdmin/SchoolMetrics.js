@@ -22,6 +22,7 @@ import {
   ArrowUpRight,
   ArrowDownRight
 } from 'lucide-react';
+import { API_URL } from '../../services/api';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -75,7 +76,7 @@ const SchoolMetrics = () => {
   const fetchMetrics = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/super-admin/metrics/overview', {
+      const response = await fetch(`${API_URL}/super-admin/metrics/overview`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -111,7 +112,7 @@ const SchoolMetrics = () => {
         params.append('stateId', stateFilter);
       }
 
-      const response = await fetch(`/api/super-admin/schools/all?${params}`, {
+      const response = await fetch(`${API_URL}/super-admin/schools/all?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -136,7 +137,7 @@ const SchoolMetrics = () => {
       const endDate = new Date().toISOString().split('T')[0];
       const startDate = new Date(Date.now() - parseInt(timeRange) * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
       
-      const response = await fetch(`/api/super-admin/metrics/trends?startDate=${startDate}&endDate=${endDate}&granularity=day`, {
+      const response = await fetch(`${API_URL}/super-admin/metrics/trends?startDate=${startDate}&endDate=${endDate}&granularity=day`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

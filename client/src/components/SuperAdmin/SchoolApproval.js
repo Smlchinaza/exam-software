@@ -20,6 +20,7 @@ import {
   Calendar,
   Loader2
 } from 'lucide-react';
+import { API_URL } from '../../services/api';
 
 const SchoolApproval = () => {
   const [pendingRequests, setPendingRequests] = useState([]);
@@ -42,7 +43,7 @@ const SchoolApproval = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/super-admin/registrations/pending', {
+      const response = await fetch(`${API_URL}/super-admin/registrations/pending`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -64,7 +65,7 @@ const SchoolApproval = () => {
   const fetchRequestDetails = async (requestId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/super-admin/registrations/${requestId}`, {
+      const response = await fetch(`${API_URL}/super-admin/registrations/${requestId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -94,7 +95,7 @@ const SchoolApproval = () => {
       setSuccess(null);
 
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/super-admin/registrations/${selectedRequest.id}/approve`, {
+      const response = await fetch(`${API_URL}/super-admin/registrations/${selectedRequest.id}/approve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -142,7 +143,7 @@ const SchoolApproval = () => {
       setSuccess(null);
 
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/super-admin/registrations/${selectedRequest.id}/reject`, {
+      const response = await fetch(`${API_URL}/super-admin/registrations/${selectedRequest.id}/reject`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

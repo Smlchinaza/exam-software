@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Mail, Lock, AlertCircle, Eye, EyeOff, Info } from "lucide-react";
 import logo from '../assets/images/SpectraLogo.jpg';
-import { authApi } from '../services/api';
+import { authApi, API_URL } from '../services/api';
 import { FaUser, FaLock, FaEye, FaEyeSlash, FaGraduationCap, FaChalkboardTeacher } from 'react-icons/fa';
 
 const Login = () => {
@@ -79,7 +79,7 @@ const Login = () => {
 
   const fetchDemoAccounts = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/auth/demo-accounts');
+      const response = await fetch(`${API_URL}/auth/demo-accounts`);
       const data = await response.json();
       setDemoAccounts(data);
     } catch (error) {

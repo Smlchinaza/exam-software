@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { superAdminApi } from '../../services/superAdminApi';
+import { API_URL } from '../../services/api';
 import { 
   Plus, 
   Edit, 
@@ -76,7 +77,7 @@ const AdminAssignment = () => {
         params.append('search', searchTerm);
       }
 
-      const response = await fetch(`/api/super-admin/admins?${params}`, {
+      const response = await fetch(`${API_URL}/super-admin/admins?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -124,7 +125,7 @@ const AdminAssignment = () => {
       };
 
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/super-admin/admins/assign', {
+      const response = await fetch(`${API_URL}/super-admin/admins/assign`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -173,7 +174,7 @@ const AdminAssignment = () => {
       };
 
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/super-admin/admins/${selectedAdmin.id}`, {
+      const response = await fetch(`${API_URL}/super-admin/admins/${selectedAdmin.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -203,7 +204,7 @@ const AdminAssignment = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/super-admin/admins/${adminId}`, {
+      const response = await fetch(`${API_URL}/super-admin/admins/${adminId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

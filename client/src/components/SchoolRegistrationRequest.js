@@ -11,6 +11,7 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import StateSelector from './StateSelector';
+import { API_URL } from '../services/api';
 
 const SchoolRegistrationRequest = ({ onClose, selectedState: initialState }) => {
   const navigate = useNavigate();
@@ -89,7 +90,7 @@ const SchoolRegistrationRequest = ({ onClose, selectedState: initialState }) => 
         message: formData.message
       };
 
-      const response = await fetch('/api/schools/request-registration', {
+      const response = await fetch(`${API_URL}/schools/request-registration`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
