@@ -14,7 +14,8 @@ import {
   Shield,
   AlertCircle,
   CheckCircle,
-  XCircle
+  XCircle,
+  Users
 } from 'lucide-react';
 
 const AdminAssignment = () => {
@@ -204,7 +205,7 @@ const AdminAssignment = () => {
   };
 
   const handleRemoveAdmin = async (adminId) => {
-    if (!confirm('Are you sure you want to remove this admin? This action cannot be undone.')) {
+    if (!window.confirm('Are you sure you want to remove this admin? This action cannot be undone.')) {
       return;
     }
 
