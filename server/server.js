@@ -37,7 +37,9 @@ const allowedOrigins = [
   'https://exam-software.vercel.app',
   'https://exam-software-45ex.vercel.app',
   'https://exam-software-45ex-git-main-samuel-chinazas-projects.vercel.app',
-  'https://exam-software-45ex-btw34co5j-samuel-chinazas-projects.vercel.app/'
+  'https://exam-software-45ex-btw34co5j-samuel-chinazas-projects.vercel.app/',
+  'https://schoolshubs.com',
+  'https://www.schoolshubs.com'
 ];
 
 // CORS configuration
