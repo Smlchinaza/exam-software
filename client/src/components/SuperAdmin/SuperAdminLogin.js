@@ -24,14 +24,23 @@ const SuperAdminLogin = () => {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        const text = await response.text();
+        console.log('Response status:', response.status);
+        console.log('Response text:', text);
+        data = text ? JSON.parse(text) : {};
+      } catch (error) {
+        console.error('Response parsing error:', error);
+        throw new Error('Invalid server response');
+      }
 
       if (!response.ok) {
         throw new Error(data.error || 'Login failed');
       }
 
       // Check if user is a super admin
-      if (!data.user.isSuperAdmin && data.user.role !== 'super_admin') {
+      if (!data.user || (!data.user.isSuperAdmin && data.user.role !== 'super_admin')) {
         throw new Error('Access denied. Super admin privileges required.');
       }
 

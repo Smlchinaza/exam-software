@@ -245,7 +245,9 @@ router.post('/check-user', async (req, res) => {
  */
 router.post('/login', async (req, res) => {
   try {
+    console.log('Login endpoint hit');
     const { email, password } = req.body;
+    console.log('Request body:', { email, password: password ? '***' : undefined });
 
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password required' });
@@ -296,7 +298,7 @@ router.post('/login', async (req, res) => {
 
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '24h' });
 
-    res.json({
+    const responseData = {
       token,
       user: {
         id: user.id,
@@ -307,7 +309,10 @@ router.post('/login', async (req, res) => {
         school_id: user.school_id,
         isSuperAdmin
       }
-    });
+    };
+
+    console.log('Sending response:', responseData);
+    res.json(responseData);
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ error: err.message });
