@@ -16,6 +16,7 @@ const SuperAdminLogin = () => {
     setLoading(true);
 
     try {
+      console.log('Making login request:', { email, password: '***' });
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -23,6 +24,7 @@ const SuperAdminLogin = () => {
         },
         body: JSON.stringify({ email, password }),
       });
+      console.log('Response received:', response.status, response.statusText);
 
       let data;
       try {
@@ -36,7 +38,12 @@ const SuperAdminLogin = () => {
       }
 
       if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
+        console.error('Login failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          data: data
+        });
+        throw new Error(data.error || `Login failed (${response.status}: ${response.statusText})`);
       }
 
       // Check if user is a super admin

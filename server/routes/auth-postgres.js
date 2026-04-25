@@ -279,12 +279,14 @@ router.post('/login', async (req, res) => {
 
     // Check if user is a super admin
     let isSuperAdmin = user.role === 'super_admin';
+    console.log('Initial super admin check:', { userRole: user.role, isSuperAdmin });
     if (!isSuperAdmin) {
       const superAdminCheck = await pool.query(
         `SELECT id FROM super_admins WHERE user_id = $1 AND is_active = true`,
         [user.id]
       );
       isSuperAdmin = superAdminCheck.rows.length > 0;
+      console.log('Super admin table check:', { userId: user.id, foundRows: superAdminCheck.rows.length, isSuperAdmin });
     }
 
     // Create JWT token (include school_id for non-super admins)
@@ -312,10 +314,17 @@ router.post('/login', async (req, res) => {
     };
 
     console.log('Sending response:', responseData);
+    
     res.json(responseData);
+    console.log('Response sent successfully');
   } catch (err) {
     console.error('Login error:', err);
-    res.status(500).json({ error: err.message });
+    try {
+      res.status(500).json({ error: err.message });
+      console.log('Error response sent');
+    } catch (sendErr) {
+      console.error('Failed to send error response:', sendErr);
+    }
   }
 });
 
