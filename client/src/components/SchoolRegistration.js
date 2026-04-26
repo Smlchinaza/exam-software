@@ -143,6 +143,7 @@ const SchoolRegistration = () => {
     }
   };
 
+// eslint-disable-next-line
   const handleNavigateToDashboard = () => {
     navigate('/teacher/dashboard');
   };
