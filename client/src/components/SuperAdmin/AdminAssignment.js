@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { superAdminApi } from '../../services/superAdminApi';
-import { API_URL } from '../../services/api';
 import { 
   Plus, 
   Edit, 
@@ -60,34 +59,13 @@ const AdminAssignment = () => {
   const fetchAdmins = useCallback(async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      
-      const params = new URLSearchParams({
+      const data = await superAdminApi.getAllAdmins({
         limit: 100,
-        offset: 0
+        offset: 0,
+        status: filters.status,
+        schoolId: filters.schoolId,
+        search: searchTerm
       });
-
-      if (filters.status) {
-        params.append('status', filters.status);
-      }
-      if (filters.schoolId) {
-        params.append('schoolId', filters.schoolId);
-      }
-      if (searchTerm) {
-        params.append('search', searchTerm);
-      }
-
-      const response = await fetch(`${API_URL}/super-admin/admins?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch admins');
-      }
-
-      const data = await response.json();
       setAdmins(data.admins || []);
     } catch (err) {
       console.error('Failed to fetch admins:', err);
@@ -124,22 +102,7 @@ const AdminAssignment = () => {
         permissions: newAdminForm.permissions || {}
       };
 
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/super-admin/admins/assign`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(adminData)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to assign admin');
-      }
-
-      await response.json();
+      await superAdminApi.assignAdmin(adminData);
       setShowAssignModal(false);
       setNewAdminForm({
         schoolId: '',
@@ -173,21 +136,7 @@ const AdminAssignment = () => {
         permissions: editAdminForm.permissions
       };
 
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/super-admin/admins/${selectedAdmin.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(updateData)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update admin');
-      }
-
+      await superAdminApi.updateAdmin(selectedAdmin.id, updateData);
       setShowEditModal(false);
       setSelectedAdmin(null);
       fetchAdmins();
@@ -203,21 +152,7 @@ const AdminAssignment = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/super-admin/admins/${adminId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ reason: 'Removed by super admin' })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to remove admin');
-      }
-
+      await superAdminApi.removeAdmin(adminId, { reason: 'Removed by super admin' });
       fetchAdmins();
       console.log('Admin removed successfully');
     } catch (err) {

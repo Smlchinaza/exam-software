@@ -5,6 +5,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Alert, AlertDescription } from '../ui/alert';
+import { superAdminApi } from '../../services/superAdminApi';
 import { 
   Users, 
   Settings, 
@@ -73,37 +74,14 @@ const AdminProfileManagement = () => {
   const fetchAdmins = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      
-      const params = new URLSearchParams({
+      const data = await superAdminApi.getAllAdmins({
         limit: 50,
-        offset: 0
+        offset: 0,
+        status: filters.status,
+        schoolId: filters.schoolId,
+        role: filters.role,
+        search: searchTerm
       });
-
-      if (filters.status) {
-        params.append('status', filters.status);
-      }
-      if (filters.schoolId) {
-        params.append('schoolId', filters.schoolId);
-      }
-      if (filters.role) {
-        params.append('role', filters.role);
-      }
-      if (searchTerm) {
-        params.append('search', searchTerm);
-      }
-
-      const response = await fetch(`${API_URL}/super-admin/admins?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch admins');
-      }
-
-      const data = await response.json();
       setAdmins(data.admins || []);
       setPagination(data.pagination);
       setError(null);
@@ -116,18 +94,7 @@ const AdminProfileManagement = () => {
 
   const fetchAuditLogs = async (adminId) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/super-admin/admins/${adminId}/activity?limit=20`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch audit logs');
-      }
-
-      const data = await response.json();
+      const data = await superAdminApi.getAdminActivity(adminId, { limit: 20 });
       setAuditLogs(data.activities || []);
     } catch (err) {
       console.error('Error fetching audit logs:', err);
@@ -173,21 +140,7 @@ const AdminProfileManagement = () => {
 
   const handleUpdateProfile = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/super-admin/admins/${selectedAdmin.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(profileForm)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update profile');
-      }
-
+      await superAdminApi.updateAdmin(selectedAdmin.id, profileForm);
       setShowProfileModal(false);
       setSelectedAdmin(null);
       fetchAdmins();
@@ -199,24 +152,10 @@ const AdminProfileManagement = () => {
 
   const handleUpdateRole = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/super-admin/admins/${selectedAdmin.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          role: roleForm.role,
-          permissions: roleForm.permissions
-        })
+      await superAdminApi.updateAdmin(selectedAdmin.id, {
+        role: roleForm.role,
+        permissions: roleForm.permissions
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update role');
-      }
-
       setShowRoleModal(false);
       setSelectedAdmin(null);
       fetchAdmins();
@@ -228,21 +167,7 @@ const AdminProfileManagement = () => {
 
   const handleUpdateAccess = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/super-admin/admins/${selectedAdmin.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(accessForm)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update access settings');
-      }
-
+      await superAdminApi.updateAdmin(selectedAdmin.id, accessForm);
       setShowAccessModal(false);
       setSelectedAdmin(null);
       fetchAdmins();

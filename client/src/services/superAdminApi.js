@@ -93,22 +93,35 @@ export const superAdminApi = {
 
   // Admin Management
   getSchoolAdmins: async (schoolId) => {
-    const response = await api.get(`/super-admin/admins/school-admins/${schoolId}`);
+    const response = await api.get(`/super-admin/admins/school/${schoolId}`);
+    return response.data;
+  },
+  
+  getAllAdmins: async (filters = {}) => {
+    const params = new URLSearchParams();
+    if (filters.status) params.append('status', filters.status);
+    if (filters.schoolId) params.append('schoolId', filters.schoolId);
+    if (filters.role) params.append('role', filters.role);
+    if (filters.search) params.append('search', filters.search);
+    if (filters.limit) params.append('limit', filters.limit);
+    if (filters.offset) params.append('offset', filters.offset);
+    
+    const response = await api.get(`/super-admin/admins?${params}`);
     return response.data;
   },
   
   assignAdmin: async (adminData) => {
-    const response = await api.post('/super-admin/admins/assign-admin', adminData);
+    const response = await api.post('/super-admin/admins/assign', adminData);
     return response.data;
   },
   
   updateAdmin: async (adminId, updateData) => {
-    const response = await api.put(`/super-admin/admins/update-admin/${adminId}`, updateData);
+    const response = await api.put(`/super-admin/admins/${adminId}`, updateData);
     return response.data;
   },
   
   removeAdmin: async (adminId, removalData) => {
-    const response = await api.delete(`/super-admin/admins/remove-admin/${adminId}`, { data: removalData });
+    const response = await api.delete(`/super-admin/admins/${adminId}`, { data: removalData });
     return response.data;
   },
   
@@ -136,6 +149,7 @@ export const superAdminApi = {
     if (filters.startDate) params.append('startDate', filters.startDate);
     if (filters.endDate) params.append('endDate', filters.endDate);
     if (filters.limit) params.append('limit', filters.limit);
+    if (filters.offset) params.append('offset', filters.offset);
     
     const response = await api.get(`/super-admin/admins/${adminId}/activity?${params}`);
     return response.data;

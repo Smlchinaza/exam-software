@@ -1166,11 +1166,9 @@ router.get('/admins/school/:schoolId', authenticateJWT, requireSuperAdmin, async
         u.first_name,
         u.last_name,
         u.email,
-        u.phone,
         u.role,
         u.is_active,
         u.created_at,
-        u.last_login,
         s.name as school_name,
         s.id as school_id,
         -- Activity metrics
@@ -1235,32 +1233,20 @@ router.get('/admins', authenticateJWT, requireSuperAdmin, async (req, res) => {
       paramIndex++;
     }
 
+    // Use a simpler query first to isolate the issue
     const query = `
       SELECT 
         u.id,
         u.first_name,
         u.last_name,
         u.email,
-        u.phone,
         u.role,
         u.is_active,
         u.created_at,
-        u.last_login,
         s.name as school_name,
-        s.id as school_id,
-        st.name as state_name,
-        -- Activity metrics
-        (SELECT COUNT(*) FROM exam_submissions es 
-         JOIN exams e ON es.exam_id = e.id 
-         WHERE e.created_by = u.id AND es.submitted_at >= NOW() - INTERVAL '30 days') as recent_submissions,
-        (SELECT COUNT(*) FROM exams 
-         WHERE created_by = u.id AND created_at >= NOW() - INTERVAL '30 days') as recent_exams,
-        -- Permission summary
-        COALESCE(sa.permissions, '{}') as permissions
+        s.id as school_id
       FROM users u
       JOIN schools s ON u.school_id = s.id
-      JOIN states st ON s.state_id = st.id
-      LEFT JOIN super_admins sa ON u.id = sa.user_id
       WHERE ${whereClause}
       ORDER BY u.created_at DESC
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
