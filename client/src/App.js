@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { useSchoolSubdomain } from './hooks/useSchoolSubdomain';
 import Navbar from './components/Navbar';
 import Home from './components/Home';
 import StudentLogin from './components/StudentLogin';
@@ -27,6 +28,7 @@ import TeacherResults from './components/TeacherResults';
 import AdminResults from './components/AdminResults';
 import SchoolRegistration from './components/SchoolRegistration';
 import ResultPreviewPage from './pages/ResultPreviewPage';
+import SubdomainTestPage from './pages/SubdomainTestPage';
 import SuperAdminLogin from './components/SuperAdmin/SuperAdminLogin';
 import SuperAdminDashboard from './components/SuperAdmin/SuperAdminDashboard';
 // Placeholder components for scaffolding
@@ -35,9 +37,32 @@ const TeacherSettings = () => <div className="p-8">Settings Page (Coming Soon)</
 function AppLayout() {
   const location = useLocation();
   const { user } = useAuth();
+  const { schoolInfo, loading: subdomainLoading } = useSchoolSubdomain();
   
   // Hide navbar for take-exam route or when user is logged in
   const hideNavbar = location.pathname === '/take-exam' || user;
+
+  // Pass school info through context or props
+  React.useEffect(() => {
+    if (schoolInfo && schoolInfo.isSubdomain) {
+      // User is accessing via school subdomain
+      console.log('School subdomain detected:', schoolInfo.subdomain);
+      
+      // Update app state or context with school information
+      // This helps with branding, routing, etc.
+    }
+  }, [schoolInfo]);
+
+  if (subdomainLoading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen bg-gray-100">
@@ -54,6 +79,7 @@ function AppLayout() {
         <Route path="/take-exam/:examId" element={<TakeExam />} />
         <Route path="/exam-selection" element={<ExamSelection />} />
         <Route path="/result-preview" element={<ResultPreviewPage />} />
+        <Route path="/subdomain-test" element={<SubdomainTestPage />} />
         {/* Protected Student Routes */}
         <Route path="/student/dashboard" element={<ProtectedRoute role="student"><StudentDashboard /></ProtectedRoute>} />
         <Route path="/student/profile" element={<ProtectedRoute role="student"><StudentProfile /></ProtectedRoute>} />

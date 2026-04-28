@@ -10,6 +10,20 @@ const { authenticateJWT } = require('../middleware/auth');
 const { enforceMultiTenant } = require('../middleware/tenantScoping');
 
 /**
+ * Generate URL-friendly subdomain slug from school name
+ * Example: "Spectra Group of Schools" -> "spectra-group-of-schools"
+ */
+function generateSubdomainSlug(schoolName) {
+  return schoolName
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')      // Remove special characters
+    .replace(/\s+/g, '-')               // Replace spaces with hyphens
+    .replace(/-+/g, '-')                // Replace multiple hyphens with single
+    .slice(0, 50);                      // Limit to 50 characters
+}
+
+/**
  * POST /api/schools/register
  * Public endpoint - Register a new school and create admin account
  * 
@@ -81,12 +95,15 @@ router.post('/register', async (req, res) => {
       return res.status(409).json({ error: 'School name already exists' });
     }
 
+    // If domain not provided, auto-generate from school name
+    const schoolDomain = domain || `${generateSubdomainSlug(name)}.schoolshubs.com`;
+
     // 3. Create school
     const schoolRes = await client.query(
       `INSERT INTO schools (name, domain, state_id, address, city, postal_code, phone, type, is_public, status, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'active', NOW(), NOW())
        RETURNING id, name, domain, state_id, address, city, postal_code, phone, type, is_public, status, created_at`,
-      [name, domain || null, stateId, address || null, city || null, postalCode || null, phone || null, type || 'secondary', isPublic !== undefined ? isPublic : true]
+      [name, schoolDomain, stateId, address || null, city || null, postalCode || null, phone || null, type || 'secondary', isPublic !== undefined ? isPublic : true]
     );
 
     const school = schoolRes.rows[0];
@@ -138,6 +155,7 @@ router.post('/register', async (req, res) => {
         id: school.id,
         name: school.name,
         domain: school.domain,
+        subdomain: school.domain.split('.')[0], // Extract subdomain from domain
         state_id: school.state_id,
         address: school.address,
         city: school.city,
@@ -185,7 +203,13 @@ router.get('/', authenticateJWT, async (req, res) => {
        ORDER BY created_at DESC`
     );
 
-    res.json(result.rows);
+    // Add subdomain to each school
+    const schoolsWithSubdomain = result.rows.map(school => ({
+      ...school,
+      subdomain: school.domain ? school.domain.split('.')[0] : null
+    }));
+
+    res.json(schoolsWithSubdomain);
   } catch (err) {
     console.error('Error fetching schools:', err);
     res.status(500).json({ error: err.message });
@@ -216,7 +240,14 @@ router.get('/current', authenticateJWT, enforceMultiTenant, async (req, res) => 
       return res.status(404).json({ error: 'School not found' });
     }
 
-    res.json(result.rows[0]);
+    const school = result.rows[0];
+    // Add subdomain to school response
+    const schoolWithSubdomain = {
+      ...school,
+      subdomain: school.domain ? school.domain.split('.')[0] : null
+    };
+
+    res.json(schoolWithSubdomain);
   } catch (err) {
     console.error('Error fetching current school:', err);
     res.status(500).json({ error: err.message });
@@ -246,7 +277,14 @@ router.get('/:schoolId', authenticateJWT, enforceMultiTenant, async (req, res) =
       return res.status(404).json({ error: 'School not found' });
     }
 
-    res.json(result.rows[0]);
+    const school = result.rows[0];
+    // Add subdomain to school response
+    const schoolWithSubdomain = {
+      ...school,
+      subdomain: school.domain ? school.domain.split('.')[0] : null
+    };
+
+    res.json(schoolWithSubdomain);
   } catch (err) {
     console.error('Error fetching school:', err);
     res.status(500).json({ error: err.message });
@@ -282,7 +320,14 @@ router.put('/:schoolId', authenticateJWT, enforceMultiTenant, async (req, res) =
       return res.status(404).json({ error: 'School not found' });
     }
 
-    res.json(result.rows[0]);
+    const school = result.rows[0];
+    // Add subdomain to school response
+    const schoolWithSubdomain = {
+      ...school,
+      subdomain: school.domain ? school.domain.split('.')[0] : null
+    };
+
+    res.json(schoolWithSubdomain);
   } catch (err) {
     console.error('Error updating school:', err);
     res.status(500).json({ error: err.message });
@@ -359,9 +404,15 @@ router.get('/by-state/:stateId', async (req, res) => {
       [stateId]
     );
 
+    // Add subdomain to each school
+    const schoolsWithSubdomain = schoolsRes.rows.map(school => ({
+      ...school,
+      subdomain: school.domain ? school.domain.split('.')[0] : null
+    }));
+
     res.json({
       state: stateRes.rows[0],
-      schools: schoolsRes.rows
+      schools: schoolsWithSubdomain
     });
   } catch (err) {
     console.error('Error fetching schools by state:', err);
@@ -404,10 +455,16 @@ router.get('/search', async (req, res) => {
 
     const result = await pool.query(query, params);
 
+    // Add subdomain to each school
+    const schoolsWithSubdomain = result.rows.map(school => ({
+      ...school,
+      subdomain: school.domain ? school.domain.split('.')[0] : null
+    }));
+
     res.json({
       query: q.trim(),
       stateId: stateId || null,
-      schools: result.rows
+      schools: schoolsWithSubdomain
     });
   } catch (err) {
     console.error('Error searching schools:', err);

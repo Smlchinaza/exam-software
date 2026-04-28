@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useSchoolSubdomain } from '../hooks/useSchoolSubdomain';
 
 export const API_URL = process.env.NODE_ENV === 'production' 
   ? "https://exam-software-65fk.onrender.com/api" 
@@ -11,8 +12,24 @@ const api = axios.create({
     "Content-Type": "application/json",
   },
   timeout: 30000, // 30 second timeout
-  withCredentials: true, // Enable credentials
+  withCredentials: true, // Enable credentials for subdomain support
 });
+
+/*
+Note: Subdomain context is automatically handled by the backend middleware.
+When accessing via school subdomain (e.g., schoolname.schoolshubs.com),
+the backend extracts the school context from the host header.
+No additional headers need to be sent from the frontend.
+
+For subdomain-aware requests, the backend will:
+1. Extract subdomain from the Host header
+2. Query database for matching school
+3. Attach school context to the request
+4. Use this context for multi-tenant operations
+
+This approach is more secure than sending school context in headers
+as it relies on DNS/routing rather than client-side data.
+*/
 
 // Add request interceptor
 api.interceptors.request.use(

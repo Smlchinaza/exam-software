@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const errorHandler = require('./middleware/error');
+const extractSchoolFromSubdomain = require('./middleware/subdomain');
 const { 
   dynamicLimiter,
   generalLimiter, 
@@ -32,19 +33,35 @@ const superAdminPostgres = require('./routes/super-admin-postgres');
 const app = express();
 app.set('trust proxy', 1);
 
-const allowedOrigins = [
-  'http://localhost:3000',
-  'https://exam-software.vercel.app',
-  'https://exam-software-45ex.vercel.app',
-  'https://exam-software-45ex-git-main-samuel-chinazas-projects.vercel.app',
-  'https://exam-software-45ex-btw34co5j-samuel-chinazas-projects.vercel.app/',
-  'https://schoolshubs.com',
-  'https://www.schoolshubs.com'
-];
-
-// CORS configuration
+// Update CORS configuration for dynamic subdomains
 const corsOptions = {
-  origin: allowedOrigins,
+  origin: function (origin, callback) {
+    // Allow localhost for development
+    if (!origin || origin.includes('localhost')) {
+      return callback(null, true);
+    }
+    
+    // Allow any subdomain of schoolshubs.com
+    if (origin && origin.includes('.schoolshubs.com')) {
+      return callback(null, true);
+    }
+    
+    // Allow specific Vercel deployment domains
+    const allowedVercelDomains = [
+      'https://exam-software.vercel.app',
+      'https://exam-software-45ex.vercel.app',
+      'https://exam-software-45ex-git-main-samuel-chinazas-projects.vercel.app',
+      'https://exam-software-45ex-btw34co5j-samuel-chinazas-projects.vercel.app',
+      'https://schoolshubs.com',
+      'https://www.schoolshubs.com'
+    ];
+    
+    if (origin && allowedVercelDomains.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -56,6 +73,9 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Add subdomain extraction middleware
+app.use(extractSchoolFromSubdomain);
 
 // Debug middleware to log all requests
 app.use((req, res, next) => {
