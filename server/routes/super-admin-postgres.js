@@ -154,7 +154,7 @@ router.post('/registrations/:id/approve', authenticateJWT, requireSuperAdmin, as
   
   try {
     const { id } = req.params;
-    const { approvalNotes, adminPassword } = req.body;
+    const { approvalNotes, adminPassword, adminEmail } = req.body;
 
     // Validate required fields
     if (!adminPassword) {
@@ -178,15 +178,18 @@ router.post('/registrations/:id/approve', authenticateJWT, requireSuperAdmin, as
 
     const request = requestRes.rows[0];
 
-    // 2. Check if proposed admin email already exists
+    // Use override admin email if provided, otherwise use proposed email
+    const finalAdminEmail = adminEmail || request.proposed_admin_email;
+
+    // 2. Check if final admin email already exists
     const emailExistsRes = await client.query(
       `SELECT id FROM users WHERE email = $1`,
-      [request.proposed_admin_email]
+      [finalAdminEmail]
     );
 
     if (emailExistsRes.rows.length > 0) {
       await client.query('ROLLBACK');
-      return res.status(409).json({ error: 'Proposed admin email already exists' });
+      return res.status(409).json({ error: 'Admin email already exists. Please provide a different email.' });
     }
 
     // 3. Hash the admin password
@@ -200,7 +203,7 @@ router.post('/registrations/:id/approve', authenticateJWT, requireSuperAdmin, as
       [request.school_id]
     );
 
-    // 5. Create admin user account
+    // 5. Create admin user account with final email
     const adminRes = await client.query(
       `INSERT INTO users (
          school_id, email, password_hash, first_name, last_name, 
@@ -209,7 +212,7 @@ router.post('/registrations/:id/approve', authenticateJWT, requireSuperAdmin, as
        RETURNING id, email, first_name, last_name, role, school_id, created_at`,
       [
         request.school_id,
-        request.proposed_admin_email,
+        finalAdminEmail,
         password_hash,
         request.proposed_admin_first_name,
         request.proposed_admin_last_name
@@ -236,7 +239,13 @@ router.post('/registrations/:id/approve', authenticateJWT, requireSuperAdmin, as
         request.school_id,
         req.user.id,
         approvalNotes || 'School registration approved',
-        JSON.stringify({ request_id: id, admin_created_id: adminRes.rows[0].id }),
+        JSON.stringify({ 
+          request_id: id, 
+          admin_created_id: adminRes.rows[0].id,
+          admin_email: finalAdminEmail,
+          email_changed: adminEmail ? true : false,
+          original_proposed_email: request.proposed_admin_email
+        }),
         req.ip,
         req.get('User-Agent')
       ]
@@ -251,7 +260,8 @@ router.post('/registrations/:id/approve', authenticateJWT, requireSuperAdmin, as
       schoolName: request.school_name,
       approvedBy: req.user.email,
       approvedAt: new Date().toISOString(),
-      adminEmail: request.proposed_admin_email
+      adminEmail: finalAdminEmail,
+      emailChanged: adminEmail ? `${request.proposed_admin_email} → ${finalAdminEmail}` : 'no'
     });
 
     res.json({

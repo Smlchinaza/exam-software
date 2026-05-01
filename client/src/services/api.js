@@ -1,4 +1,5 @@
 import axios from "axios";
+// eslint-disable-next-line
 import { useSchoolSubdomain } from '../hooks/useSchoolSubdomain';
 
 export const API_URL = process.env.NODE_ENV === 'production' 

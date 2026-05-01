@@ -18,6 +18,8 @@ const SchoolApprovalSimple = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [requestError, setRequestError] = useState(null);
+  const [overrideAdminEmail, setOverrideAdminEmail] = useState('');
 
   useEffect(() => {
     fetchPendingRequests();
@@ -25,11 +27,13 @@ const SchoolApprovalSimple = () => {
 
   const fetchPendingRequests = async () => {
     try {
+      setRequestError(null);
       setLoading(true);
       const data = await superAdminApi.getPendingRegistrations();
       setPendingRequests(data.pendingRequests || []);
     } catch (err) {
       console.error('Failed to fetch pending requests:', err);
+      setRequestError('Unable to load pending registration requests.');
     } finally {
       setLoading(false);
     }
@@ -37,12 +41,15 @@ const SchoolApprovalSimple = () => {
 
   const handleViewDetails = async (request) => {
     try {
+      setRequestError(null);
+      setOverrideAdminEmail('');
       setLoading(true);
       const details = await superAdminApi.getRegistrationDetails(request.id);
       setSelectedRequest(details);
       setShowDetailsModal(true);
     } catch (err) {
       console.error('Failed to fetch request details:', err);
+      setRequestError('Unable to load request details.');
     } finally {
       setLoading(false);
     }
@@ -50,10 +57,12 @@ const SchoolApprovalSimple = () => {
 
   const handleApprove = async (requestId) => {
     try {
+      setRequestError(null);
       setActionLoading(true);
       const approvalData = {
         approvalNotes: 'School registration approved after review',
-        adminPassword: 'TempAdmin123!' // In production, this should be generated securely
+        adminPassword: 'TempAdmin123!', // In production, this should be generated securely
+        adminEmail: overrideAdminEmail || undefined // Use override if provided
       };
       
       await superAdminApi.approveSchool(requestId, approvalData);
@@ -61,6 +70,7 @@ const SchoolApprovalSimple = () => {
       setRefreshTrigger(prev => prev + 1);
     } catch (err) {
       console.error('Failed to approve request:', err);
+      setRequestError(err?.response?.data?.error || err.message || 'Failed to approve request.');
     } finally {
       setActionLoading(false);
     }
@@ -74,6 +84,7 @@ const SchoolApprovalSimple = () => {
     }
 
     try {
+      setRequestError(null);
       setActionLoading(true);
       const rejectionData = { rejectionReason: reason };
       
@@ -82,6 +93,7 @@ const SchoolApprovalSimple = () => {
       setRefreshTrigger(prev => prev + 1);
     } catch (err) {
       console.error('Failed to reject request:', err);
+      setRequestError(err?.response?.data?.error || err.message || 'Failed to reject request.');
     } finally {
       setActionLoading(false);
     }
@@ -95,6 +107,10 @@ const SchoolApprovalSimple = () => {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const getPendingRequestKey = (request, index) => {
+    return request.id || `${request.school_id || request.proposed_admin_email}-${index}`;
   };
 
   if (loading && pendingRequests.length === 0) {
@@ -132,6 +148,12 @@ const SchoolApprovalSimple = () => {
         </div>
       </div>
 
+      {requestError && (
+        <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4">
+          <p className="text-sm font-medium">{requestError}</p>
+        </div>
+      )}
+
       {pendingRequests.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-6 sm:p-8 text-center">
           <div className="text-gray-400 mb-4">
@@ -146,8 +168,8 @@ const SchoolApprovalSimple = () => {
         <>
           {/* Mobile Card View */}
           <div className="md:hidden space-y-3">
-            {pendingRequests.map((request) => (
-              <div key={request.id} className="bg-white rounded-lg shadow p-4 border border-gray-100">
+            {pendingRequests.map((request, index) => (
+              <div key={getPendingRequestKey(request, index)} className="bg-white rounded-lg shadow p-4 border border-gray-100">
                 {/* School Info */}
                 <div className="mb-3 pb-3 border-b">
                   <div className="flex items-start gap-2 mb-2">
@@ -239,8 +261,8 @@ const SchoolApprovalSimple = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {pendingRequests.map((request) => (
-                    <tr key={request.id} className="hover:bg-gray-50">
+                  {pendingRequests.map((request, index) => (
+                    <tr key={getPendingRequestKey(request, index)} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <Building className="h-5 w-5 text-gray-400 mr-3" />
@@ -388,8 +410,17 @@ const SchoolApprovalSimple = () => {
                       <p className="mt-1 text-gray-900">{selectedRequest.proposed_admin_last_name}</p>
                     </div>
                     <div className="sm:col-span-2">
-                      <label className="text-xs font-medium text-gray-600">Email</label>
-                      <p className="mt-1 text-gray-900 break-words">{selectedRequest.proposed_admin_email}</p>
+                      <label className="text-xs font-medium text-gray-600">Email {selectedRequest.proposed_admin_email !== overrideAdminEmail && overrideAdminEmail && <span className="text-blue-600">(Modified)</span>}</label>
+                      <input
+                        type="email"
+                        value={overrideAdminEmail || selectedRequest.proposed_admin_email}
+                        onChange={(e) => setOverrideAdminEmail(e.target.value)}
+                        className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="admin@example.com"
+                      />
+                      {selectedRequest.proposed_admin_email !== overrideAdminEmail && overrideAdminEmail && (
+                        <p className="mt-1 text-xs text-blue-600">Original: {selectedRequest.proposed_admin_email}</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -409,7 +440,10 @@ const SchoolApprovalSimple = () => {
             {/* Actions - Sticky Footer */}
             <div className="sticky bottom-0 bg-white border-t p-4 sm:p-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
               <button
-                onClick={() => setShowDetailsModal(false)}
+                onClick={() => {
+                  setShowDetailsModal(false);
+                  setOverrideAdminEmail('');
+                }}
                 className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 w-full sm:w-auto"
               >
                 Close
