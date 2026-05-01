@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { authApi, API_URL } from "../services/api";
 import apiClient from "../services/subdomainApi";
 import { extractCurrentSubdomain, getStoredSubdomainLoginData } from "../utils/subdomain";
@@ -116,6 +116,35 @@ export const AuthProvider = ({ children }) => {
 
     checkAuth();
   }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      // Use subdomain-aware logout if on subdomain
+      if (isOnSubdomain) {
+        await apiClient.logout();
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+    
+    // Clear all storage
+    localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+    localStorage.removeItem("schoolId");
+    localStorage.removeItem("school");
+    localStorage.removeItem("rememberMe");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("refreshToken");
+    sessionStorage.removeItem("user");
+    sessionStorage.removeItem("schoolId");
+    sessionStorage.removeItem("school");
+    sessionStorage.removeItem("subdomainLoginData");
+    
+    setUser(null);
+    setSchoolId(null);
+    setSchool(null);
+  }, [isOnSubdomain]);
 
   useEffect(() => {
     if (!user) return;
@@ -304,35 +333,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = async () => {
-    try {
-      // Use subdomain-aware logout if on subdomain
-      if (isOnSubdomain) {
-        await apiClient.logout();
-      }
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-    
-    // Clear all storage
-    localStorage.removeItem("token");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("user");
-    localStorage.removeItem("schoolId");
-    localStorage.removeItem("school");
-    localStorage.removeItem("rememberMe");
-    sessionStorage.removeItem("token");
-    sessionStorage.removeItem("refreshToken");
-    sessionStorage.removeItem("user");
-    sessionStorage.removeItem("schoolId");
-    sessionStorage.removeItem("school");
-    sessionStorage.removeItem("subdomainLoginData");
-    
-    setUser(null);
-    setSchoolId(null);
-    setSchool(null);
-  };
-
+  
   const value = {
     user,
     schoolId,
