@@ -1,9 +1,0 @@
-config:
-  target: "https://exam-software-65fk.onrender.com"
-  phases:
-    - duration: 60
-      arrivalRate: 10
-scenarios:
-  - flow:
-      - get:
-          url: "/api/exams" 
