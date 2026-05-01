@@ -160,7 +160,7 @@ router.get('/', authenticateJWT, enforceMultiTenant, async (req, res) => {
  * GET /api/files/:fileId
  * Get a specific file with metadata
  */
-router.get('/:fileId', authenticateJWT, enforceMultiTenant, validateTenantResourceAccess(req, req.params.fileId, 'file'), async (req, res) => {
+router.get('/:fileId', authenticateJWT, enforceMultiTenant, (req, res, next) => validateTenantResourceAccess(req, req.params.fileId, 'file')(req, res, next), async (req, res) => {
   try {
     const { file } = await FileStoragePostgres.findById(req.params.fileId);
     
@@ -210,7 +210,7 @@ router.get('/:fileId', authenticateJWT, enforceMultiTenant, validateTenantResour
  * GET /api/files/:fileId/download
  * Download a specific file
  */
-router.get('/:fileId/download', authenticateJWT, enforceMultiTenant, validateTenantResourceAccess(req, req.params.fileId, 'file'), async (req, res) => {
+router.get('/:fileId/download', authenticateJWT, enforceMultiTenant, (req, res, next) => validateTenantResourceAccess(req, req.params.fileId, 'file')(req, res, next), async (req, res) => {
   try {
     const { file } = await FileStoragePostgres.findById(req.params.fileId);
     
@@ -253,7 +253,7 @@ router.get('/:fileId/download', authenticateJWT, enforceMultiTenant, validateTen
  * PUT /api/files/:fileId
  * Update file metadata
  */
-router.put('/:fileId', authenticateJWT, enforceMultiTenant, injectSchoolId, preventCrossSchoolAccess, validateTenantResourceAccess(req, req.params.fileId, 'file'), async (req, res) => {
+router.put('/:fileId', authenticateJWT, enforceMultiTenant, injectSchoolId, preventCrossSchoolAccess, (req, res, next) => validateTenantResourceAccess(req, req.params.fileId, 'file')(req, res, next), async (req, res) => {
   try {
     const { schoolId, userId } = req.tenant;
     const { description, fileType } = req.body;
@@ -305,7 +305,7 @@ router.put('/:fileId', authenticateJWT, enforceMultiTenant, injectSchoolId, prev
  * DELETE /api/files/:fileId
  * Delete a file (soft delete)
  */
-router.delete('/:fileId', authenticateJWT, enforceMultiTenant, injectSchoolId, preventCrossSchoolAccess, validateTenantResourceAccess(req, req.params.fileId, 'file'), async (req, res) => {
+router.delete('/:fileId', authenticateJWT, enforceMultiTenant, injectSchoolId, preventCrossSchoolAccess, (req, res, next) => validateTenantResourceAccess(req, req.params.fileId, 'file')(req, res, next), async (req, res) => {
   try {
     const { file } = await FileStoragePostgres.findById(req.params.fileId);
     

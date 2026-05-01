@@ -153,7 +153,7 @@ export const AuthProvider = ({ children }) => {
         window.removeEventListener(event, resetTimer);
       });
     };
-  }, [user]);
+  }, [user, logout]);
 
   const login = async (emailOrObj, password, rememberMe) => {
     let email;

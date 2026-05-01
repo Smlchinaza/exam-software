@@ -94,7 +94,7 @@ router.get('/:submissionId', authenticateJWT, enforceMultiTenant, async (req, re
  * POST /api/submissions/:examId/start
  * Start/initialize a new exam submission for a student
  */
-router.post('/:examId/start', authenticateJWT, enforceMultiTenant, injectSchoolId, preventCrossSchoolAccess, validateTenantResourceAccess(req, req.params.examId, 'exam'), async (req, res) => {
+router.post('/:examId/start', authenticateJWT, enforceMultiTenant, injectSchoolId, preventCrossSchoolAccess, (req, res, next) => validateTenantResourceAccess(req, req.params.examId, 'exam')(req, res, next), async (req, res) => {
   try {
     const { examId } = req.params;
     const { schoolId, userId, role } = req.tenant;
@@ -143,7 +143,7 @@ router.post('/:examId/start', authenticateJWT, enforceMultiTenant, injectSchoolI
  * POST /api/submissions/:submissionId/submit
  * Submit completed exam with answers
  */
-router.post('/:submissionId/submit', authenticateJWT, enforceMultiTenant, injectSchoolId, preventCrossSchoolAccess, validateTenantResourceAccess(req, req.params.submissionId, 'submission'), async (req, res) => {
+router.post('/:submissionId/submit', authenticateJWT, enforceMultiTenant, injectSchoolId, preventCrossSchoolAccess, (req, res, next) => validateTenantResourceAccess(req, req.params.submissionId, 'submission')(req, res, next), async (req, res) => {
   try {
     const { submissionId } = req.params;
     const { schoolId, userId } = req.tenant;
@@ -201,7 +201,7 @@ router.post('/:submissionId/submit', authenticateJWT, enforceMultiTenant, inject
  * POST /api/submissions/:submissionId/grade
  * Grade a submission (Teachers/Admins only)
  */
-router.post('/:submissionId/grade', authenticateJWT, enforceMultiTenant, injectSchoolId, preventCrossSchoolAccess, validateTenantResourceAccess(req, req.params.submissionId, 'submission'), async (req, res) => {
+router.post('/:submissionId/grade', authenticateJWT, enforceMultiTenant, injectSchoolId, preventCrossSchoolAccess, (req, res, next) => validateTenantResourceAccess(req, req.params.submissionId, 'submission')(req, res, next), async (req, res) => {
   try {
     const { submissionId } = req.params;
     const { schoolId, userId, role } = req.tenant;

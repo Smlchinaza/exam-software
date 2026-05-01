@@ -170,7 +170,7 @@ router.post('/', authenticateJWT, enforceMultiTenant, injectSchoolId, preventCro
  * PUT /api/exams/:examId
  * Update an exam (Teachers/Admins only, must be owner or admin)
  */
-router.put('/:examId', authenticateJWT, enforceMultiTenant, injectSchoolId, preventCrossSchoolAccess, validateTenantResourceAccess(req, req.params.examId, 'exam'), async (req, res) => {
+router.put('/:examId', authenticateJWT, enforceMultiTenant, injectSchoolId, preventCrossSchoolAccess, (req, res, next) => validateTenantResourceAccess(req, req.params.examId, 'exam')(req, res, next), async (req, res) => {
   try {
     const { examId } = req.params;
     const { schoolId, userId, role } = req.tenant;
@@ -217,7 +217,7 @@ router.put('/:examId', authenticateJWT, enforceMultiTenant, injectSchoolId, prev
  * DELETE /api/exams/:examId
  * Delete an exam (Teachers/Admins only)
  */
-router.delete('/:examId', authenticateJWT, enforceMultiTenant, injectSchoolId, preventCrossSchoolAccess, validateTenantResourceAccess(req, req.params.examId, 'exam'), async (req, res) => {
+router.delete('/:examId', authenticateJWT, enforceMultiTenant, injectSchoolId, preventCrossSchoolAccess, (req, res, next) => validateTenantResourceAccess(req, req.params.examId, 'exam')(req, res, next), async (req, res) => {
   try {
     const { examId } = req.params;
     const { schoolId, userId, role } = req.tenant;
