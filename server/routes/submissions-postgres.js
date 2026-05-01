@@ -5,7 +5,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../db/postgres');
 const { authenticateJWT } = require('../middleware/auth');
-const { enforceMultiTenant } = require('../middleware/tenantScoping');
+const { enforceMultiTenant, injectSchoolId, preventCrossSchoolAccess, validateTenantResourceAccess } = require('../middleware/tenantScoping');
 
 /**
  * GET /api/submissions
@@ -94,7 +94,7 @@ router.get('/:submissionId', authenticateJWT, enforceMultiTenant, async (req, re
  * POST /api/submissions/:examId/start
  * Start/initialize a new exam submission for a student
  */
-router.post('/:examId/start', authenticateJWT, enforceMultiTenant, async (req, res) => {
+router.post('/:examId/start', authenticateJWT, enforceMultiTenant, injectSchoolId, preventCrossSchoolAccess, validateTenantResourceAccess(req, req.params.examId, 'exam'), async (req, res) => {
   try {
     const { examId } = req.params;
     const { schoolId, userId, role } = req.tenant;
@@ -143,7 +143,7 @@ router.post('/:examId/start', authenticateJWT, enforceMultiTenant, async (req, r
  * POST /api/submissions/:submissionId/submit
  * Submit completed exam with answers
  */
-router.post('/:submissionId/submit', authenticateJWT, enforceMultiTenant, async (req, res) => {
+router.post('/:submissionId/submit', authenticateJWT, enforceMultiTenant, injectSchoolId, preventCrossSchoolAccess, validateTenantResourceAccess(req, req.params.submissionId, 'submission'), async (req, res) => {
   try {
     const { submissionId } = req.params;
     const { schoolId, userId } = req.tenant;
@@ -201,7 +201,7 @@ router.post('/:submissionId/submit', authenticateJWT, enforceMultiTenant, async 
  * POST /api/submissions/:submissionId/grade
  * Grade a submission (Teachers/Admins only)
  */
-router.post('/:submissionId/grade', authenticateJWT, enforceMultiTenant, async (req, res) => {
+router.post('/:submissionId/grade', authenticateJWT, enforceMultiTenant, injectSchoolId, preventCrossSchoolAccess, validateTenantResourceAccess(req, req.params.submissionId, 'submission'), async (req, res) => {
   try {
     const { submissionId } = req.params;
     const { schoolId, userId, role } = req.tenant;

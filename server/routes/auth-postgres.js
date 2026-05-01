@@ -8,12 +8,18 @@ const pool = require('../db/postgres');
 const bcryptjs = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { authenticateJWT } = require('../middleware/auth');
+const { getAvailableSchools } = require('../middleware/schoolValidation');
+const { generateSchoolJWTPayload } = require('../middleware/subdomainAuth');
+const { getRoleBasedRedirectUrl } = require('../utils/subdomain');
 
 /**
  * POST /api/auth/register/teacher
- * Multi-tenant teacher registration with school assignment
+ * Enhanced multi-tenant teacher registration with subdomain routing
  */
-router.post('/register/teacher', async (req, res) => {
+router.post('/register/teacher', 
+  require('./../middleware/schoolValidation').validateSchoolSelection,
+  require('./../middleware/schoolValidation').validateTeacherRegistration,
+  async (req, res) => {
   const client = await pool.connect();
   
   try {
@@ -24,60 +30,45 @@ router.post('/register/teacher', async (req, res) => {
       phone,
       password,
       schoolId,
-      subjects,
+      subjects = [],
+      department,
       employmentType,
       experience,
       rememberMe
     } = req.body;
 
-    // Validate required fields
-    if (!firstName || !lastName || !email || !password || !schoolId) {
-      return res.status(400).json({
-        error: 'First name, last name, email, password, and school are required'
-      });
-    }
-
-    if (password.length < 8) {
-      return res.status(400).json({
-        error: 'Password must be at least 8 characters long'
-      });
-    }
+    const school = req.school; // Set by validation middleware
 
     // Start transaction
     await client.query('BEGIN');
 
-    // 1. Check if school exists and is active
-    const schoolRes = await client.query(
-      `SELECT id, name FROM schools WHERE id = $1 AND status = 'active'`,
-      [schoolId]
-    );
-
-    if (schoolRes.rows.length === 0) {
-      await client.query('ROLLBACK');
-      return res.status(400).json({ error: 'Invalid or inactive school selected' });
-    }
-
-    // 2. Check if email already exists
+    // 1. Check if email already exists globally
     const emailRes = await client.query(
-      `SELECT id FROM users WHERE email = $1`,
+      `SELECT id, school_id FROM users WHERE email = $1`,
       [email]
     );
 
     if (emailRes.rows.length > 0) {
       await client.query('ROLLBACK');
-      return res.status(409).json({ error: 'Email already registered' });
+      return res.status(409).json({ 
+        error: 'Email already registered',
+        details: 'An account with this email already exists in the system'
+      });
     }
 
-    // 3. Hash password
+    // 2. Hash password
     const password_hash = await bcryptjs.hash(password, 10);
 
-    // 4. Create teacher user
+    // 3. Generate subdomain from school domain
+    const subdomain = school.domain ? school.domain.split('.')[0] : null;
+
+    // 4. Create teacher user with enhanced profile
     const userRes = await client.query(
       `INSERT INTO users (
         school_id, email, password_hash, first_name, last_name, 
-        role, is_active, profile, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, true, $7, NOW(), NOW())
-       RETURNING id, email, first_name, last_name, role, school_id, created_at`,
+        role, is_active, approved, subdomain, profile, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, true, false, $7, $8, NOW(), NOW())
+       RETURNING id, email, first_name, last_name, role, school_id, subdomain, approved, created_at`,
       [
         schoolId, 
         email, 
@@ -85,32 +76,64 @@ router.post('/register/teacher', async (req, res) => {
         firstName, 
         lastName, 
         'teacher',
+        subdomain,
         JSON.stringify({
           phone,
           subjects,
+          department,
           employmentType,
           experience,
-          registeredAt: new Date().toISOString()
+          registeredAt: new Date().toISOString(),
+          registrationSource: 'teacher_portal'
         })
       ]
     );
 
     const user = userRes.rows[0];
 
-    // 5. Create JWT token
+    // 5. Create school approval notification
+    await client.query(
+      `INSERT INTO notifications (
+        school_id, user_id, type, title, message, data, is_read, created_at
+      ) VALUES ($1, $2, 'teacher_registration', 'New Teacher Registration', 
+        $3, $4, false, NOW())`,
+      [
+        schoolId,
+        user.id,
+        `${firstName} ${lastName} has registered as a teacher`,
+        JSON.stringify({
+          userId: user.id,
+          userEmail: email,
+          subjects,
+          department,
+          experience,
+          registeredAt: new Date().toISOString()
+        })
+      ]
+    );
+
+    // 6. Create JWT token (for email verification, not login)
     const payload = {
       id: user.id,
       email: user.email,
       role: user.role,
-      school_id: user.school_id
+      school_id: user.school_id,
+      registration_pending: true
     };
 
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '24h' });
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    // 7. Generate subdomain redirect URL
+    const redirectUrl = school.domain ? 
+      `https://${school.domain}/dashboard?registration=pending` : 
+      null;
 
     // Commit transaction
     await client.query('COMMIT');
 
+    // Send registration success response
     res.status(201).json({
+      success: true,
       message: 'Teacher registration successful',
       user: {
         id: user.id,
@@ -119,24 +142,47 @@ router.post('/register/teacher', async (req, res) => {
         last_name: user.last_name,
         role: user.role,
         school_id: user.school_id,
+        subdomain: user.subdomain,
+        approved: user.approved,
         created_at: user.created_at
       },
       school: {
-        id: schoolRes.rows[0].id,
-        name: schoolRes.rows[0].name
+        id: school.id,
+        name: school.name,
+        domain: school.domain,
+        subdomain: subdomain
+      },
+      redirectTo: redirectUrl,
+      registrationStatus: {
+        approved: false,
+        requiresApproval: true,
+        nextSteps: [
+          'Wait for school administrator approval',
+          'Check your email for updates',
+          `Once approved, visit: ${redirectUrl}`
+        ]
       },
       token,
-      expiresIn: '24h'
+      expiresIn: '7d'
     });
 
   } catch (err) {
     await client.query('ROLLBACK');
     console.error('Teacher registration error:', err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ 
+      error: 'Registration failed',
+      details: err.message 
+    });
   } finally {
     client.release();
   }
 });
+
+/**
+ * GET /api/auth/schools/available
+ * Get available schools for teacher registration
+ */
+router.get('/schools/available', getAvailableSchools);
 
 /**
  * POST /api/auth/register
@@ -253,70 +299,113 @@ router.options('/login', (req, res) => {
 
 /**
  * POST /api/auth/login
- * Login with email and password
+ * Enhanced login with subdomain routing and school context
  */
 router.post('/login', async (req, res) => {
   try {
-    console.log('Login endpoint hit');
-    console.log('Request method:', req.method);
-    console.log('Request URL:', req.url);
-    console.log('Request headers:', req.headers);
-    const { email, password } = req.body;
-    console.log('Request body:', { email, password: password ? '***' : undefined });
+    console.log('Enhanced login endpoint hit');
+    const { email, password, rememberMe = false } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password required' });
+      return res.status(400).json({ 
+        error: 'Email and password required',
+        details: 'Both email and password must be provided'
+      });
     }
 
+    // Get user with school context
     const result = await pool.query(
-      `SELECT id, email, password_hash, first_name, last_name, role, school_id, is_active
-       FROM users
-       WHERE email = $1`,
+      `SELECT 
+        u.id, u.email, u.password_hash, u.first_name, u.last_name, 
+        u.role, u.school_id, u.is_active, u.approved, u.subdomain,
+        s.name as school_name, s.domain as school_domain, s.status as school_status
+       FROM users u
+       LEFT JOIN schools s ON u.school_id = s.id
+       WHERE u.email = $1`,
       [email]
     );
 
     if (result.rows.length === 0) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+      return res.status(401).json({ 
+        error: 'Invalid credentials',
+        details: 'The email or password you entered is incorrect'
+      });
     }
 
     const user = result.rows[0];
 
     // Check if user is active
     if (!user.is_active) {
-      return res.status(403).json({ error: 'User account is disabled' });
+      return res.status(403).json({ 
+        error: 'Account disabled',
+        details: 'Your account has been disabled. Please contact your school administrator.'
+      });
+    }
+
+    // Check if teacher is approved
+    if (user.role === 'teacher' && !user.approved) {
+      return res.status(403).json({ 
+        error: 'Account not approved',
+        details: 'Your teacher registration is pending approval from your school administrator.'
+      });
     }
 
     // Verify password
     const passwordMatch = await bcryptjs.compare(password, user.password_hash);
     if (!passwordMatch) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+      return res.status(401).json({ 
+        error: 'Invalid credentials',
+        details: 'The email or password you entered is incorrect'
+      });
     }
 
     // Check if user is a super admin
     let isSuperAdmin = user.role === 'super_admin';
-    console.log('Initial super admin check:', { userRole: user.role, isSuperAdmin });
     if (!isSuperAdmin) {
       const superAdminCheck = await pool.query(
         `SELECT id FROM super_admins WHERE user_id = $1 AND is_active = true`,
         [user.id]
       );
       isSuperAdmin = superAdminCheck.rows.length > 0;
-      console.log('Super admin table check:', { userId: user.id, foundRows: superAdminCheck.rows.length, isSuperAdmin });
     }
 
-    // Create JWT token (include school_id for non-super admins)
-    const payload = {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      school_id: user.school_id,
-      isSuperAdmin
-    };
+    // Create enhanced JWT payload with school context
+    const payload = generateSchoolJWTPayload(user, {
+      id: user.school_id,
+      name: user.school_name,
+      domain: user.school_domain,
+      subdomain: user.subdomain
+    });
 
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '24h' });
+    // Set token expiration based on remember me
+    const expiresIn = rememberMe ? '7d' : '24h';
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn });
 
+    // Generate redirect URL for non-super admins
+    let redirectTo = null;
+    let schoolInfo = null;
+
+    if (!isSuperAdmin && user.school_domain) {
+      // Get subdomain from school domain
+      const subdomain = user.school_domain.split('.')[0];
+      
+      // Generate role-based redirect URL
+      redirectTo = getRoleBasedRedirectUrl(user, subdomain, req.headers['user-agent']);
+      
+      schoolInfo = {
+        id: user.school_id,
+        name: user.school_name,
+        domain: user.school_domain,
+        subdomain: subdomain,
+        status: user.school_status
+      };
+    }
+
+    // Prepare response data
     const responseData = {
+      success: true,
       token,
+      expiresIn,
       user: {
         id: user.id,
         email: user.email,
@@ -324,22 +413,40 @@ router.post('/login', async (req, res) => {
         first_name: user.first_name,
         last_name: user.last_name,
         school_id: user.school_id,
+        subdomain: user.subdomain,
+        approved: user.approved,
         isSuperAdmin
       }
     };
 
-    console.log('Sending response:', responseData);
+    // Add school and redirect info for non-super admins
+    if (schoolInfo) {
+      responseData.school = schoolInfo;
+      responseData.redirectTo = redirectTo;
+    }
+
+    // Add login metadata
+    responseData.loginInfo = {
+      timestamp: new Date().toISOString(),
+      rememberMe,
+      requiresRedirect: !!redirectTo
+    };
+
+    console.log('Enhanced login successful:', {
+      userId: user.id,
+      role: user.role,
+      hasSchool: !!user.school_id,
+      redirectTo: redirectTo ? 'set' : 'none'
+    });
     
     res.json(responseData);
-    console.log('Response sent successfully');
+
   } catch (err) {
-    console.error('Login error:', err);
-    try {
-      res.status(500).json({ error: err.message });
-      console.log('Error response sent');
-    } catch (sendErr) {
-      console.error('Failed to send error response:', sendErr);
-    }
+    console.error('Enhanced login error:', err);
+    res.status(500).json({ 
+      error: 'Login failed',
+      details: 'An unexpected error occurred during login. Please try again.'
+    });
   }
 });
 

@@ -41,21 +41,60 @@ const Login = () => {
         rememberMe: formData.rememberMe 
       });
 
-      // New Postgres backend login - simplified
-      // Note: backend determines role based on user record, no need to pass role
+      // Enhanced login with subdomain routing
       const response = await login(formData.email, formData.password, formData.rememberMe);
-      console.log('Login response:', response);
+      console.log('Enhanced login response:', response);
 
       // Check if the logged-in user's role matches the selected role
-      // This is just a UX hint - backend controls actual role
       if (response.user.role !== formData.role) {
         console.warn(
           `User role (${response.user.role}) doesn't match selected role (${formData.role}). ` +
-          `Redirecting to ${response.user.role} dashboard.`
+          `Using actual role: ${response.user.role}`
         );
       }
 
-      // Redirect based on actual user role from backend
+      // Handle subdomain redirection for non-super admins
+      if (response.redirectTo && response.school) {
+        console.log('Redirecting to school subdomain:', response.redirectTo);
+        
+        // Store login data for subdomain transfer
+        const loginData = {
+          token: response.token,
+          user: response.user,
+          school: response.school,
+          loginTime: new Date().toISOString(),
+          expiresIn: response.expiresIn
+        };
+        
+        // Store in sessionStorage for subdomain access
+        sessionStorage.setItem('subdomainLoginData', JSON.stringify(loginData));
+        
+        // Show success message before redirect
+        setError('');
+        
+        // Create success message
+        const successDiv = document.createElement('div');
+        successDiv.className = 'fixed top-4 right-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-md shadow-lg z-50 max-w-sm';
+        successDiv.innerHTML = `
+          <div class="flex">
+            <div class="ml-3">
+              <h3 class="text-sm font-medium text-green-800">Login Successful!</h3>
+              <p class="text-sm text-green-700 mt-1">Redirecting to your school dashboard...</p>
+              <p class="text-xs text-green-600 mt-1">${response.school.name}</p>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(successDiv);
+        
+        // Redirect to school subdomain after a short delay
+        setTimeout(() => {
+          window.location.href = response.redirectTo;
+        }, 2000);
+        
+        return;
+      }
+
+      // Fallback for super admins or when no redirect URL is provided
       switch (response.user.role) {
         case 'student':
           navigate('/student/dashboard');

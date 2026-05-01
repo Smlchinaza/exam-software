@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { authApi, API_URL } from "../services/api";
+import apiClient from "../services/subdomainApi";
+import { extractCurrentSubdomain, getStoredSubdomainLoginData } from "../utils/subdomain";
 
 const AuthContext = createContext(null);
 
@@ -30,11 +32,38 @@ export const AuthProvider = ({ children }) => {
   const [schoolId, setSchoolId] = useState(null);
   const [school, setSchool] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isOnSubdomain, setIsOnSubdomain] = useState(false);
+  const [currentSubdomain, setCurrentSubdomain] = useState(null);
 
   useEffect(() => {
+    // Initialize subdomain context
+    const subdomain = extractCurrentSubdomain();
+    setIsOnSubdomain(subdomain !== null);
+    setCurrentSubdomain(subdomain);
+
     // Check for stored auth data on mount
     const checkAuth = async () => {
       try {
+        // First, check for cross-domain login data
+        const storedLoginData = getStoredSubdomainLoginData();
+        
+        if (storedLoginData && storedLoginData.token && storedLoginData.user) {
+          // Use cross-domain login data
+          setUser(storedLoginData.user);
+          setSchool(storedLoginData.school);
+          setSchoolId(storedLoginData.user.school_id);
+          
+          // Store in appropriate storage
+          const storage = localStorage;
+          storage.setItem("token", storedLoginData.token);
+          storage.setItem("user", JSON.stringify(storedLoginData.user));
+          storage.setItem("school", JSON.stringify(storedLoginData.school));
+          storage.setItem("schoolId", storedLoginData.user.school_id);
+          
+          return;
+        }
+
+        // Fallback to regular auth check
         const token =
           localStorage.getItem("token") || sessionStorage.getItem("token");
         const storedUser =
@@ -143,42 +172,50 @@ export const AuthProvider = ({ children }) => {
       console.log("AuthContext: Attempting login with:", {
         email,
         rememberMe,
+        isOnSubdomain,
+        currentSubdomain
       });
-      // New Postgres backend login - simpler, returns JWT with school_id
-      const response = await authApi.login(email, password);
+
+      // Use subdomain-aware API client if on subdomain
+      let response;
+      if (isOnSubdomain) {
+        response = await apiClient.login(email, password, rememberMe);
+      } else {
+        // Fallback to regular API for main domain
+        response = await authApi.login(email, password);
+      }
+
       console.log("AuthContext: Login response:", response);
+      
       if (!response || !response.token || !response.user) {
         throw new Error("Invalid response from server");
       }
+
       // Extract school_id from JWT payload
-      const extractedSchoolId = extractSchoolIdFromToken(response.token);
+      const extractedSchoolId = response.user.school_id || extractSchoolIdFromToken(response.token);
+      
       // Store auth data based on rememberMe preference
       const storage = rememberMe ? localStorage : sessionStorage;
       storage.setItem("token", response.token);
       storage.setItem("user", JSON.stringify(response.user));
+      
       if (extractedSchoolId) {
         storage.setItem("schoolId", extractedSchoolId);
         setSchoolId(extractedSchoolId);
       }
+      
       storage.setItem("rememberMe", rememberMe);
       setUser(response.user);
       
-      // Fetch and store school data if school_id is available
-      if (extractedSchoolId) {
-        try {
-          const schoolResponse = await fetch(`${API_URL}/schools/current`, {
-            headers: {
-              'Authorization': `Bearer ${response.token}`
-            }
-          });
-          if (schoolResponse.ok) {
-            const schoolData = await schoolResponse.json();
-            setSchool(schoolData);
-            storage.setItem("school", JSON.stringify(schoolData));
-          }
-        } catch (error) {
-          console.error("Error fetching school data during login:", error);
-        }
+      // Set school data if available in response
+      if (response.school) {
+        setSchool(response.school);
+        storage.setItem("school", JSON.stringify(response.school));
+      }
+      
+      // Update API client with school context
+      if (apiClient.updateSchoolContext && response.school) {
+        apiClient.updateSchoolContext(response.school);
       }
       
       return response;
@@ -267,7 +304,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      // Use subdomain-aware logout if on subdomain
+      if (isOnSubdomain) {
+        await apiClient.logout();
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+    
     // Clear all storage
     localStorage.removeItem("token");
     localStorage.removeItem("refreshToken");
@@ -280,6 +326,8 @@ export const AuthProvider = ({ children }) => {
     sessionStorage.removeItem("user");
     sessionStorage.removeItem("schoolId");
     sessionStorage.removeItem("school");
+    sessionStorage.removeItem("subdomainLoginData");
+    
     setUser(null);
     setSchoolId(null);
     setSchool(null);
@@ -290,6 +338,8 @@ export const AuthProvider = ({ children }) => {
     schoolId,
     school,
     loading,
+    isOnSubdomain,
+    currentSubdomain,
     login,
     register,
     signupStudent,

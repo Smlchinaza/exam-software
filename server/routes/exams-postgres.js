@@ -5,7 +5,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../db/postgres');
 const { authenticateJWT } = require('../middleware/auth');
-const { enforceMultiTenant } = require('../middleware/tenantScoping');
+const { enforceMultiTenant, injectSchoolId, preventCrossSchoolAccess, validateTenantResourceAccess } = require('../middleware/tenantScoping');
 
 /**
  * GET /api/exams
@@ -99,7 +99,7 @@ router.get('/:examId', authenticateJWT, enforceMultiTenant, async (req, res) => 
  * POST /api/exams
  * Create a new exam (Teachers/Admins only)
  */
-router.post('/', authenticateJWT, enforceMultiTenant, async (req, res) => {
+router.post('/', authenticateJWT, enforceMultiTenant, injectSchoolId, preventCrossSchoolAccess, async (req, res) => {
   try {
     const { schoolId, userId, role } = req.tenant;
     
@@ -170,7 +170,7 @@ router.post('/', authenticateJWT, enforceMultiTenant, async (req, res) => {
  * PUT /api/exams/:examId
  * Update an exam (Teachers/Admins only, must be owner or admin)
  */
-router.put('/:examId', authenticateJWT, enforceMultiTenant, async (req, res) => {
+router.put('/:examId', authenticateJWT, enforceMultiTenant, injectSchoolId, preventCrossSchoolAccess, validateTenantResourceAccess(req, req.params.examId, 'exam'), async (req, res) => {
   try {
     const { examId } = req.params;
     const { schoolId, userId, role } = req.tenant;
@@ -217,7 +217,7 @@ router.put('/:examId', authenticateJWT, enforceMultiTenant, async (req, res) => 
  * DELETE /api/exams/:examId
  * Delete an exam (Teachers/Admins only)
  */
-router.delete('/:examId', authenticateJWT, enforceMultiTenant, async (req, res) => {
+router.delete('/:examId', authenticateJWT, enforceMultiTenant, injectSchoolId, preventCrossSchoolAccess, validateTenantResourceAccess(req, req.params.examId, 'exam'), async (req, res) => {
   try {
     const { examId } = req.params;
     const { schoolId, userId, role } = req.tenant;

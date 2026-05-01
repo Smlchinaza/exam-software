@@ -40,6 +40,31 @@ const userSchema = new mongoose.Schema(
       required: [true, 'Last name is required'],
       trim: true
     },
+    pg_id: {
+      type: String,
+      required: false 
+    },
+    schoolId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'School',
+      required: function() { return ['teacher', 'student'].includes(this.role); }
+    },
+    subdomain: {
+      type: String,
+      lowercase: true,
+      trim: true,
+      validate: {
+        validator: function(v) {
+          return !v || /^[a-z0-9-]+$/.test(v);
+        },
+        message: 'Subdomain can only contain lowercase letters, numbers, and hyphens'
+      }
+    },
+    schoolContext: {
+      name: String,
+      domain: String,
+      role: String 
+    },
     createdAt: {
       type: Date,
       default: Date.now

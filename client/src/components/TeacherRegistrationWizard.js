@@ -206,11 +206,41 @@ const TeacherRegistrationWizard = () => {
         throw new Error(data.error || 'Registration failed');
       }
 
-      setSuccess('Registration successful! Redirecting to login...');
-      
-      setTimeout(() => {
-        navigate('/login');
-      }, 3000);
+      // Handle enhanced registration response with subdomain routing
+      if (data.success && data.redirectTo) {
+        setSuccess(
+          <div>
+            <p className="font-semibold">Registration successful!</p>
+            <p className="text-sm mt-2">Your registration is pending approval from the school administrator.</p>
+            <div className="mt-3 p-3 bg-blue-50 rounded-md">
+              <p className="text-sm font-medium text-blue-800">Next Steps:</p>
+              <ul className="text-sm text-blue-700 mt-1 list-disc list-inside">
+                <li>Wait for school administrator approval</li>
+                <li>Check your email for updates</li>
+                <li>Once approved, visit: <a href={data.redirectTo} target="_blank" rel="noopener noreferrer" className="underline">{data.redirectTo}</a></li>
+              </ul>
+            </div>
+          </div>
+        );
+        
+        // Store registration data for potential redirect after approval
+        localStorage.setItem('pendingRegistration', JSON.stringify({
+          user: data.user,
+          school: data.school,
+          redirectTo: data.redirectTo,
+          registrationStatus: data.registrationStatus
+        }));
+        
+        // Redirect to login after showing success message
+        setTimeout(() => {
+          navigate('/login');
+        }, 8000);
+      } else {
+        setSuccess('Registration successful! Redirecting to login...');
+        setTimeout(() => {
+          navigate('/login');
+        }, 3000);
+      }
 
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.');
