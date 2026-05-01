@@ -497,6 +497,8 @@ router.get('/schools/all', authenticateJWT, requireSuperAdmin, async (req, res) 
       SELECT 
         s.id,
         s.name,
+        s.domain,
+        CASE WHEN s.domain IS NOT NULL THEN split_part(s.domain, '.', 1) ELSE NULL END as subdomain,
         s.city,
         s.type,
         s.is_public,
@@ -514,7 +516,7 @@ router.get('/schools/all', authenticateJWT, requireSuperAdmin, async (req, res) 
       JOIN states st ON s.state_id = st.id
       LEFT JOIN users u ON s.id = u.school_id
       WHERE ${whereClause}
-      GROUP BY s.id, s.name, s.city, s.type, s.is_public, s.status, s.is_verified, 
+      GROUP BY s.id, s.name, s.domain, s.city, s.type, s.is_public, s.status, s.is_verified, 
                s.created_at, s.updated_at, st.name, st.code
       ORDER BY s.created_at DESC
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}

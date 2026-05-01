@@ -237,7 +237,9 @@ const AdminAssignment = () => {
             >
               <option value="">All Schools</option>
               {schools.map(school => (
-                <option key={school.id} value={school.id}>{school.name}</option>
+                <option key={school.id} value={school.id}>
+                  {school.name}{school.subdomain ? ` — ${school.subdomain}` : school.domain ? ` — ${school.domain}` : ''}
+                </option>
               ))}
             </select>
           </div>

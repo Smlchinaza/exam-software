@@ -58,9 +58,10 @@ const SchoolMetricsSimple = () => {
     if (!schools.length) return;
 
     const csvContent = [
-      ['School Name', 'City', 'State', 'Type', 'Status', 'Total Users', 'Admins', 'Teachers', 'Students'],
+      ['School Name', 'Subdomain', 'City', 'State', 'Type', 'Status', 'Total Users', 'Admins', 'Teachers', 'Students'],
       ...schools.map(school => [
         school.name,
+        school.subdomain || school.domain || '',
         school.city,
         school.state_name,
         school.type,
@@ -363,6 +364,9 @@ const SchoolMetricsSimple = () => {
                     <div className="text-gray-600">
                       👥 {school.total_users} total | 🔑 {school.admin_count} | 👨‍🏫 {school.teacher_count} | 👨‍🎓 {school.student_count}
                     </div>
+                    <div className="text-sm text-gray-500 truncate">
+                      <span className="font-medium">Subdomain:</span> {school.subdomain || school.domain || '—'}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -375,6 +379,9 @@ const SchoolMetricsSimple = () => {
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       School
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Subdomain
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Location
@@ -398,6 +405,13 @@ const SchoolMetricsSimple = () => {
                           <div className="text-sm font-medium text-gray-900">{school.name}</div>
                           <div className="text-sm text-gray-500">{school.type}</div>
                         </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {school.subdomain || school.domain ? (
+                          <div className="truncate">{school.subdomain || school.domain}</div>
+                        ) : (
+                          <span className="text-gray-500">—</span>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center text-sm text-gray-900">
