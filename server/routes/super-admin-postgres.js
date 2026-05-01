@@ -9,6 +9,20 @@ const jwt = require('jsonwebtoken');
 const { authenticateJWT } = require('../middleware/auth');
 
 /**
+ * Generate URL-friendly subdomain slug from school name
+ * Example: "Spectra Group of Schools" -> "spectra-group-of-schools"
+ */
+function generateSubdomainSlug(schoolName) {
+  return schoolName
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')      // Remove special characters
+    .replace(/\s+/g, '-')               // Replace spaces with hyphens
+    .replace(/-+/g, '-')                // Replace multiple hyphens with single
+    .slice(0, 50);                      // Limit to 50 characters
+}
+
+/**
  * Middleware to check if user is a super admin
  */
 const requireSuperAdmin = async (req, res, next) => {
@@ -195,13 +209,43 @@ router.post('/registrations/:id/approve', authenticateJWT, requireSuperAdmin, as
     // 3. Hash the admin password
     const password_hash = await bcryptjs.hash(adminPassword, 10);
 
-    // 4. Update school status to active
-    await client.query(
-      `UPDATE schools 
-       SET status = 'active', is_verified = true, updated_at = NOW()
-       WHERE id = $1`,
+    // 4. Get current school domain and generate if needed
+    console.log('🔍 [DEBUG] Checking domain for school:', request.school_id, request.school_name);
+    
+    const schoolDomainRes = await client.query(
+      `SELECT domain FROM schools WHERE id = $1`,
       [request.school_id]
     );
+    
+    let schoolDomain = schoolDomainRes.rows[0]?.domain;
+    console.log('🔍 [DEBUG] Current domain from database:', schoolDomain || 'NULL');
+    console.log('🔍 [DEBUG] Domain query rows:', schoolDomainRes.rows.length);
+    
+    // If domain doesn't exist, auto-generate from school name
+    if (!schoolDomain) {
+      schoolDomain = `${generateSubdomainSlug(request.school_name)}.schoolshubs.com`;
+      console.log('🔍 [DEBUG] Generated new domain:', schoolDomain);
+      
+      // Update school with generated domain
+      const updateResult = await client.query(
+        `UPDATE schools 
+         SET domain = $1, status = 'active', is_verified = true, updated_at = NOW()
+         WHERE id = $2`,
+        [schoolDomain, request.school_id]
+      );
+      console.log('🔍 [DEBUG] Domain update result:', updateResult.rowCount, 'rows affected');
+    } else {
+      console.log('🔍 [DEBUG] Using existing domain:', schoolDomain);
+      // Update school status to active (domain already exists)
+      await client.query(
+        `UPDATE schools 
+         SET status = 'active', is_verified = true, updated_at = NOW()
+         WHERE id = $1`,
+        [request.school_id]
+      );
+    }
+    
+    console.log('🔍 [DEBUG] Final domain to be used:', schoolDomain);
 
     // 5. Create admin user account with final email
     const adminRes = await client.query(
@@ -244,7 +288,10 @@ router.post('/registrations/:id/approve', authenticateJWT, requireSuperAdmin, as
           admin_created_id: adminRes.rows[0].id,
           admin_email: finalAdminEmail,
           email_changed: adminEmail ? true : false,
-          original_proposed_email: request.proposed_admin_email
+          original_proposed_email: request.proposed_admin_email,
+          domain_assigned: schoolDomain,
+          subdomain: schoolDomain.split('.')[0],
+          domain_generated: !schoolDomainRes.rows[0]?.domain
         }),
         req.ip,
         req.get('User-Agent')
@@ -258,22 +305,27 @@ router.post('/registrations/:id/approve', authenticateJWT, requireSuperAdmin, as
       requestId: id,
       schoolId: request.school_id,
       schoolName: request.school_name,
+      domain: schoolDomain,
+      subdomain: schoolDomain.split('.')[0],
+      domainGenerated: !schoolDomainRes.rows[0]?.domain,
       approvedBy: req.user.email,
       approvedAt: new Date().toISOString(),
       adminEmail: finalAdminEmail,
       emailChanged: adminEmail ? `${request.proposed_admin_email} → ${finalAdminEmail}` : 'no'
     });
 
-    res.json({
+    const responseData = {
       message: 'School registration approved successfully',
       school: {
         id: request.school_id,
         name: request.school_name,
+        domain: schoolDomain,
+        subdomain: schoolDomain.split('.')[0],
         status: 'active'
       },
       admin: {
         id: adminRes.rows[0].id,
-        email: request.proposed_admin_email,
+        email: finalAdminEmail,
         firstName: request.proposed_admin_first_name,
         lastName: request.proposed_admin_last_name,
         role: 'admin'
@@ -284,7 +336,10 @@ router.post('/registrations/:id/approve', authenticateJWT, requireSuperAdmin, as
         approvedAt: new Date().toISOString(),
         notes: approvalNotes
       }
-    });
+    };
+    
+    console.log('🔍 [DEBUG] Response data:', JSON.stringify(responseData, null, 2));
+    res.json(responseData);
 
   } catch (err) {
     await client.query('ROLLBACK');
