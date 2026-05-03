@@ -103,6 +103,7 @@ const SchoolHomepage = () => {
       {/* Features Section */}
       {homepageData.show_features_section && (
         <FeaturesSection 
+          school={schoolData}
           homepage={homepageData} 
         />
       )}
@@ -264,7 +265,7 @@ const StatisticsSection = ({ homepage }) => {
 };
 
 // Features Section Component
-const FeaturesSection = ({ homepage }) => {
+const FeaturesSection = ({ school, homepage }) => {
   const getIcon = (iconName) => {
     const icons = {
       book: '📚',
@@ -286,7 +287,7 @@ const FeaturesSection = ({ homepage }) => {
           className="text-3xl font-bold text-center mb-12"
           style={{ color: homepage.primary_color }}
         >
-          Why Choose {schoolData?.name}
+          Why Choose {school?.name}
         </h2>
         
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
