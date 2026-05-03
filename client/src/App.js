@@ -31,6 +31,7 @@ import ResultPreviewPage from './pages/ResultPreviewPage';
 import SubdomainTestPage from './pages/SubdomainTestPage';
 import SuperAdminLogin from './components/SuperAdmin/SuperAdminLogin';
 import SuperAdminDashboard from './components/SuperAdmin/SuperAdminDashboard';
+import SchoolHomepage from './components/SchoolHomepage';
 // Placeholder components for scaffolding
 const TeacherSettings = () => <div className="p-8">Settings Page (Coming Soon)</div>;
 
@@ -39,8 +40,8 @@ function AppLayout() {
   const { user } = useAuth();
   const { schoolInfo, loading: subdomainLoading } = useSchoolSubdomain();
   
-  // Hide navbar for take-exam route or when user is logged in
-  const hideNavbar = location.pathname === '/take-exam' || user;
+  // Hide navbar for take-exam route, school homepage, or when user is logged in
+  const hideNavbar = location.pathname === '/take-exam' || location.pathname.startsWith('/homepage/') || user;
 
   // Pass school info through context or props
   React.useEffect(() => {
@@ -80,6 +81,7 @@ function AppLayout() {
         <Route path="/exam-selection" element={<ExamSelection />} />
         <Route path="/result-preview" element={<ResultPreviewPage />} />
         <Route path="/subdomain-test" element={<SubdomainTestPage />} />
+        <Route path="/homepage/:subdomain" element={<SchoolHomepage />} />
         {/* Protected Student Routes */}
         <Route path="/student/dashboard" element={<ProtectedRoute role="student"><StudentDashboard /></ProtectedRoute>} />
         <Route path="/student/profile" element={<ProtectedRoute role="student"><StudentProfile /></ProtectedRoute>} />

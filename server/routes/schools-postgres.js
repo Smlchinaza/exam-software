@@ -100,9 +100,9 @@ router.post('/register', async (req, res) => {
 
     // 3. Create school
     const schoolRes = await client.query(
-      `INSERT INTO schools (name, domain, state_id, address, city, postal_code, phone, type, is_public, status, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'active', NOW(), NOW())
-       RETURNING id, name, domain, state_id, address, city, postal_code, phone, type, is_public, status, created_at`,
+      `INSERT INTO schools (name, domain, state_id, address, city, postal_code, phone, type, is_public, status, is_verified, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'active', true, NOW(), NOW())
+       RETURNING id, name, domain, state_id, address, city, postal_code, phone, type, is_public, status, is_verified, created_at`,
       [name, schoolDomain, stateId, address || null, city || null, postalCode || null, phone || null, type || 'secondary', isPublic !== undefined ? isPublic : true]
     );
 
@@ -135,7 +135,32 @@ router.post('/register', async (req, res) => {
 
     const admin = adminRes.rows[0];
 
-    // 7. Create JWT token for admin
+    // 7. Create default homepage for the school
+    await client.query(
+      `INSERT INTO school_homepages (
+         school_id, welcome_title, welcome_message, mission_statement, vision_statement,
+         total_students, total_teachers, total_classes, established_year,
+         contact_email, contact_phone, address, city, state, postal_code,
+         primary_color, secondary_color, accent_color,
+         show_hero_section, show_features_section, show_news_section, 
+         show_gallery_section, show_testimonials_section, show_footer,
+         created_by, updated_by
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)`,
+      [
+        schoolId,
+        `Welcome to ${name}`,
+        'We are committed to providing quality education and nurturing our students to reach their full potential.',
+        'To create a learning environment that fosters academic excellence, character development, and lifelong learning.',
+        'To be a leading educational institution that prepares students for success in a rapidly changing world.',
+        0, 0, 0, new Date().getFullYear(),
+        null, null, address || null, city || null, null, postalCode || null,
+        '#1e40af', '#64748b', '#f59e0b',
+        true, true, true, true, true, true,
+        admin.id, admin.id
+      ]
+    );
+
+    // 8. Create JWT token for admin
     const payload = {
       id: admin.id,
       email: admin.email,
@@ -372,6 +397,111 @@ router.get('/:schoolId/stats', authenticateJWT, enforceMultiTenant, async (req, 
   } catch (err) {
     console.error('Error fetching school stats:', err);
     res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * POST /api/schools/migrate-approved
+ * Temporary endpoint to add missing columns to users table
+ */
+router.post('/migrate-approved', async (req, res) => {
+  try {
+    console.log('Adding missing columns to users table...');
+    
+    // Check and add approved column
+    const approvedCheck = await pool.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'users' 
+        AND table_schema = 'public' 
+        AND column_name = 'approved'
+    `);
+    
+    if (approvedCheck.rows.length === 0) {
+      await pool.query(`
+        ALTER TABLE users 
+        ADD COLUMN approved boolean DEFAULT false
+      `);
+      
+      await pool.query(`
+        UPDATE users 
+        SET approved = true 
+        WHERE role IN ('admin', 'student') AND approved IS NULL
+      `);
+      
+      console.log('Approved column added');
+    }
+    
+    // Check and add subdomain column
+    const subdomainCheck = await pool.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'users' 
+        AND table_schema = 'public' 
+        AND column_name = 'subdomain'
+    `);
+    
+    if (subdomainCheck.rows.length === 0) {
+      await pool.query(`
+        ALTER TABLE users 
+        ADD COLUMN subdomain text
+      `);
+      
+      // Update existing users with subdomain based on school
+      await pool.query(`
+        UPDATE users 
+        SET subdomain = split_part(s.domain, '.', 1)
+        FROM schools s 
+        WHERE users.school_id = s.id 
+        AND s.domain IS NOT NULL 
+        AND users.subdomain IS NULL
+      `);
+      
+      console.log('Subdomain column added');
+    }
+    
+    // Check and create notifications table
+    const notificationsTableCheck = await pool.query(`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public' 
+        AND table_name = 'notifications'
+    `);
+    
+    if (notificationsTableCheck.rows.length === 0) {
+      await pool.query(`
+        CREATE TABLE notifications (
+          id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+          school_id uuid NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
+          user_id uuid REFERENCES users(id) ON DELETE CASCADE,
+          type text NOT NULL,
+          title text NOT NULL,
+          message text NOT NULL,
+          data jsonb,
+          is_read boolean DEFAULT false,
+          created_at timestamptz NOT NULL DEFAULT now()
+        )
+      `);
+      
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_notifications_school_user ON notifications(school_id, user_id)
+      `);
+      
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_notifications_school_type ON notifications(school_id, type)
+      `);
+      
+      console.log('Notifications table created');
+    }
+    
+    res.json({ 
+      success: true, 
+      message: 'Migration completed successfully' 
+    });
+    
+  } catch (error) {
+    console.error('Migration error:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 
