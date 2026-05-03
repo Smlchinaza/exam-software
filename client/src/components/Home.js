@@ -46,15 +46,15 @@ const Home = () => {
             <div className="flex justify-center mb-8">
               <img 
                 src={require('../assets/images/SpectraLogo.jpg')} 
-                alt="Spectra School Logo" 
+                alt="Schoolshubs Logo" 
                 className="h-20 w-20 rounded-full shadow-lg animate-float"
               />
             </div>
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white mb-6 animate-fade-in">
-              Welcome to <span className="text-yellow-300">Spectra</span> School
+              Welcome to <span className="text-yellow-300">Schoolshubs</span>
             </h1>
             <p className="text-xl sm:text-2xl md:text-3xl text-blue-100 mb-8 max-w-4xl mx-auto animate-slide-up">
-              Nurturing Excellence, Building Future Leaders
+              Empowering Nigerian Education, Shaping Tomorrow's Leaders
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-delay">
               <Link
@@ -94,18 +94,18 @@ const Home = () => {
                 </div>
               </div>
               <div className="flex-1">
-                <h3 className="text-2xl font-bold text-blue-800 mb-4">Dr. Sarah Johnson</h3>
-                <h4 className="text-lg text-blue-600 mb-6">Principal, Spectra School</h4>
+                <h3 className="text-2xl font-bold text-blue-800 mb-4">Dr. Amina Ibrahim</h3>
+                <h4 className="text-lg text-blue-600 mb-6">Principal, Schoolshubs</h4>
                 <div className="relative">
                   <FaQuoteLeft className="text-4xl text-blue-200 absolute -top-2 -left-2" />
                   <p className="text-lg text-gray-700 leading-relaxed pl-8">
-                    "At Spectra School, we believe in fostering a culture of excellence, innovation, and character development. 
-                    Our commitment goes beyond academic achievement; we strive to nurture well-rounded individuals who are prepared 
-                    to face the challenges of tomorrow with confidence and integrity. Through our comprehensive curriculum, dedicated 
-                    faculty, and state-of-the-art facilities, we provide an environment where every student can discover their potential 
-                    and pursue their dreams. As we continue to evolve and adapt to the changing educational landscape, our core values 
-                    remain steadfast: excellence in education, character development, and community engagement. Together, we are building 
-                    the leaders of tomorrow."
+                    "At Schoolshubs, we believe in fostering a culture of academic excellence, innovation, and character development 
+                    rooted in Nigerian values. Our commitment goes beyond academic achievement; we strive to nurture well-rounded individuals 
+                    who are prepared to face the challenges of tomorrow with confidence and integrity. Through our comprehensive curriculum 
+                    that blends Nigerian educational standards with global best practices, our dedicated faculty, and modern facilities, 
+                    we provide an environment where every student can discover their potential and pursue their dreams. As we continue to 
+                    evolve and adapt to the changing educational landscape, our core values remain steadfast: excellence in education, 
+                    character development, and community engagement. Together, we are building the future leaders of Nigeria and Africa."
                   </p>
                 </div>
               </div>
@@ -240,10 +240,10 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-blue-800 mb-4">
-              Why Choose Spectra?
+              Why Choose Schoolshubs?
             </h2>
             <p className="text-xl text-blue-700 max-w-3xl mx-auto">
-              Discover the unique features that make Spectra School the preferred choice for quality education
+              Discover the unique features that make Schoolshubs the preferred choice for quality Nigerian education
             </p>
           </div>
           
@@ -254,7 +254,7 @@ const Home = () => {
               </div>
               <h3 className="text-xl font-bold text-blue-800 mb-4">Academic Excellence</h3>
               <p className="text-gray-600">
-                Consistently achieving outstanding academic results with a proven track record of student success.
+                Consistently achieving outstanding WAEC, NECO, and JAMB results with a proven track record of student success in Nigerian examinations.
               </p>
             </div>
             
@@ -262,9 +262,9 @@ const Home = () => {
               <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <FaUsers className="text-white text-2xl" />
               </div>
-              <h3 className="text-xl font-bold text-blue-800 mb-4">Expert Faculty</h3>
+              <h3 className="text-xl font-bold text-blue-800 mb-4">Expert Nigerian Faculty</h3>
               <p className="text-gray-600">
-                Experienced and dedicated teachers committed to nurturing each student's potential.
+                Experienced and dedicated Nigerian teachers committed to nurturing each student's potential with deep understanding of local educational needs.
               </p>
             </div>
             
@@ -272,9 +272,9 @@ const Home = () => {
               <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <FaGraduationCap className="text-white text-2xl" />
               </div>
-              <h3 className="text-xl font-bold text-blue-800 mb-4">Modern Technology</h3>
+              <h3 className="text-xl font-bold text-blue-800 mb-4">Modern Nigerian Curriculum</h3>
               <p className="text-gray-600">
-                State-of-the-art facilities and digital learning platforms for enhanced education.
+                State-of-the-art facilities and digital learning platforms aligned with Nigerian educational standards and global best practices.
               </p>
             </div>
           </div>
@@ -289,7 +289,7 @@ const Home = () => {
               What Our Community Says
             </h2>
             <p className="text-xl text-blue-200 max-w-3xl mx-auto">
-              Hear from our students, parents, and guardians about their experience at Spectra School
+              Hear from our students, parents, and guardians about their experience at Schoolshubs
             </p>
           </div>
           
@@ -373,8 +373,8 @@ const Home = () => {
                   </div>
                   <div>
                     <p className="font-semibold text-blue-800">Email</p>
-                    <a href="mailto:spectrafinsight@gmail.com" className="text-blue-600 hover:underline">
-                      spectrafinsight@gmail.com
+                    <a href="mailto:info@schoolshubs.com" className="text-blue-600 hover:underline">
+                      info@schoolshubs.com
                     </a>
                   </div>
                 </div>
@@ -402,7 +402,7 @@ const Home = () => {
                   </div>
                   <div>
                     <p className="font-semibold text-blue-800">Address</p>
-                    <p className="text-blue-600">123 School Lane, Education City</p>
+                    <p className="text-blue-600">Plot 123 Education Avenue, Ikeja, Lagos State</p>
                   </div>
                 </div>
               </div>
@@ -430,10 +430,10 @@ const Home = () => {
       <footer className="bg-gradient-to-r from-blue-800 to-indigo-900 text-white py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-lg">
-            &copy; {new Date().getFullYear()} Spectra School. All rights reserved.
+            &copy; {new Date().getFullYear()} Schoolshubs. All rights reserved.
           </p>
           <p className="text-blue-200 mt-2">
-            Nurturing Excellence, Building Future Leaders
+            Empowering Nigerian Education, Shaping Tomorrow's Leaders
           </p>
         </div>
       </footer>
@@ -444,29 +444,29 @@ const Home = () => {
 // Testimonials data
 const testimonials = [
   {
-    name: "Sarah Williams",
+    name: "Adebayo Olatunji",
     role: "Parent",
-    message: "Spectra School has transformed my child's academic journey. The teachers are dedicated, the facilities are excellent, and the results speak for themselves. My daughter has grown not just academically but as a confident individual."
+    message: "Schoolshubs has transformed my child's academic journey. The teachers are dedicated, the facilities are excellent, and the WAEC results speak for themselves. My daughter has grown not just academically but as a confident Nigerian leader."
   },
   {
-    name: "Michael Chen",
+    name: "Chinyere Okonkwo",
     role: "Student",
-    message: "Being a student at Spectra has been an amazing experience. The teachers are supportive, the curriculum is challenging yet engaging, and I've made friends for life. The school truly prepares you for the future."
+    message: "Being a student at Schoolshubs has been an amazing experience. The teachers are supportive, the curriculum aligns with Nigerian standards, and I've made friends for life. The school truly prepares you for JAMB and university success."
   },
   {
-    name: "Dr. Emily Rodriguez",
+    name: "Dr. Fatima Abdullahi",
     role: "Parent & Guardian",
-    message: "As both a parent and guardian, I can confidently say that Spectra School provides exceptional education. The school's commitment to academic excellence and character development is evident in every aspect."
+    message: "As both a parent and guardian, I can confidently say that Schoolshubs provides exceptional Nigerian education. The school's commitment to academic excellence and character development is evident in every aspect."
   },
   {
-    name: "David Thompson",
+    name: "Emeka Eze",
     role: "Parent",
-    message: "The personalized attention my son receives at Spectra is remarkable. The teachers know each student individually and tailor their approach accordingly. The results have been outstanding."
+    message: "The personalized attention my son receives at Schoolshubs is remarkable. The teachers know each student individually and tailor their approach accordingly. The NECO and JAMB results have been outstanding."
   },
   {
-    name: "Lisa Johnson",
+    name: "Ngozi Adekunle",
     role: "Guardian",
-    message: "Spectra School has exceeded all my expectations. The modern facilities, dedicated staff, and comprehensive curriculum create an ideal learning environment. I highly recommend this school."
+    message: "Schoolshubs has exceeded all my expectations. The modern facilities, dedicated Nigerian staff, and comprehensive curriculum create an ideal learning environment. I highly recommend this school."
   }
 ];
 

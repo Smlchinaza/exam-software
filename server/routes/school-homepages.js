@@ -22,7 +22,7 @@ router.get('/public/:subdomain', async (req, res) => {
 
     // Find school by subdomain
     const schoolRes = await pool.query(
-      `SELECT id, name, domain, city, state, type, is_public, status, created_at
+      `SELECT id, name, domain, city, state_id, type, is_public, status, created_at
        FROM schools 
        WHERE domain LIKE $1 AND status = 'active' AND is_public = true
        LIMIT 1`,
@@ -72,7 +72,7 @@ router.get('/public/:subdomain', async (req, res) => {
         domain: school.domain,
         subdomain: subdomain,
         city: school.city,
-        state: school.state,
+        state_id: school.state_id,
         type: school.type,
         established_year: homepageData.established_year || new Date().getFullYear()
       },
@@ -104,7 +104,7 @@ router.get('/current', authenticateJWT, enforceMultiTenant, async (req, res) => 
 
     // Get school information
     const schoolRes = await pool.query(
-      `SELECT id, name, domain, city, state, type, is_public, status, created_at
+      `SELECT id, name, domain, city, state_id, type, is_public, status, created_at
        FROM schools 
        WHERE id = $1
        LIMIT 1`,
