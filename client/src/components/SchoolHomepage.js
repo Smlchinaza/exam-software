@@ -1,7 +1,7 @@
 // SchoolHomepage Component
 // Displays a customizable homepage for each school based on subdomain
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 
 const SchoolHomepage = () => {
@@ -11,12 +11,7 @@ const SchoolHomepage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  
-  useEffect(() => {
-    fetchSchoolHomepage();
-  }, [subdomain]);
-
-  const fetchSchoolHomepage = async () => {
+  const fetchSchoolHomepage = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`/api/school-homepages/public/${subdomain}`);
@@ -40,7 +35,11 @@ const SchoolHomepage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [subdomain]);
+
+  useEffect(() => {
+    fetchSchoolHomepage();
+  }, [fetchSchoolHomepage]);
 
   if (loading) {
     return (
