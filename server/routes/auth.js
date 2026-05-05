@@ -6,6 +6,7 @@ const { authenticateJWT } = require('../middleware/auth');
 const { check } = require('express-validator');
 const validate = require('../middleware/validate');
 const bcrypt = require('bcryptjs');
+const pool = require('../db/postgres');
 
 const router = express.Router();
 
@@ -141,7 +142,7 @@ router.post('/register', async (req, res) => {
 });
 
 // @route   POST api/auth/login
-// @desc    Login user
+// @desc    Login user with password change requirement check
 // @access  Public
 router.post('/login', async (req, res) => {
   try {
@@ -169,21 +170,94 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Find user
-    const user = await User.findOne({ email });
-    if (!user) {
-      console.log('User not found:', email);
-      return res.status(400).json({ 
-        message: 'Invalid credentials' 
-      });
-    }
-    // If teacher and not approved, deny login
-    if (user.role === 'teacher' && !user.approved) {
-      return res.status(403).json({ message: 'Your registration is pending admin approval.' });
+    // Try to find user in PostgreSQL first (new system)
+    let pgUser = null;
+    try {
+      const userRes = await pool.query(
+        `SELECT id, email, password_hash, role, first_name, last_name, is_active, 
+                password_reset_required, is_first_login, school_id
+         FROM users WHERE email = $1`,
+        [email]
+      );
+      
+      if (userRes.rows.length > 0) {
+        pgUser = userRes.rows[0];
+      }
+    } catch (pgError) {
+      console.log('PostgreSQL user lookup failed, trying MongoDB:', pgError.message);
     }
 
-    // Verify password
-    const isMatch = await bcrypt.compare(password, user.password);
+    // If not found in PostgreSQL, try MongoDB (legacy)
+    let user = null;
+    if (!pgUser) {
+      user = await User.findOne({ email });
+      if (!user) {
+        console.log('User not found:', email);
+        return res.status(400).json({ 
+          message: 'Invalid credentials' 
+        });
+      }
+
+      // If teacher and not approved, deny login
+      if (user.role === 'teacher' && !user.approved) {
+        return res.status(403).json({ message: 'Your registration is pending admin approval.' });
+      }
+
+      // Verify password (MongoDB)
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        console.log('Invalid password for user:', email);
+        return res.status(400).json({ 
+          message: 'Invalid credentials' 
+        });
+      }
+
+      // Create JWT token for MongoDB user
+      const payload = {
+        user: {
+          id: user.id,
+          role: user.role,
+          email: user.email
+        }
+      };
+
+      const token = jwt.sign(
+        payload,
+        process.env.JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+
+      // Return user data (excluding password)
+      const userData = {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        displayName: user.displayName,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        passwordChangeRequired: false,
+        isFirstLogin: false
+      };
+
+      console.log('MongoDB login successful:', { 
+        userId: user.id, 
+        role: user.role 
+      });
+
+      return res.json({
+        token,
+        user: userData,
+        rememberMe
+      });
+    }
+
+    // PostgreSQL user authentication
+    if (!pgUser.is_active) {
+      return res.status(403).json({ message: 'Account is deactivated' });
+    }
+
+    // Verify password (PostgreSQL)
+    const isMatch = await bcrypt.compare(password, pgUser.password_hash);
     if (!isMatch) {
       console.log('Invalid password for user:', email);
       return res.status(400).json({ 
@@ -191,13 +265,12 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Create JWT token
+    // Create JWT token for PostgreSQL user
     const payload = {
-      user: {
-        id: user.id,
-        role: user.role,
-        email: user.email
-      }
+      id: pgUser.id,
+      email: pgUser.email,
+      role: pgUser.role,
+      school_id: pgUser.school_id
     };
 
     const token = jwt.sign(
@@ -206,26 +279,40 @@ router.post('/login', async (req, res) => {
       { expiresIn: '24h' }
     );
 
-    // Return user data (excluding password)
+    // Return user data with password change requirements
     const userData = {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      displayName: user.displayName,
-      firstName: user.firstName,
-      lastName: user.lastName
+      id: pgUser.id,
+      email: pgUser.email,
+      role: pgUser.role,
+      firstName: pgUser.first_name,
+      lastName: pgUser.last_name,
+      schoolId: pgUser.school_id,
+      passwordChangeRequired: pgUser.password_reset_required,
+      isFirstLogin: pgUser.is_first_login
     };
 
-    console.log('Login successful:', { 
-      userId: user.id, 
-      role: user.role 
+    console.log('PostgreSQL login successful:', { 
+      userId: pgUser.id, 
+      role: pgUser.role,
+      passwordChangeRequired: pgUser.password_reset_required,
+      isFirstLogin: pgUser.is_first_login
     });
 
-    res.json({
+    // If password change is required, include special flag
+    const response = {
       token,
       user: userData,
       rememberMe
-    });
+    };
+
+    if (pgUser.password_reset_required || pgUser.is_first_login) {
+      response.requirePasswordChange = true;
+      response.message = pgUser.is_first_login 
+        ? 'First-time login: Please change your password' 
+        : 'Password change required: Please set a new password';
+    }
+
+    res.json(response);
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ message: 'Server error during login' });

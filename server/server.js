@@ -28,6 +28,8 @@ const statesPostgres = require('./routes/states-postgres');
 const studentResults = require('./routes/student-results');
 const superAdminPostgres = require('./routes/super-admin-postgres');
 const schoolHomepages = require('./routes/school-homepages');
+const passwordManagement = require('./routes/password-management');
+const superAdminPasswordReset = require('./routes/super-admin-password-reset');
 
 // (dotenv already loaded above)
 
@@ -117,6 +119,7 @@ app.use("/api/users", usersPostgres);
 app.use("/api/student-results", studentResults);
 app.use("/api/super-admin", superAdminPostgres);
 app.use("/api/school-homepages", schoolHomepages);
+app.use("/api/password", passwordManagement);
 
 // Legacy MongoDB routes (for backward compatibility)
 const subjects = require('./routes/subjects');

@@ -8,6 +8,8 @@ const bcryptjs = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { authenticateJWT } = require('../middleware/auth');
 const { enforceMultiTenant } = require('../middleware/tenantScoping');
+const { PasswordGenerator } = require('../utils/password-generator');
+const EmailService = require('../utils/email-service');
 
 /**
  * Generate URL-friendly subdomain slug from school name
@@ -32,10 +34,18 @@ function generateSubdomainSlug(schoolName) {
  *   "name": "School Name",
  *   "domain": "school.example.com",
  *   "adminEmail": "admin@school.example.com",
- *   "adminPassword": "securepassword123",
  *   "adminFirstName": "John",
- *   "adminLastName": "Doe"
+ *   "adminLastName": "Doe",
+ *   "stateId": "uuid",
+ *   "address": "123 School St",
+ *   "city": "School City",
+ *   "postalCode": "12345",
+ *   "phone": "+1234567890",
+ *   "type": "primary",
+ *   "isPublic": true
  * }
+ * 
+ * Note: adminPassword is no longer required - a secure password will be generated automatically
  */
 router.post('/register', async (req, res) => {
   const client = await pool.connect();
@@ -45,7 +55,6 @@ router.post('/register', async (req, res) => {
       name,
       domain,
       adminEmail,
-      adminPassword,
       adminFirstName,
       adminLastName,
       stateId,
@@ -58,17 +67,15 @@ router.post('/register', async (req, res) => {
     } = req.body;
 
     // Validate required fields
-    if (!name || !adminEmail || !adminPassword || !stateId) {
+    if (!name || !adminEmail || !stateId) {
       return res.status(400).json({
-        error: 'School name, state, admin email, and password are required'
+        error: 'School name, state, and admin email are required'
       });
     }
 
-    if (adminPassword.length < 8) {
-      return res.status(400).json({
-        error: 'Password must be at least 8 characters long'
-      });
-    }
+    // Generate secure password for admin account
+    const generatedPassword = PasswordGenerator.generateSecurePassword(12);
+    console.log('Generated secure password for admin:', { email: adminEmail, passwordLength: generatedPassword.length });
 
     // Start transaction
     await client.query('BEGIN');
@@ -120,15 +127,16 @@ router.post('/register', async (req, res) => {
       return res.status(409).json({ error: 'Email already registered' });
     }
 
-    // 5. Hash password
-    const password_hash = await bcryptjs.hash(adminPassword, 10);
+    // 5. Hash generated password
+    const password_hash = await bcryptjs.hash(generatedPassword, 10);
 
-    // 6. Create admin user for this school
+    // 6. Create admin user for this school with password reset required
     const adminRes = await client.query(
       `INSERT INTO users (
         school_id, email, password_hash, first_name, last_name, 
-        role, is_active, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, true, NOW(), NOW())
+        role, is_active, password_reset_required, is_first_login, 
+        created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, true, true, true, NOW(), NOW())
        RETURNING id, email, first_name, last_name, role, school_id, created_at`,
       [schoolId, adminEmail, password_hash, adminFirstName || null, adminLastName || null, 'admin']
     );
@@ -173,7 +181,29 @@ router.post('/register', async (req, res) => {
     // Commit transaction
     await client.query('COMMIT');
 
-    // Return response
+    // Log password reset for audit
+    await client.query(
+      `INSERT INTO password_reset_logs (user_id, reset_by, reset_type, reset_reason)
+       VALUES ($1, NULL, 'auto', 'Automatic password generation during school registration')`,
+      [admin.id]
+    );
+
+    // Send welcome email with generated password
+    const emailService = new EmailService();
+    const emailResult = await emailService.sendWelcomePasswordEmail(
+      {
+        email: admin.email,
+        firstName: admin.first_name,
+        lastName: admin.last_name
+      },
+      {
+        name: school.name,
+        domain: school.domain
+      },
+      generatedPassword
+    );
+
+    // Return response with generated password
     res.status(201).json({
       message: 'School registered successfully',
       school: {
@@ -198,10 +228,17 @@ router.post('/register', async (req, res) => {
         last_name: admin.last_name,
         role: admin.role,
         school_id: admin.school_id,
-        created_at: admin.created_at
+        created_at: admin.created_at,
+        temporaryPassword: generatedPassword, // Include generated password for initial setup
+        passwordChangeRequired: true
       },
       token,
-      expiresIn: '24h'
+      expiresIn: '24h',
+      emailSent: emailResult.success,
+      emailMessage: emailResult.success 
+        ? 'Welcome email with login credentials sent to admin' 
+        : 'Email sending failed - please contact admin directly',
+      securityNote: 'The admin will be required to change their password on first login'
     });
   } catch (err) {
     await client.query('ROLLBACK');
