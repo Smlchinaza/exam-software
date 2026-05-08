@@ -94,7 +94,7 @@ const Home = () => {
                 </div>
               </div>
               <div className="flex-1">
-                <h3 className="text-2xl font-bold text-blue-800 mb-4">Dr. Amina Ibrahim</h3>
+                <h3 className="text-2xl font-bold text-blue-800 mb-4">Dr. Samuel Kenechukwu</h3>
                 <h4 className="text-lg text-blue-600 mb-6">Principal, Schoolshubs</h4>
                 <div className="relative">
                   <FaQuoteLeft className="text-4xl text-blue-200 absolute -top-2 -left-2" />
@@ -402,7 +402,7 @@ const Home = () => {
                   </div>
                   <div>
                     <p className="font-semibold text-blue-800">Address</p>
-                    <p className="text-blue-600">Plot 123 Education Avenue, Ikeja, Lagos State</p>
+                    <p className="text-blue-600">Plot 123 Education Avenue, Enugu, Enugu State</p>
                   </div>
                 </div>
               </div>
