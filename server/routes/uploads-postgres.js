@@ -79,18 +79,44 @@ router.post('/', upload.array('files'), async (req, res) => {
 
 module.exports = router;
 
-// Super-admin review endpoints
-// GET /api/uploads?status=pending&school_id=...
-router.get('/', authenticateJWT, requireRole('super_admin'), async (req, res) => {
+// Super-admin and school-admin review endpoints
+// GET /api/uploads?status=pending|history&school_id=...
+router.get('/', authenticateJWT, async (req, res) => {
   try {
-    const { status = 'pending', school_id: schoolId, page = 1, limit = 20 } = req.query;
-    if (status === 'pending') {
-      const result = await ScriptUpload.findPending({ schoolId, page: parseInt(page, 10), limit: parseInt(limit, 10) });
+    const role = req.user?.user?.role || req.user?.role;
+    if (!['super_admin', 'admin'].includes(role)) {
+      return res.status(403).json({ message: 'Insufficient permissions' });
+    }
+
+    const {
+      status = 'pending',
+      school_id: requestedSchoolId,
+      page = 1,
+      limit = 20,
+    } = req.query;
+
+    const statusValue = Array.isArray(status)
+      ? status[0]
+      : status;
+    const normalizedStatus = String(statusValue || 'pending').trim().toLowerCase();
+    const numericPage = parseInt(page, 10) || 1;
+    const numericLimit = parseInt(limit, 10) || 20;
+    const userSchoolId = req.user?.user?.school_id || req.user?.school_id;
+    const schoolId = role === 'admin' ? userSchoolId : requestedSchoolId;
+
+    if (normalizedStatus === 'pending') {
+      const result = await ScriptUpload.findPending({ schoolId, page: numericPage, limit: numericLimit });
       return res.json(result);
     }
-    return res.status(400).json({ error: 'Only status=pending is supported in this endpoint' });
+
+    if (normalizedStatus === 'history' || normalizedStatus === 'all') {
+      const result = await ScriptUpload.findHistory({ schoolId, page: numericPage, limit: numericLimit });
+      return res.json(result);
+    }
+
+    return res.status(400).json({ error: `Only status=pending or status=history is supported; received '${statusValue}'` });
   } catch (err) {
-    console.error('List pending uploads error', err);
+    console.error('List uploads error', err);
     res.status(500).json({ error: err.message });
   }
 });

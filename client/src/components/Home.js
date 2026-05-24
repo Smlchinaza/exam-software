@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { FaUserGraduate, FaChalkboardTeacher, FaQuoteLeft, FaSchool, FaGraduationCap, FaUsers, FaTrophy, FaUpload } from 'react-icons/fa';
+import { FaUserGraduate, FaChalkboardTeacher, FaSchool, FaGraduationCap, FaUsers, FaTrophy, FaUpload } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import UploadModal from './UploadModal';
 
@@ -47,7 +47,7 @@ const Home = () => {
               Transforming Nigerian School Management
             </h1>
             <p className="text-xl sm:text-2xl md:text-3xl text-blue-100 mb-8 max-w-4xl mx-auto animate-slide-up">
-              A unified platform for school registration, exam orchestration, student access, and teacher workflows—built for the future of education in Nigeria.
+              A unified platform for school registration, exam orchestration, student access, and teacher workflows, built for the future of education in Nigeria.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-delay">
               <Link

@@ -27,10 +27,13 @@ class ScriptUploadPostgres {
   }
 
   static async findById(id) {
-    const query = `SELECT su.*, s.name as school_name, u.first_name || ' ' || u.last_name as uploader_name
+    const query = `SELECT su.*, s.name as school_name,
+        u.first_name || ' ' || u.last_name as uploader_name,
+        r.first_name || ' ' || r.last_name as reviewer_name
       FROM script_uploads su
       LEFT JOIN schools s ON su.school_id = s.id
       LEFT JOIN users u ON su.uploader_id = u.id
+      LEFT JOIN users r ON su.reviewed_by = r.id
       WHERE su.id = $1`;
     const res = await pool.query(query, [id]);
     return res.rows[0] || null;
@@ -59,9 +62,55 @@ class ScriptUploadPostgres {
     const total = parseInt(countRes.rows[0].total, 10);
 
     const q = `
-      SELECT su.*, s.name as school_name
+      SELECT su.*, s.name as school_name,
+             u.first_name || ' ' || u.last_name as uploader_name
       FROM script_uploads su
       LEFT JOIN schools s ON su.school_id = s.id
+      LEFT JOIN users u ON su.uploader_id = u.id
+      WHERE ${whereClause}
+      ORDER BY su.created_at DESC
+      LIMIT $${params.length + 1} OFFSET $${params.length + 2}
+    `;
+
+    params.push(limit, offset);
+    const res = await pool.query(q, params);
+
+    return {
+      uploads: res.rows,
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) }
+    };
+  }
+
+  static async findHistory(options = {}) {
+    const {
+      schoolId = null,
+      page = 1,
+      limit = 20
+    } = options;
+
+    const offset = (page - 1) * limit;
+    let where = ['su.status != $1'];
+    const params = ['pending'];
+
+    if (schoolId) {
+      where.push(`su.school_id = $${params.length + 1}`);
+      params.push(schoolId);
+    }
+
+    const whereClause = where.join(' AND ');
+
+    const countQ = `SELECT COUNT(*) as total FROM script_uploads su WHERE ${whereClause}`;
+    const countRes = await pool.query(countQ, params);
+    const total = parseInt(countRes.rows[0].total, 10);
+
+    const q = `
+      SELECT su.*, s.name as school_name,
+             u.first_name || ' ' || u.last_name as uploader_name,
+             r.first_name || ' ' || r.last_name as reviewer_name
+      FROM script_uploads su
+      LEFT JOIN schools s ON su.school_id = s.id
+      LEFT JOIN users u ON su.uploader_id = u.id
+      LEFT JOIN users r ON su.reviewed_by = r.id
       WHERE ${whereClause}
       ORDER BY su.created_at DESC
       LIMIT $${params.length + 1} OFFSET $${params.length + 2}

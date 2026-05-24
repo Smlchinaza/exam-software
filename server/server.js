@@ -30,6 +30,7 @@ const superAdminPostgres = require('./routes/super-admin-postgres');
 const schoolHomepages = require('./routes/school-homepages');
 const passwordManagement = require('./routes/password-management');
 const uploadsPostgres = require('./routes/uploads-postgres');
+const analyticsRoutes = require('./routes/analytics');
 const superAdminPasswordReset = require('./routes/super-admin-password-reset');
 
 // (dotenv already loaded above)
@@ -126,6 +127,7 @@ app.use("/api/super-admin", superAdminPostgres);
 app.use("/api/school-homepages", schoolHomepages);
 app.use("/api/password", passwordManagement);
 app.use('/api/uploads', uploadLimiter, uploadsPostgres);
+app.use('/api/analytics', analyticsRoutes);
 
 // Legacy MongoDB routes (for backward compatibility)
 const subjects = require('./routes/subjects');

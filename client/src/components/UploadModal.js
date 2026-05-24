@@ -106,14 +106,15 @@ const UploadModal = ({ isOpen, onClose }) => {
               </div>
 
               {error && <div className="text-sm sm:text-base text-red-600">{error}</div>}
+              {message && !success && <div className="text-sm sm:text-base text-green-600">{message}</div>}
 
               {loading && (
-                <div>
+                <>
                   <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                     <div className="bg-blue-600 h-3 rounded-full transition-all" style={{ width: `${progress}%` }} />
                   </div>
                   <div className="text-sm sm:text-base text-gray-600 mt-2">Uploading... {progress}%</div>
-                </div>
+                </>
               )}
 
               <div className="flex justify-end">

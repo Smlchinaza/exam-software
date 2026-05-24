@@ -23,7 +23,7 @@ const BulkUpload = () => {
     setMessage('');
     try {
       const schoolId = user?.school_id || user?.schoolId || null;
-      const resp = await apiClient.batchUpload('/uploads', files, { school_id: schoolId }, (p) => setProgress(p));
+      await apiClient.batchUpload('/uploads', files, { school_id: schoolId }, (p) => setProgress(p));
       setMessage('Files submitted for review.');
       setFiles([]);
       setProgress(0);

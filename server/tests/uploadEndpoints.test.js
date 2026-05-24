@@ -97,6 +97,39 @@ describe('Uploads API', () => {
     expect(ScriptUpload.findPending).toHaveBeenCalledWith({ schoolId: undefined, page: 1, limit: 20 });
   });
 
+  it('returns upload history for school admin', async () => {
+    const token = jwt.sign({ role: 'admin', id: 'admin-2', school_id: 'school-123' }, process.env.JWT_SECRET);
+    ScriptUpload.findHistory.mockResolvedValue({
+      uploads: [
+        {
+          id: 'upload-2',
+          file_name: 'history.pdf',
+          school_name: 'Test School',
+          uploader_name: 'Teacher A',
+          reviewer_name: 'Super Admin',
+          status: 'approved',
+          reviewed_at: new Date().toISOString(),
+          created_at: new Date().toISOString()
+        }
+      ],
+      pagination: {
+        page: 1,
+        limit: 20,
+        total: 1,
+        pages: 1
+      }
+    });
+
+    const response = await request(app)
+      .get('/api/uploads?status=history')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.uploads).toHaveLength(1);
+    expect(response.body.uploads[0].reviewer_name).toBe('Super Admin');
+    expect(ScriptUpload.findHistory).toHaveBeenCalledWith({ schoolId: 'school-123', page: 1, limit: 20 });
+  });
+
   it('allows super-admin to approve an upload', async () => {
     const token = jwt.sign({ role: 'super_admin', id: 'admin-1' }, process.env.JWT_SECRET);
     ScriptUpload.approve.mockResolvedValue({ id: 'upload-1', status: 'approved' });

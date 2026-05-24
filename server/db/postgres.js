@@ -1,6 +1,8 @@
 // db/postgres.js
 // PostgreSQL connection pool for multi-tenant app
 
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '..', '..', '.env') });
 const { Pool } = require('pg');
 
 let pool;
