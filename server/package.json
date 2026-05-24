@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest --runInBand",
     "start": "node server.js",
     "dev": "nodemon server.js",
     "migrate:mongo2pg": "node scripts/migrate-mongo-to-postgres.js --mongo \"$MONGO_URI\" --pg \"$DATABASE_URL\""
@@ -36,6 +36,14 @@
     "yargs": "^17.7.2"
   },
   "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3",
     "nodemon": "^3.1.10"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/?(*.)+(spec|test).[jt]s?(x)"
+    ]
   }
 }

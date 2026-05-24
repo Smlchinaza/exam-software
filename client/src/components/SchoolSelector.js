@@ -117,7 +117,7 @@ const SchoolSelector = ({
                 onChange={handleSearch}
                 disabled={disabled || loading}
                 className={`
-                  w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                  w-full pl-10 pr-4 py-3 text-sm sm:text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
                   ${error ? 'border-red-500' : 'border-gray-300'}
                   ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}
                 `}
@@ -157,7 +157,7 @@ const SchoolSelector = ({
                       onClick={() => handleSchoolSelect(school)}
                       disabled={disabled}
                       className={`
-                        w-full p-4 text-left hover:bg-gray-50 focus:bg-blue-50 focus:outline-none
+                        w-full p-4 text-left text-sm hover:bg-gray-50 focus:bg-blue-50 focus:outline-none
                         transition-colors duration-150
                         ${selectedSchool?.id === school.id ? 'bg-blue-50 border-l-4 border-blue-600' : ''}
                         ${disabled ? 'cursor-not-allowed opacity-50' : ''}
@@ -166,10 +166,10 @@ const SchoolSelector = ({
                       <div className="flex items-start">
                         <Building className="h-5 w-5 text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-gray-900 truncate">
+                          <div className="font-medium text-sm text-gray-900 truncate">
                             {school.name}
                           </div>
-                          <div className="text-sm text-gray-500 mt-1">
+                          <div className="text-xs text-gray-500 mt-1">
                             {school.city && <span className="mr-3">{school.city}</span>}
                             <span className="capitalize">{school.type}</span>
                             {school.is_public !== undefined && (

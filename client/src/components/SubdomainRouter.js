@@ -5,7 +5,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { extractCurrentSubdomain, getStoredSubdomainLoginData, clearStoredSubdomainLoginData } from '../utils/subdomain';
 import apiClient from '../services/subdomainApi';
-import { AuthContext } from '../context/AuthContext';
+import AuthContext from '../context/AuthContext';
 
 const SubdomainRouter = ({ children }) => {
   const location = useLocation();

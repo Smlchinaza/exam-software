@@ -1,20 +1,21 @@
 // Phase 5 Frontend Integration Tests
 // Comprehensive testing of subdomain-aware frontend components and cross-domain authentication
 
+import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from '../../context/AuthContext';
-import SubdomainRouter from '../../components/SubdomainRouter';
-import SchoolDashboard from '../../components/SchoolDashboard';
-import apiClient from '../../services/subdomainApi';
-import crossDomainAuth from '../../services/crossDomainAuth';
-import { extractCurrentSubdomain, getStoredSubdomainLoginData, storeSubdomainLoginData } from '../../utils/subdomain';
+import { AuthProvider } from '../context/AuthContext';
+import AuthContext from '../context/AuthContext';
+import SubdomainRouter from '../components/SubdomainRouter';
+import SchoolDashboard from '../components/SchoolDashboard';
+import apiClient from '../services/subdomainApi';
+import crossDomainAuth from '../services/crossDomainAuth';
+import { extractCurrentSubdomain, getStoredSubdomainLoginData, storeSubdomainLoginData } from '../utils/subdomain';
 
 // Mock the API client
-jest.mock('../../services/subdomainApi');
-jest.mock('../../services/crossDomainAuth');
+jest.mock('../services/subdomainApi');
 
 // Mock window.location
 const mockLocation = {
@@ -55,15 +56,6 @@ Object.defineProperty(window, 'sessionStorage', {
   writable: true
 });
 
-// Mock document methods
-Object.defineProperty(document, 'body', {
-  value: {
-    appendChild: jest.fn(),
-    removeChild: jest.fn()
-  },
-  writable: true
-});
-
 describe('Phase 5 Frontend Integration Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -92,22 +84,23 @@ describe('Phase 5 Frontend Integration Tests', () => {
       expect(extractCurrentSubdomain()).toBe(null);
       
       window.location.hostname = 'api.schoolshubs.com';
-      expect(extractSubdomain()).toBe(null);
+      expect(extractCurrentSubdomain()).toBe(null);
       
       window.location.hostname = 'admin.schoolshubs.com';
-      expect(extractSubdomain()).toBe(null);
+      expect(extractCurrentSubdomain()).toBe(null);
     });
   });
 
   describe('Subdomain API Client', () => {
     beforeEach(() => {
-      apiClient.axios.mockClear();
+      jest.clearAllMocks();
     });
 
     test('should initialize with correct base URL', () => {
       window.location.hostname = 'test-school.schoolshubs.com';
       
-      const client = new (require('../../services/subdomainApi').SubdomainApiClient)();
+      const { SubdomainApiClient } = jest.requireActual('../services/subdomainApi');
+      const client = new SubdomainApiClient();
       expect(client.baseURL).toBe('https://test-school.schoolshubs.com/api');
       expect(client.isSubdomain).toBe(true);
       expect(client.subdomain).toBe('test-school');
@@ -116,14 +109,16 @@ describe('Phase 5 Frontend Integration Tests', () => {
     test('should use main domain API URL when not on subdomain', () => {
       window.location.hostname = 'schoolshubs.com';
       
-      const client = new (require('../../services/subdomainApi').SubdomainApiClient)();
+      const { SubdomainApiClient } = jest.requireActual('../services/subdomainApi');
+      const client = new SubdomainApiClient();
       expect(client.baseURL).toBe('http://localhost:5000/api');
       expect(client.isSubdomain).toBe(false);
       expect(client.subdomain).toBe(null);
     });
 
     test('should add authentication headers', async () => {
-      const client = new (require('../../services/subdomainApi').SubdomainApiClient)();
+      const { SubdomainApiClient } = jest.requireActual('../services/subdomainApi');
+      const client = new SubdomainApiClient();
       
       // Mock token
       localStorageMock.getItem.mockReturnValue('mock-token');
@@ -135,7 +130,8 @@ describe('Phase 5 Frontend Integration Tests', () => {
     });
 
     test('should add school context headers', async () => {
-      const client = new (require('../../services/subdomainApi').SubdomainApiClient)();
+      const { SubdomainApiClient } = jest.requireActual('../services/subdomainApi');
+      const client = new SubdomainApiClient();
       
       // Mock school context
       client.schoolContext = {
@@ -155,7 +151,8 @@ describe('Phase 5 Frontend Integration Tests', () => {
     });
 
     test('should handle cross-school access errors', async () => {
-      const client = new (require('../../services/subdomainApi').SubdomainApiClient)();
+      const { SubdomainApiClient } = jest.requireActual('../services/subdomainApi');
+      const client = new SubdomainApiClient();
       
       const error = {
         response: {
@@ -171,7 +168,7 @@ describe('Phase 5 Frontend Integration Tests', () => {
         }
       };
       
-      await client.axios.interceptors.response.handlers[1].rejected(error);
+      await client.axios.interceptors.response.handlers[0].rejected(error);
       
       // Should not throw error, but handle it gracefully
       expect(true).toBe(true);
@@ -446,22 +443,24 @@ describe('Phase 5 Frontend Integration Tests', () => {
       render(
         <BrowserRouter>
           <AuthProvider>
-            <div>Test Content</div>
+            <SubdomainRouter>
+              <div>Test Content</div>
+            </SubdomainRouter>
           </AuthProvider>
         </BrowserRouter>
       );
 
       await waitFor(() => {
-        expect(screen.query('.subdomain-app')).toBeInTheDocument();
-        expect(screen.query('[data-subdomain="test-school"]')).toBeInTheDocument();
+        expect(document.querySelector('.subdomain-app')).toBeInTheDocument();
+        expect(document.querySelector('[data-subdomain="test-school"]')).toBeInTheDocument();
       });
     });
 
-    'useSubdomainContext' should return correct context', () => {
+    test('useSubdomainContext should return correct context', () => {
       window.location.hostname = 'test-school.schoolshubs.com';
       
       const TestComponent = () => {
-        const { isOnSubdomain, currentSubdomain } = require('../../components/SubdomainRouter').useSubdomainContext();
+        const { isOnSubdomain, currentSubdomain } = require('../components/SubdomainRouter').useSubdomainContext();
         return (
           <div>
             <span data-testid="subdomain-status">{isOnSubdomain ? 'on-subdomain' : 'not-on-subdomain'}</span>
@@ -574,19 +573,25 @@ describe('Phase 5 Frontend Integration Tests', () => {
 
       // Mock AuthContext login
       const mockLogin = jest.fn().mockResolvedValue(loginResponse);
-      const AuthProvider = require('../../context/AuthContext').AuthProvider;
+      const { AuthProvider } = require('../context/AuthContext');
+      const { useAuth } = require('../context/AuthContext');
       
+      const LoginTest = () => {
+        const { login } = useAuth();
+        React.useEffect(() => {
+          login('teacher@test.com', 'password123', true);
+        }, [login]);
+        return <div data-testid="auth-content">Auth Content</div>;
+      };
+
+      window.location.hostname = 'test-school.schoolshubs.com';
       render(
         <BrowserRouter>
           <AuthProvider>
-            <div data-testid="auth-content">Auth Content</div>
+            <LoginTest />
           </AuthProvider>
         </BrowserRouter>
       );
-
-      // Call login through context (would normally be done in Login component)
-      const { login } = require('../../context/AuthContext').useAuth();
-      await login('teacher@test.com', 'password123', true);
 
       await waitFor(() => {
         expect(localStorageMock.setItem).toHaveBeenCalledWith('token', 'mock-jwt-token');
@@ -620,13 +625,15 @@ describe('Phase 5 Frontend Integration Tests', () => {
       render(
         <BrowserRouter>
           <AuthProvider>
-            <div data-testid="auth-content">Auth Content</div>
+            <SubdomainRouter>
+              <div data-testid="auth-content">Auth Content</div>
+            </SubdomainRouter>
           </AuthProvider>
         </BrowserRouter>
       );
 
       await waitFor(() => {
-        expect(screen.query('.subdomain-app')).toBeInTheDocument();
+        expect(document.querySelector('.subdomain-app')).toBeInTheDocument();
         // The AuthContext should have loaded the stored data
       });
     });

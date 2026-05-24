@@ -21,6 +21,7 @@ import ExamSelection from './components/ExamSelection';
 import ActiveExams from './components/ActiveExams';
 import ExamResults from './components/ExamResults';
 import AdminDashboard from './components/AdminDashboard';
+import BulkUpload from './components/SchoolAdmin/BulkUpload';
 import AdminLogin from './components/AdminLogin';
 import TeacherProfile from './components/TeacherProfile';
 import TeacherStudents from './components/TeacherStudents';
@@ -98,6 +99,7 @@ function AppLayout() {
         <Route path="/teacher/exam/:examId/results" element={<ProtectedRoute role="teacher"><ExamResults /></ProtectedRoute>} />
         <Route path="/teacher/profile" element={<ProtectedRoute role="teacher"><TeacherProfile /></ProtectedRoute>} />
         <Route path="/admin/dashboard" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/admin/upload-scripts" element={<ProtectedRoute role="admin"><BulkUpload /></ProtectedRoute>} />
         <Route path="/admin/results" element={<ProtectedRoute role="admin"><AdminResults /></ProtectedRoute>} />
         <Route path="/admin/login" element={<AdminLogin />} />
         {/* Super Admin Routes */}

@@ -12,13 +12,14 @@ class SubdomainApiClient {
     this.isSubdomain = this.subdomain !== null;
     
     // Initialize axios instance with interceptors
-    this.axios = axios.create({
+    const axiosCreate = axios.create || (axios.default && axios.default.create);
+    this.axios = axiosCreate ? axiosCreate({
       baseURL: this.baseURL,
       timeout: 10000,
       headers: {
         'Content-Type': 'application/json',
       }
-    });
+    }) : axios;
 
     // Setup request interceptor for authentication
     this.setupRequestInterceptor();
@@ -237,14 +238,17 @@ class SubdomainApiClient {
     });
 
     const config = {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
       onUploadProgress: onProgress ? (progressEvent) => {
         const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
         onProgress(progress);
       } : undefined,
     };
+
+    // Ensure multipart/form-data is used for FormData uploads so the browser
+    // sets the correct boundary header (override default application/json)
+    config.headers = Object.assign({}, config.headers, {
+      'Content-Type': 'multipart/form-data'
+    });
 
     return this.axios.post(url, formData, config);
   }
@@ -266,14 +270,17 @@ class SubdomainApiClient {
     });
 
     const config = {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
       onUploadProgress: onProgress ? (progressEvent) => {
         const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
         onProgress(progress);
       } : undefined,
     };
+
+    // Ensure multipart/form-data is used for FormData uploads so the browser
+    // sets the correct boundary header (override default application/json)
+    config.headers = Object.assign({}, config.headers, {
+      'Content-Type': 'multipart/form-data'
+    });
 
     return this.axios.post(url, formData, config);
   }

@@ -1,19 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { FaUserGraduate, FaChalkboardTeacher, FaStar, FaQuoteLeft, FaSchool, FaGraduationCap, FaUsers, FaTrophy } from 'react-icons/fa';
+import { FaUserGraduate, FaChalkboardTeacher, FaQuoteLeft, FaSchool, FaGraduationCap, FaUsers, FaTrophy, FaUpload } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
+import UploadModal from './UploadModal';
 
 const Home = () => {
   const { user, isAuthenticated } = useAuth();
-  const [currentFeedbackIndex, setCurrentFeedbackIndex] = useState(0);
-
-  // Auto-scroll feedback testimonials
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentFeedbackIndex((prev) => (prev + 1) % testimonials.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
+  const [showUploadModal, setShowUploadModal] = useState(false);
 
   // Redirect authenticated users to their appropriate dashboard
   if ((isAuthenticated && user) || (user && user.role === 'teacher')) {
@@ -51,185 +44,170 @@ const Home = () => {
               />
             </div>
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white mb-6 animate-fade-in">
-              Welcome to <span className="text-yellow-300">Schoolshubs</span>
+              Transforming Nigerian School Management
             </h1>
             <p className="text-xl sm:text-2xl md:text-3xl text-blue-100 mb-8 max-w-4xl mx-auto animate-slide-up">
-              Empowering Nigerian Education, Shaping Tomorrow's Leaders
+              A unified platform for school registration, exam orchestration, student access, and teacher workflows—built for the future of education in Nigeria.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-delay">
               <Link
-                to={isAuthenticated && user?.role === 'student' ? "/exam-selection" : "/auth-email"}
-                className="inline-flex items-center px-8 py-4 border-2 border-white text-lg font-semibold rounded-full text-white hover:bg-white hover:text-blue-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                to="/school-registration"
+                className="inline-flex items-center px-8 py-4 bg-yellow-400 text-lg font-semibold rounded-full text-blue-900 hover:bg-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-lg"
               >
-                <FaGraduationCap className="mr-2" />
-                Take Exam
+                <FaSchool className="mr-2" />
+                Register Your School
               </Link>
               <Link
                 to="/student/login"
-                className="inline-flex items-center px-8 py-4 bg-yellow-400 text-lg font-semibold rounded-full text-blue-800 hover:bg-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                className="inline-flex items-center px-8 py-4 bg-white text-lg font-semibold rounded-full text-blue-700 hover:bg-blue-50 transition-all duration-300 transform hover:scale-105 shadow-lg"
               >
                 <FaUserGraduate className="mr-2" />
-                Student Portal
+                Student Login
+              </Link>
+              <button
+                type="button"
+                onClick={() => setShowUploadModal(true)}
+                className="inline-flex items-center px-8 py-4 border-2 border-white text-lg font-semibold rounded-full text-white hover:bg-white hover:text-blue-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
+              >
+                <FaUpload className="mr-2" />
+                Upload Results
+              </button>
+            </div>
+            <div className="mt-4 text-blue-100 text-base sm:text-lg">
+              <Link
+                to="/teacher/login"
+                className="font-semibold underline hover:text-white"
+              >
+                Teacher Login
               </Link>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Principal's Speech Section */}
+      {/* Mission & Vision Section */}
       <div className="py-16 bg-gradient-to-r from-blue-100 to-indigo-100">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-blue-800 mb-4">
-              Principal's Message
-            </h2>
-            <div className="w-24 h-1 bg-yellow-400 mx-auto rounded-full"></div>
-          </div>
-          
-          <div className="bg-white rounded-2xl shadow-2xl p-8 md:p-12 transform hover:scale-105 transition-all duration-500">
-            <div className="flex items-start space-x-6">
-              <div className="flex-shrink-0">
-                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
-                  <FaSchool className="text-white text-2xl" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid gap-10 lg:grid-cols-2 items-center">
+            <div>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-blue-800 mb-6">
+                Our Mission
+              </h2>
+              <p className="text-lg text-gray-700 leading-relaxed mb-6">
+                To empower Nigerian schools with a simple, secure platform for managing exams, student data, and school registration.
+                We help educators focus on teaching while our system streamlines operational workflows and supports local educational goals.
+              </p>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-blue-800 mb-6">
+                Our Vision
+              </h2>
+              <p className="text-lg text-gray-700 leading-relaxed">
+                To be the trusted digital partner for schools across Nigeria, enabling every student to achieve academic excellence and
+                preparing learners for a competitive, connected future.
+              </p>
+            </div>
+            <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-12">
+              <div className="mb-8">
+                <h3 className="text-2xl font-bold text-blue-800 mb-4">Why this matters</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Nigerian schools deserve tools that respect local curriculum needs, improve exam readiness, and reduce administrative burden.
+                  Schoolshubs creates that bridge by combining school registration, exam delivery, and progress tracking in one affordable platform.
+                </p>
+              </div>
+              <div className="space-y-4">
+                <div className="rounded-2xl border border-blue-200 p-5">
+                  <p className="font-semibold text-blue-800">Local-first design</p>
+                  <p className="text-gray-600">Built for Nigerian school workflows, with education standards and exam formats in mind.</p>
+                </div>
+                <div className="rounded-2xl border border-blue-200 p-5">
+                  <p className="font-semibold text-blue-800">Secure student access</p>
+                  <p className="text-gray-600">Protect student records, manage login access, and keep exam data safe.</p>
+                </div>
+                <div className="rounded-2xl border border-blue-200 p-5">
+                  <p className="font-semibold text-blue-800">Clear school outcomes</p>
+                  <p className="text-gray-600">Track results and share progress with students, parents, and school leaders.</p>
                 </div>
               </div>
-              <div className="flex-1">
-                <h3 className="text-2xl font-bold text-blue-800 mb-4">Dr. Samuel Kenechukwu</h3>
-                <h4 className="text-lg text-blue-600 mb-6">Principal, Schoolshubs</h4>
-                <div className="relative">
-                  <FaQuoteLeft className="text-4xl text-blue-200 absolute -top-2 -left-2" />
-                  <p className="text-lg text-gray-700 leading-relaxed pl-8">
-                    "At Schoolshubs, we believe in fostering a culture of academic excellence, innovation, and character development 
-                    rooted in Nigerian values. Our commitment goes beyond academic achievement; we strive to nurture well-rounded individuals 
-                    who are prepared to face the challenges of tomorrow with confidence and integrity. Through our comprehensive curriculum 
-                    that blends Nigerian educational standards with global best practices, our dedicated faculty, and modern facilities, 
-                    we provide an environment where every student can discover their potential and pursue their dreams. As we continue to 
-                    evolve and adapt to the changing educational landscape, our core values remain steadfast: excellence in education, 
-                    character development, and community engagement. Together, we are building the future leaders of Nigeria and Africa."
-                  </p>
-                </div>
+              <div className="mt-8 text-center">
+                <Link
+                  to="/school-registration"
+                  className="inline-flex items-center justify-center px-8 py-4 bg-blue-700 text-white rounded-full text-lg font-semibold hover:bg-blue-800 transition-all duration-300"
+                >
+                  Register Your School Today
+                </Link>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Portal Cards Section */}
+      {/* Role-Based Access Section */}
       <div className="py-16 bg-gradient-to-br from-blue-200 to-indigo-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-blue-800 mb-4">
-              Access Your Portal
+              One Platform for Schools, Teachers, and Students
             </h2>
             <p className="text-xl text-blue-700 max-w-3xl mx-auto">
-              Choose your role and access the comprehensive features designed for your academic journey
+              Access the tools you need, with clear pathways for every role in the school community.
             </p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {/* Exam Portal */}
-            <div className="bg-white rounded-2xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-300 hover:shadow-2xl">
-              <div className="bg-gradient-to-br from-yellow-400 to-yellow-600 p-6 text-center">
-                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FaGraduationCap className="text-yellow-600 text-2xl" />
-                </div>
-                <h3 className="text-xl font-bold text-white">Exam Portal</h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-white rounded-3xl p-8 shadow-2xl transform hover:scale-105 transition-all duration-300">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <FaSchool className="text-white text-2xl" />
               </div>
-              <div className="p-6">
-                <p className="text-gray-600 mb-6">
-                  Take your assigned exams online in a secure and monitored environment.
-                </p>
-                <Link
-                  to={isAuthenticated && user?.role === 'student' ? "/exam-selection" : "/auth-email"}
-                  className="block w-full bg-yellow-500 text-white text-center py-3 rounded-lg font-semibold hover:bg-yellow-600 transition-colors duration-300"
+              <h3 className="text-2xl font-bold text-blue-800 mb-4">School Leaders</h3>
+              <p className="text-gray-600 mb-6">
+                Register your institution, manage students, and configure exams from a single Nigerian school dashboard.
+              </p>
+              <Link
+                to="/school-registration"
+                className="inline-flex items-center justify-center w-full px-6 py-3 bg-blue-700 text-white rounded-full font-semibold hover:bg-blue-800 transition-colors duration-300"
+              >
+                Register Your School
+              </Link>
+            </div>
+
+            <div className="bg-white rounded-3xl p-8 shadow-2xl transform hover:scale-105 transition-all duration-300">
+              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                <FaChalkboardTeacher className="text-white text-2xl" />
+              </div>
+              <h3 className="text-2xl font-bold text-blue-800 mb-4">Teachers</h3>
+              <p className="text-gray-600 mb-6">
+                Upload results, create exams, and support student success with tools built for Nigerian classrooms.
+              </p>
+              <Link
+                to="/teacher/login"
+                className="inline-flex items-center justify-center w-full px-6 py-3 bg-green-600 text-white rounded-full font-semibold hover:bg-green-700 transition-colors duration-300"
+              >
+                Teacher Login
+              </Link>
+              <div className="mt-3">
+                <button
+                  type="button"
+                  onClick={() => setShowUploadModal(true)}
+                  className="block w-full text-center px-6 py-2 border border-green-600 text-green-700 rounded-full font-medium hover:bg-green-50 transition-colors duration-200"
                 >
-                  Start Exam
-                </Link>
+                  Upload Results
+                </button>
               </div>
             </div>
 
-            {/* Student Portal */}
-            <div className="bg-white rounded-2xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-300 hover:shadow-2xl">
-              <div className="bg-gradient-to-br from-blue-500 to-blue-700 p-6 text-center">
-                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FaUserGraduate className="text-blue-600 text-2xl" />
-                </div>
-                <h3 className="text-xl font-bold text-white">Student Portal</h3>
+            <div className="bg-white rounded-3xl p-8 shadow-2xl transform hover:scale-105 transition-all duration-300">
+              <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <FaUserGraduate className="text-white text-2xl" />
               </div>
-              <div className="p-6">
-                <p className="text-gray-600 mb-6">
-                  Access your academic records, view results, and manage your profile.
-                </p>
-                <Link
-                  to="/student/login"
-                  className="block w-full bg-blue-600 text-white text-center py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-300"
-                >
-                  Student Login
-                </Link>
-              </div>
-            </div>
-
-            {/* Teacher Portal */}
-            <div className="bg-white rounded-2xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-300 hover:shadow-2xl">
-              <div className="bg-gradient-to-br from-green-500 to-green-700 p-6 text-center">
-                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FaChalkboardTeacher className="text-green-600 text-2xl" />
-                </div>
-                <h3 className="text-xl font-bold text-white">Teacher Portal</h3>
-              </div>
-              <div className="p-6">
-                <p className="text-gray-600 mb-6">
-                  Manage classes, upload results, and track student progress.
-                </p>
-                <Link
-                  to="/teacher/login"
-                  className="block w-full bg-green-600 text-white text-center py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors duration-300"
-                >
-                  Teacher Login
-                </Link>
-              </div>
-            </div>
-
-            {/* Admin Portal */}
-            <div className="bg-white rounded-2xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-300 hover:shadow-2xl">
-              <div className="bg-gradient-to-br from-red-500 to-red-700 p-6 text-center">
-                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FaUsers className="text-red-600 text-2xl" />
-                </div>
-                <h3 className="text-xl font-bold text-white">Admin Portal</h3>
-              </div>
-              <div className="p-6">
-                <p className="text-gray-600 mb-6">
-                  Administrative access for system management and oversight.
-                </p>
-                <Link
-                  to="/admin/login"
-                  className="block w-full bg-red-600 text-white text-center py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors duration-300"
-                >
-                  Admin Login
-                </Link>
-              </div>
-            </div>
-
-            {/* School Registration */}
-            <div className="bg-white rounded-2xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-300 hover:shadow-2xl">
-              <div className="bg-gradient-to-br from-purple-500 to-purple-700 p-6 text-center">
-                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FaSchool className="text-purple-600 text-2xl" />
-                </div>
-                <h3 className="text-xl font-bold text-white">Register School</h3>
-              </div>
-              <div className="p-6">
-                <p className="text-gray-600 mb-6">
-                  Register your school to manage exams and students.
-                </p>
-                <Link
-                  to="/school-registration"
-                  className="block w-full bg-purple-600 text-white text-center py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors duration-300"
-                >
-                  Register School
-                </Link>
-              </div>
+              <h3 className="text-2xl font-bold text-blue-800 mb-4">Students</h3>
+              <p className="text-gray-600 mb-6">
+                Log in to take exams, view results, and track your progress with a secure student portal.
+              </p>
+              <Link
+                to="/student/login"
+                className="inline-flex items-center justify-center w-full px-6 py-3 bg-yellow-400 text-blue-900 rounded-full font-semibold hover:bg-yellow-300 transition-colors duration-300"
+              >
+                Student Login
+              </Link>
             </div>
           </div>
         </div>
@@ -240,103 +218,52 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-blue-800 mb-4">
-              Why Choose Schoolshubs?
+              Why Schools Choose Schoolshubs
             </h2>
             <p className="text-xl text-blue-700 max-w-3xl mx-auto">
-              Discover the unique features that make Schoolshubs the preferred choice for quality Nigerian education
+              Practical tools for Nigerian schools that combine exam management, student access, and teacher productivity.
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white rounded-2xl p-8 shadow-xl transform hover:scale-105 transition-all duration-300 text-center">
+            <div className="bg-white rounded-3xl p-8 shadow-2xl transform hover:scale-105 transition-all duration-300 text-center">
               <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <FaTrophy className="text-white text-2xl" />
               </div>
-              <h3 className="text-xl font-bold text-blue-800 mb-4">Academic Excellence</h3>
+              <h3 className="text-xl font-bold text-blue-800 mb-4">Exam Confidence</h3>
               <p className="text-gray-600">
-                Consistently achieving outstanding WAEC, NECO, and JAMB results with a proven track record of student success in Nigerian examinations.
+                Built to support WAEC, NECO, and JAMB readiness with secure online exam delivery and automated reporting.
               </p>
             </div>
             
-            <div className="bg-white rounded-2xl p-8 shadow-xl transform hover:scale-105 transition-all duration-300 text-center">
+            <div className="bg-white rounded-3xl p-8 shadow-2xl transform hover:scale-105 transition-all duration-300 text-center">
               <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <FaUsers className="text-white text-2xl" />
               </div>
-              <h3 className="text-xl font-bold text-blue-800 mb-4">Expert Nigerian Faculty</h3>
+              <h3 className="text-xl font-bold text-blue-800 mb-4">Teacher Empowerment</h3>
               <p className="text-gray-600">
-                Experienced and dedicated Nigerian teachers committed to nurturing each student's potential with deep understanding of local educational needs.
+                Manage classes, upload results, and keep students engaged with tools made for modern Nigerian classrooms.
               </p>
             </div>
             
-            <div className="bg-white rounded-2xl p-8 shadow-xl transform hover:scale-105 transition-all duration-300 text-center">
+            <div className="bg-white rounded-3xl p-8 shadow-2xl transform hover:scale-105 transition-all duration-300 text-center">
               <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <FaGraduationCap className="text-white text-2xl" />
               </div>
-              <h3 className="text-xl font-bold text-blue-800 mb-4">Modern Nigerian Curriculum</h3>
+              <h3 className="text-xl font-bold text-blue-800 mb-4">Student Success</h3>
               <p className="text-gray-600">
-                State-of-the-art facilities and digital learning platforms aligned with Nigerian educational standards and global best practices.
+                Give students a secure portal to take exams, check results, and stay motivated across their academic journey.
               </p>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Testimonials Section with Scrolling Effect */}
-      <div className="py-16 bg-gradient-to-br from-blue-600 to-indigo-800">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
-              What Our Community Says
-            </h2>
-            <p className="text-xl text-blue-200 max-w-3xl mx-auto">
-              Hear from our students, parents, and guardians about their experience at Schoolshubs
-            </p>
-          </div>
-          
-          <div className="relative">
-            <div className="overflow-hidden">
-              <div 
-                className="flex transition-transform duration-1000 ease-in-out"
-                style={{ transform: `translateX(-${currentFeedbackIndex * 100}%)` }}
-              >
-                {testimonials.map((testimonial, index) => (
-                  <div key={index} className="w-full flex-shrink-0 px-4">
-                    <div className="bg-white rounded-2xl p-8 md:p-12 shadow-2xl">
-                      <div className="flex items-center mb-6">
-                        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mr-4">
-                          <span className="text-white text-xl font-bold">{testimonial.name.charAt(0)}</span>
-                        </div>
-                        <div>
-                          <h4 className="text-xl font-bold text-blue-800">{testimonial.name}</h4>
-                          <p className="text-blue-600">{testimonial.role}</p>
-                        </div>
-                      </div>
-                      <div className="flex mb-4">
-                        {[...Array(5)].map((_, i) => (
-                          <FaStar key={i} className="text-yellow-400 text-xl" />
-                        ))}
-                      </div>
-                      <p className="text-gray-700 text-lg leading-relaxed italic">
-                        "{testimonial.message}"
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            {/* Navigation Dots */}
-            <div className="flex justify-center mt-8 space-x-2">
-              {testimonials.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentFeedbackIndex(index)}
-                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                    index === currentFeedbackIndex ? 'bg-white' : 'bg-white/50'
-                  }`}
-                />
-              ))}
-            </div>
+          <div className="mt-12 text-center">
+            <Link
+              to="/school-registration"
+              className="inline-flex items-center justify-center px-8 py-4 bg-blue-700 text-white rounded-full text-lg font-semibold hover:bg-blue-800 transition-all duration-300"
+            >
+              Start Your School Registration
+            </Link>
           </div>
         </div>
       </div>
@@ -426,7 +353,6 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Footer */}
       <footer className="bg-gradient-to-r from-blue-800 to-indigo-900 text-white py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-lg">
@@ -437,38 +363,10 @@ const Home = () => {
           </p>
         </div>
       </footer>
+      <UploadModal isOpen={showUploadModal} onClose={() => setShowUploadModal(false)} />
     </div>
   );
 };
-
-// Testimonials data
-const testimonials = [
-  {
-    name: "Adebayo Olatunji",
-    role: "Parent",
-    message: "Schoolshubs has transformed my child's academic journey. The teachers are dedicated, the facilities are excellent, and the WAEC results speak for themselves. My daughter has grown not just academically but as a confident Nigerian leader."
-  },
-  {
-    name: "Chinyere Okonkwo",
-    role: "Student",
-    message: "Being a student at Schoolshubs has been an amazing experience. The teachers are supportive, the curriculum aligns with Nigerian standards, and I've made friends for life. The school truly prepares you for JAMB and university success."
-  },
-  {
-    name: "Dr. Fatima Abdullahi",
-    role: "Parent & Guardian",
-    message: "As both a parent and guardian, I can confidently say that Schoolshubs provides exceptional Nigerian education. The school's commitment to academic excellence and character development is evident in every aspect."
-  },
-  {
-    name: "Emeka Eze",
-    role: "Parent",
-    message: "The personalized attention my son receives at Schoolshubs is remarkable. The teachers know each student individually and tailor their approach accordingly. The NECO and JAMB results have been outstanding."
-  },
-  {
-    name: "Ngozi Adekunle",
-    role: "Guardian",
-    message: "Schoolshubs has exceeded all my expectations. The modern facilities, dedicated Nigerian staff, and comprehensive curriculum create an ideal learning environment. I highly recommend this school."
-  }
-];
 
 // Add FAQ data at the bottom, before export
 const FAQS = [

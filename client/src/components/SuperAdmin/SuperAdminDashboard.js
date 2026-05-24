@@ -19,6 +19,7 @@ import SchoolApprovalSimple from './SchoolApprovalSimple';
 import SchoolMetricsSimple from './SchoolMetricsSimple';
 import AdminAssignment from './AdminAssignment';
 import AuditLogSimple from './AuditLogSimple';
+import ScriptUploadsReview from './ScriptUploadsReview';
 import { API_URL } from '../../services/api';
 
 const SuperAdminDashboard = () => {
@@ -71,6 +72,7 @@ const SuperAdminDashboard = () => {
   const navItems = [
     { id: 'overview', label: 'Overview', icon: TrendingUp },
     { id: 'approvals', label: 'Approvals', icon: FileText },
+    { id: 'uploads', label: 'Script Uploads', icon: FileText },
     { id: 'metrics', label: 'Metrics', icon: BarChart3 },
     { id: 'admins', label: 'Admin Mgmt', icon: Users },
     { id: 'audit', label: 'Audit Log', icon: ClipboardList }
@@ -229,6 +231,8 @@ const SuperAdminDashboard = () => {
         return renderOverview();
       case 'approvals':
         return <SchoolApprovalSimple />;
+      case 'uploads':
+        return <ScriptUploadsReview />;
       case 'metrics':
         return <SchoolMetricsSimple />;
       case 'admins':

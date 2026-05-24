@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useContext } from 'react';
 import { useSubdomainContext } from './SubdomainRouter';
-import { AuthContext } from '../context/AuthContext';
+import AuthContext from '../context/AuthContext';
 import apiClient from '../services/subdomainApi';
 import { 
   Users, 

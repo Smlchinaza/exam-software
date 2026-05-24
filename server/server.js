@@ -29,12 +29,17 @@ const studentResults = require('./routes/student-results');
 const superAdminPostgres = require('./routes/super-admin-postgres');
 const schoolHomepages = require('./routes/school-homepages');
 const passwordManagement = require('./routes/password-management');
+const uploadsPostgres = require('./routes/uploads-postgres');
 const superAdminPasswordReset = require('./routes/super-admin-password-reset');
 
 // (dotenv already loaded above)
 
 const app = express();
 app.set('trust proxy', 1);
+
+// Serve uploaded files (uploads/) publicly for previewing approved/pending files
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Update CORS configuration for dynamic subdomains
 const corsOptions = {
@@ -120,6 +125,7 @@ app.use("/api/student-results", studentResults);
 app.use("/api/super-admin", superAdminPostgres);
 app.use("/api/school-homepages", schoolHomepages);
 app.use("/api/password", passwordManagement);
+app.use('/api/uploads', uploadLimiter, uploadsPostgres);
 
 // Legacy MongoDB routes (for backward compatibility)
 const subjects = require('./routes/subjects');
