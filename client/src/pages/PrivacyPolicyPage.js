@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronUp, ExternalLink } from 'lucide-react';
+import { ChevronUp } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -156,7 +156,6 @@ If you have unresolved privacy concerns, you can lodge a complaint with your loc
 `;
 
 const LegalDocumentPage = ({ title, content }) => {
-  const [showTableOfContents, setShowTableOfContents] = useState(false);
   const [headings, setHeadings] = useState([]);
   const [scrollProgress, setScrollProgress] = useState(0);
 
@@ -239,17 +238,25 @@ const LegalDocumentPage = ({ title, content }) => {
               <ReactMarkdown 
                 remarkPlugins={[remarkGfm]}
                 components={{
-                  h1: ({ node, ...props }) => (
-                    <h1 className="text-4xl font-bold text-gray-900 mt-8 mb-6 border-b-4 border-blue-500 pb-4" {...props} />
+                  h1: ({ node, children, ...props }) => (
+                    <h1 className="text-4xl font-bold text-gray-900 mt-8 mb-6 border-b-4 border-blue-500 pb-4" {...props}>
+                      {children}
+                    </h1>
                   ),
-                  h2: ({ node, ...props }) => (
-                    <h2 className="text-2xl font-bold text-gray-800 mt-6 mb-4 text-blue-600" {...props} />
+                  h2: ({ node, children, ...props }) => (
+                    <h2 className="text-2xl font-bold text-gray-800 mt-6 mb-4 text-blue-600" {...props}>
+                      {children}
+                    </h2>
                   ),
-                  h3: ({ node, ...props }) => (
-                    <h3 className="text-xl font-semibold text-gray-700 mt-5 mb-3" {...props} />
+                  h3: ({ node, children, ...props }) => (
+                    <h3 className="text-xl font-semibold text-gray-700 mt-5 mb-3" {...props}>
+                      {children}
+                    </h3>
                   ),
-                  h4: ({ node, ...props }) => (
-                    <h4 className="text-lg font-semibold text-gray-600 mt-4 mb-2" {...props} />
+                  h4: ({ node, children, ...props }) => (
+                    <h4 className="text-lg font-semibold text-gray-600 mt-4 mb-2" {...props}>
+                      {children}
+                    </h4>
                   ),
                   p: ({ node, ...props }) => (
                     <p className="text-gray-700 leading-relaxed mb-4" {...props} />
@@ -274,8 +281,10 @@ const LegalDocumentPage = ({ title, content }) => {
                   td: ({ node, ...props }) => (
                     <td className="border border-gray-300 px-4 py-2" {...props} />
                   ),
-                  a: ({ node, ...props }) => (
-                    <a className="text-blue-600 hover:text-blue-800 underline" {...props} />
+                  a: ({ node, children, ...props }) => (
+                    <a className="text-blue-600 hover:text-blue-800 underline" {...props}>
+                      {children}
+                    </a>
                   ),
                   blockquote: ({ node, ...props }) => (
                     <blockquote className="border-l-4 border-blue-500 bg-blue-50 p-4 my-4 italic" {...props} />

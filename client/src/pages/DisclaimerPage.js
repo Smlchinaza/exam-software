@@ -388,14 +388,20 @@ const DisclaimerPage = () => {
           <ReactMarkdown 
             remarkPlugins={[remarkGfm]}
             components={{
-              h1: ({ node, ...props }) => (
-                <h1 className="text-4xl font-bold text-gray-900 mt-8 mb-6 border-b-4 border-red-500 pb-4" {...props} />
+              h1: ({ node, children, ...props }) => (
+                <h1 className="text-4xl font-bold text-gray-900 mt-8 mb-6 border-b-4 border-red-500 pb-4" {...props}>
+                  {children}
+                </h1>
               ),
-              h2: ({ node, ...props }) => (
-                <h2 className="text-2xl font-bold text-gray-800 mt-6 mb-4 text-red-600" {...props} />
+              h2: ({ node, children, ...props }) => (
+                <h2 className="text-2xl font-bold text-gray-800 mt-6 mb-4 text-red-600" {...props}>
+                  {children}
+                </h2>
               ),
-              h3: ({ node, ...props }) => (
-                <h3 className="text-xl font-semibold text-gray-700 mt-5 mb-3" {...props} />
+              h3: ({ node, children, ...props }) => (
+                <h3 className="text-xl font-semibold text-gray-700 mt-5 mb-3" {...props}>
+                  {children}
+                </h3>
               ),
               p: ({ node, ...props }) => (
                 <p className="text-gray-700 leading-relaxed mb-4" {...props} />
