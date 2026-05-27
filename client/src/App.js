@@ -33,6 +33,11 @@ import SubdomainTestPage from './pages/SubdomainTestPage';
 import SuperAdminLogin from './components/SuperAdmin/SuperAdminLogin';
 import SuperAdminDashboard from './components/SuperAdmin/SuperAdminDashboard';
 import SchoolHomepage from './components/SchoolHomepage';
+import LegalHub from './pages/LegalHub';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import TermsOfServicePage from './pages/TermsOfServicePage';
+import DisclaimerPage from './pages/DisclaimerPage';
+
 // Placeholder components for scaffolding
 const TeacherSettings = () => <div className="p-8">Settings Page (Coming Soon)</div>;
 
@@ -83,6 +88,10 @@ function AppLayout() {
         <Route path="/result-preview" element={<ResultPreviewPage />} />
         <Route path="/subdomain-test" element={<SubdomainTestPage />} />
         <Route path="/homepage/:subdomain" element={<SchoolHomepage />} />
+        <Route path="/legal" element={<LegalHub />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+        <Route path="/disclaimer" element={<DisclaimerPage />} />
         {/* Protected Student Routes */}
         <Route path="/student/dashboard" element={<ProtectedRoute role="student"><StudentDashboard /></ProtectedRoute>} />
         <Route path="/student/profile" element={<ProtectedRoute role="student"><StudentProfile /></ProtectedRoute>} />

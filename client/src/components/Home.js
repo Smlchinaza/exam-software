@@ -39,7 +39,7 @@ const Home = () => {
             <div className="flex justify-center mb-8">
               <img 
                 src={require('../assets/images/SpectraLogo.jpg')} 
-                alt="Schoolshubs Logo" 
+                alt="Schools Hubs Logo" 
                 className="h-20 w-20 rounded-full shadow-lg animate-float"
               />
             </div>
@@ -48,6 +48,9 @@ const Home = () => {
             </h1>
             <p className="text-xl sm:text-2xl md:text-3xl text-blue-100 mb-8 max-w-4xl mx-auto animate-slide-up">
               A unified platform for school registration, exam orchestration, student access, and teacher workflows, built for the future of education in Nigeria.
+            </p>
+            <p className="text-base sm:text-lg text-blue-200 max-w-3xl mx-auto">
+              Designed exclusively for Nigerian schools, students, teachers, and education administrators.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-delay">
               <Link
@@ -110,7 +113,7 @@ const Home = () => {
                 <h3 className="text-2xl font-bold text-blue-800 mb-4">Why this matters</h3>
                 <p className="text-gray-600 leading-relaxed">
                   Nigerian schools deserve tools that respect local curriculum needs, improve exam readiness, and reduce administrative burden.
-                  Schoolshubs creates that bridge by combining school registration, exam delivery, and progress tracking in one affordable platform.
+                  Schools Hubs creates that bridge by combining school registration, exam delivery, and progress tracking in one affordable platform.
                 </p>
               </div>
               <div className="space-y-4">
@@ -218,7 +221,7 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-blue-800 mb-4">
-              Why Schools Choose Schoolshubs
+              Why Schools Choose Schools Hubs
             </h2>
             <p className="text-xl text-blue-700 max-w-3xl mx-auto">
               Practical tools for Nigerian schools that combine exam management, student access, and teacher productivity.
@@ -337,15 +340,15 @@ const Home = () => {
               <div className="space-y-4">
                 <h3 className="text-xl font-bold text-blue-800 mb-4">Quick Links</h3>
                 <div className="space-y-3">
-                  <a href="/privacy" className="block text-blue-600 hover:text-blue-800 transition-colors duration-300">
+                    <Link to="/privacy-policy" className="block text-blue-600 hover:text-blue-800 transition-colors duration-300">
                     Privacy Policy
-                  </a>
-                  <a href="/disclaimer" className="block text-blue-600 hover:text-blue-800 transition-colors duration-300">
+                  </Link>
+                  <Link to="/disclaimer" className="block text-blue-600 hover:text-blue-800 transition-colors duration-300">
                     Disclaimer
-                  </a>
-                  <a href="/terms" className="block text-blue-600 hover:text-blue-800 transition-colors duration-300">
+                  </Link>
+                  <Link to="/terms-of-service" className="block text-blue-600 hover:text-blue-800 transition-colors duration-300">
                     Terms of Service
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -356,7 +359,7 @@ const Home = () => {
       <footer className="bg-gradient-to-r from-blue-800 to-indigo-900 text-white py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-lg">
-            &copy; {new Date().getFullYear()} Schoolshubs. All rights reserved.
+            &copy; {new Date().getFullYear()} Schools Hubs. All rights reserved.
           </p>
           <p className="text-blue-200 mt-2">
             Empowering Nigerian Education, Shaping Tomorrow's Leaders
